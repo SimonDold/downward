@@ -242,6 +242,7 @@ void LandmarkCountHeuristic::generate_preferred_operators(
             if (lm_node && landmark_is_interesting(
                     state, reached, *lm_node, all_landmarks_reached)) {
                 set_preferred(op);
+                break;
             }
             if (lgraph->contains_conjunctive_landmark(fact_proxy.get_pair())) {
                 vector<LandmarkNode *> conjunctive_landmarks = lgraph->get_conjunctive_landmarks(fact_proxy.get_pair());
