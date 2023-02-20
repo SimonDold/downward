@@ -74,7 +74,7 @@ DEFAULT_SATISFICING_SUITE = [
     'organic-synthesis-sat18-strips',
     'organic-synthesis-split-sat18-strips', 'parcprinter-08-strips',
     'parcprinter-sat11-strips', 'parking-sat11-strips',
-    'parking-sat14-strips', 'pathways', 
+    'parking-sat14-strips', 'pathways',
     'pegsol-08-strips', 'pegsol-sat11-strips', 'philosophers',
     'pipesworld-notankage', 'pipesworld-tankage', 'psr-large',
     'psr-middle', 'psr-small', 'rovers', 'satellite',
@@ -121,19 +121,9 @@ def get_data_dir():
     return os.path.join(get_script_dir(), "data", get_experiment_name())
 
 
-def get_repo_base():
-    """Get base directory of the repository, as an absolute path.
-
-    Search upwards in the directory tree from the main script until a
-    directory with a subdirectory named ".git" is found.
-
-    Abort if the repo base cannot be found."""
-    path = os.path.abspath(get_script_dir())
-    while os.path.dirname(path) != path:
-        if os.path.exists(os.path.join(path, ".git")):
-            return path
-        path = os.path.dirname(path)
-    sys.exit("repo base could not be found")
+def is_repo_base(path):
+    """Check if the given path points to a Git repository."""
+    return os.path.exists(os.path.join(path, ".git"))
 
 
 def is_running_on_cluster():
@@ -177,7 +167,6 @@ class IssueExperiment(FastDownwardExperiment):
         "evaluations",
         "expansions",
         "expansions_until_last_jump",
-        "initial_h_value",
         "generated",
         "memory",
         "planner_memory",
@@ -212,7 +201,7 @@ class IssueExperiment(FastDownwardExperiment):
         "run_dir",
         ]
 
-    def __init__(self, revisions=None, configs=None, path=None, **kwargs):
+    def __init__(self, repo_base, revisions=None, configs=None, path=None, **kwargs):
         """
 
         You can either specify both *revisions* and *configs* or none
@@ -247,6 +236,9 @@ class IssueExperiment(FastDownwardExperiment):
 
         """
 
+        if not is_repo_base(repo_base):
+            sys.exit(f"repo base '{repo_base}' could not be found or does not contain a git repository.")
+
         path = path or get_data_dir()
 
         FastDownwardExperiment.__init__(self, path=path, **kwargs)
@@ -259,7 +251,7 @@ class IssueExperiment(FastDownwardExperiment):
             for config in configs:
                 self.add_algorithm(
                     get_algo_nick(rev, config.nick),
-                    get_repo_base(),
+                    repo_base,
                     rev,
                     config.component_options,
                     build_options=config.build_options,
@@ -301,7 +293,7 @@ class IssueExperiment(FastDownwardExperiment):
             get_experiment_name() + "." + report.output_format)
         self.add_report(report, outfile=outfile)
 
-    def add_comparison_table_step(self, **kwargs):
+    def add_comparison_table_step(self, revision_pairs=[], **kwargs):
         """Add a step that makes pairwise revision comparisons.
 
         Create comparative reports for all pairs of Fast Downward
@@ -318,8 +310,10 @@ class IssueExperiment(FastDownwardExperiment):
         """
         kwargs.setdefault("attributes", self.DEFAULT_TABLE_ATTRIBUTES)
 
+        if not revision_pairs:
+            revision_pairs = [(rev1, rev2) for rev1, rev2 in itertools.combinations(self._revisions, 2)]
         def make_comparison_tables():
-            for rev1, rev2 in itertools.combinations(self._revisions, 2):
+            for rev1, rev2 in revision_pairs:
                 compared_configs = []
                 for config in self._configs:
                     config_nick = config.nick
@@ -364,19 +358,11 @@ class IssueExperiment(FastDownwardExperiment):
             print("Make scatter plot for", name)
             algo1 = get_algo_nick(rev1, config_nick)
             algo2 = get_algo_nick(rev2, config_nick if config_nick2 is None else config_nick2)
-            if attribute == "cost":
-                report = ScatterPlotReport(
-                    filter_algorithm=[algo1, algo2],
-                    attributes=[attribute],
-                    relative=relative,
-                    scale="log",
-                    get_category=lambda run1, run2: run1["domain"])
-            else:
-                report = ScatterPlotReport(
-                    filter_algorithm=[algo1, algo2],
-                    attributes=[attribute],
-                    relative=relative,
-                    get_category=lambda run1, run2: run1["domain"])
+            report = ScatterPlotReport(
+                filter_algorithm=[algo1, algo2],
+                attributes=[attribute],
+                relative=relative,
+                get_category=lambda run1, run2: run1["domain"])
             report(
                 self.eval_dir,
                 os.path.join(scatter_dir, rev1 + "-" + rev2, name))
