@@ -111,4 +111,6 @@ extern void add_evaluator_options_to_feature(plugins::Feature &feature); // TODO
 
 extern std::shared_ptr<std::tuple<std::string, utils::Verbosity>> get_evaluator_parameters_from_options(const plugins::Options &opts);
 
+static std::shared_ptr<std::tuple<std::string, utils::Verbosity>> get_own_parameters_from_options(const plugins::Options &opts);
+
 #endif

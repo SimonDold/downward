@@ -296,6 +296,8 @@ public:
         auto parameter_tuple = make_shared<tuple<int, shared_ptr<AbstractTask>, bool, string, utils::Verbosity>>(tuple_cat(make_tuple(options.get<int>("m")),
                                           *Heuristic::get_heuristic_parameters_from_options(options)));
         return plugins::make_shared_from_tuple<HMHeuristic>(parameter_tuple);
+
+        return make_shared_by_magic<HMHeuristic>(options, options.get<int>("m"));
     }
 };
 

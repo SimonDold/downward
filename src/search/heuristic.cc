@@ -140,3 +140,21 @@ int Heuristic::get_cached_estimate(const State &state) const {
     assert(is_estimate_cached(state));
     return heuristic_cache[state].h;
 }
+
+shared_ptr<tuple<shared_ptr<AbstractTask>, bool, string, utils::Verbosity>> Heuristic::get_own_parameters_from_options(const plugins::Options &opts) {
+    auto parent_parameter_tuple = Evaluator::get_own_parameters_from_options(opts);
+    auto own_parameter_tuple = make_tuple(
+            opts.get<shared_ptr<AbstractTask>>("transform"),
+            opts.get<bool>("cache_estimates")
+    );
+    return make_shared<tuple<shared_ptr<AbstractTask>, bool, string, utils::Verbosity>>(tuple_cat(own_parameter_tuple, *parent_parameter_tuple));
+}
+
+template<typename ConcreteComponent, typename ParentComponent, typename ...Args>
+std::shared_ptr<ConcreteComponent> make_shared_by_magic(const plugins::Options &opts, Args ... args){
+    tuple<Args...> child_tuple = make_tuple<Args...>(args...);
+    tuple own_tuple = make_shared(ParentComponent::get_own_parameters_from_options(opts));
+
+    tuple full_tuple = tuple_cat(child_tuple, own_tuple);
+    plugins::make_shared_from_tuple<ConcreteComponent>(full_tuple)
+}

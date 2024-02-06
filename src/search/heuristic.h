@@ -88,8 +88,9 @@ public:
     static void add_options_to_feature(plugins::Feature &feature, const std::string &description);
     static void add_options_to_feature(plugins::Feature &feature); // TODO 1082 remove this, just keep the one above
 
-    static std::shared_ptr<std::tuple<std::shared_ptr<AbstractTask>, bool, std::string, utils::Verbosity>>
-    get_heuristic_parameters_from_options(const plugins::Options &opts);
+    static std::shared_ptr<std::tuple<std::shared_ptr<AbstractTask>, bool, std::string, utils::Verbosity>> get_heuristic_parameters_from_options(const plugins::Options &opts);
+
+    static std::shared_ptr<std::tuple<std::shared_ptr<AbstractTask>, bool, std::string, utils::Verbosity>> get_own_parameters_from_options(const plugins::Options &opts);
 
     virtual EvaluationResult compute_result(
         EvaluationContext &eval_context) override;
@@ -97,6 +98,12 @@ public:
     virtual bool does_cache_estimates() const override;
     virtual bool is_estimate_cached(const State &state) const override;
     virtual int get_cached_estimate(const State &state) const override;
+
+    template<typename ConcreteHeuristic, typename ...Args>
+    std::shared_ptr<ConcreteHeuristic> make_shared_by_magic(const plugins::Options &opts, Args ... args);
 };
+
+template<>
+std::shared_ptr<std::tuple<std::shared_ptr<AbstractTask>, bool, std::string, utils::Verbosity>> get_own_parameters_from_options<Heuristic>(const plugins::Options &opts);
 
 #endif
