@@ -9,6 +9,7 @@
 #include "../plugins/options.h"
 #include "../task_utils/successor_generator.h"
 #include "../utils/logging.h"
+#include "../utils/proof_logging.h"
 
 #include <cassert>
 #include <cstdlib>
@@ -127,6 +128,8 @@ SearchStatus EagerSearch::step() {
 
         if (node->is_closed())
             continue;
+
+        utils::add_state_reification(id, s);
 
         /*
           We can pass calculate_preferred=false here since preferred

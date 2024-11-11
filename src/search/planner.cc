@@ -33,6 +33,7 @@ int main(int argc, const char **argv) {
         shared_ptr<SearchAlgorithm> search_algorithm =
             parse_cmd_line(argc, argv, unit_cost);
 
+        remove("proof_log");
 
         utils::Timer search_timer;
         search_algorithm->search();
