@@ -11,6 +11,7 @@
 #include "task_proxy.h"
 
 #include "utils/logging.h"
+#include "utils/proof_logging.h"
 
 #include <vector>
 
@@ -42,6 +43,7 @@ protected:
     TaskProxy task_proxy;
 
     mutable utils::LogProxy log;
+    mutable utils::ProofLog proof_log;
     PlanManager plan_manager;
     StateRegistry state_registry;
     const successor_generator::SuccessorGenerator &successor_generator;

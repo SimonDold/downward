@@ -7,9 +7,17 @@
 #include <string>
 
 namespace utils {
-    void appendLineToFile(std::string file_name, std::string line);
 
+class ProofLog{
+    std::string file_name;
+
+public:
+    explicit ProofLog(const std::string &file_name);
+
+    void append_to_proof_log(const std::string& line);
     void add_state_reification(StateID id, State s);
+};
+
 }
 
 #endif

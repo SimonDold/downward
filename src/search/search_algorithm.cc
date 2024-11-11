@@ -48,6 +48,7 @@ SearchAlgorithm::SearchAlgorithm(
       task(tasks::g_root_task),
       task_proxy(*task),
       log(utils::get_log_for_verbosity(verbosity)),
+      proof_log("proof_log"),
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy, log)),
       search_space(state_registry, log),
@@ -71,6 +72,7 @@ SearchAlgorithm::SearchAlgorithm(const plugins::Options &opts) // TODO options o
       task_proxy(*task),
       log(utils::get_log_for_verbosity(
               opts.get<utils::Verbosity>("verbosity"))),
+      proof_log("proof_log"),
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy, log)),
       search_space(state_registry, log),
