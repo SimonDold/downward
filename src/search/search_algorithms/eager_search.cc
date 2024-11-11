@@ -129,8 +129,6 @@ SearchStatus EagerSearch::step() {
         if (node->is_closed())
             continue;
 
-        proof_log.add_state_reification(id, s);
-
         /*
           We can pass calculate_preferred=false here since preferred
           operators are computed when the state is expanded.
@@ -172,6 +170,7 @@ SearchStatus EagerSearch::step() {
         }
 
         node->close();
+        proof_log.add_node_reification(node);
         assert(!node->is_dead_end());
         update_f_value_statistics(eval_context);
         statistics.inc_expanded();
@@ -201,6 +200,9 @@ SearchStatus EagerSearch::step() {
     }
 
     for (OperatorID op_id : applicable_ops) {
+
+        proof_log.add_node_action_invariant(op_id, node);
+
         OperatorProxy op = task_proxy.get_operators()[op_id];
         if ((node->get_real_g() + op.get_cost()) >= bound)
             continue;
