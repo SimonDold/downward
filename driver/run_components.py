@@ -63,6 +63,7 @@ def run_translate(args):
     translate = get_executable(args.build, REL_TRANSLATE_PATH)
     assert sys.executable, "Path to interpreter could not be found"
     cmd = [sys.executable] + [translate] + args.translate_inputs + args.translate_options
+    cmd += args.proof_inputs + args.proof_options
 
     stderr, returncode = call.get_error_output_and_returncode(
         "translator",

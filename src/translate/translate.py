@@ -719,8 +719,9 @@ def main():
     dump_statistics(sas_task)
 
     with timers.timing("Writing output"):
-        with open(options.sas_file, "w") as output_file:
-            sas_task.output(output_file)
+        with open(options.sas_file, "w") as sas_output_file:
+            with open(options.opb_file, "w") as opb_output_file:
+                sas_task.output(sas_output_file, opb_output_file)
     print("Done! %s" % timer)
 
 

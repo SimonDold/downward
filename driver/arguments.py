@@ -103,6 +103,7 @@ Examples:
 
 COMPONENTS_PLUS_OVERALL = ["translate", "search", "validate", "overall"]
 DEFAULT_SAS_FILE = Path("output.sas")
+DEFAULT_OPB_FILE = Path("output.opb")
 
 
 """
@@ -166,13 +167,14 @@ def _split_off_filenames(planner_args):
 
 def _split_planner_args(parser, args):
     """Partition args.planner_args, the list of arguments for the
-    planner components, into args.filenames, args.translate_options
-    and args.search_options. Modifies args directly and removes the original
-    args.planner_args list."""
+    planner components, into args.filenames, args.translate_options,
+    args.proof_options and args.search_options. Modifies args directly
+    and removes the original args.planner_args list."""
 
     args.filenames, options = _split_off_filenames(args.planner_args)
 
     args.translate_options = []
+    args.proof_options = []
     args.search_options = []
 
     curr_options = args.search_options
@@ -245,6 +247,7 @@ def _set_components_and_inputs(parser, args):
         args.components.append("validate")
 
     args.translate_inputs = []
+    args.proof_inputs = []
 
     assert args.components
     first = args.components[0]
@@ -255,6 +258,7 @@ def _set_components_and_inputs(parser, args):
     if first == "translate":
         if "--help" in args.translate_options or "-h" in args.translate_options:
             args.translate_inputs = []
+            args.proof_inputs = []
         else:
             args.translate_inputs = _get_pddl_input_files(args, parser, "translator")
     elif first == "search":
@@ -294,6 +298,16 @@ def _set_translator_output_options(parser, args):
 
     args.search_input = args.sas_file
     args.translate_options += ["--sas-file", args.search_input]
+
+
+def _set_proof_output_options(parser, args):
+    if any("--opb-file" in opt for opt in args.proof_options):
+        print_usage_and_exit_with_driver_input_error(
+            parser, "Cannot pass the \"--opb-file\" option to translate.py from the "
+                    "fast-downward.py script. Pass it directly to fast-downward.py instead.")
+
+    args.proof_input = args.opb_file
+    args.proof_options += ["--opb-file", args.proof_input]
 
 
 def _get_time_limit_in_seconds(limit, parser):
@@ -426,6 +440,16 @@ def parse_args():
         "--keep-sas-file", action="store_true",
         help="keep translator output file (implied by --sas-file, default: "
             "delete file if translator and search component are active)")
+    
+    print("add_argument")
+    driver_other.add_argument(
+        "--opb-file", metavar="FILE", type=Path,
+        help="file for storing the task as pseudo-Boolean constraints "
+            f"(implies --proof, default: {DEFAULT_OPB_FILE})")
+    driver_other.add_argument(
+        "--proof", action="store_true",
+        help="keep file with task as pseudo-Boolean constraints (implied by --opb-file, default: "
+            "delete file if translator and search component are active)")
 
     driver_other.add_argument(
         "--portfolio", metavar="FILE", type=Path,
@@ -459,6 +483,11 @@ def parse_args():
     else:
         args.sas_file = DEFAULT_SAS_FILE
 
+    if args.opb_file:
+        args.proof = True
+    else:
+        args.opb_file = DEFAULT_OPB_FILE
+
     if args.build and args.debug:
         print_usage_and_exit_with_driver_input_error(
             parser, "The option --debug is an alias for --build=debug "
@@ -477,6 +506,7 @@ def parse_args():
             ("options for search component", bool(args.search_options))])
 
     _set_translator_output_options(parser, args)
+    _set_proof_output_options(parser, args)
 
     _convert_limits_to_ints(parser, args)
 

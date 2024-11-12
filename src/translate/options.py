@@ -29,6 +29,9 @@ def parse_args():
         "--sas-file", default="output.sas",
         help="path to the SAS output file (default: %(default)s)")
     argparser.add_argument(
+        "--opb-file", default="output.opb",
+        help="path to the OPB output file (default: %(default)s)")
+    argparser.add_argument(
         "--invariant-generation-max-time", default=300, type=int,
         help="max time for invariant generation (default: %(default)ds)")
     argparser.add_argument(
