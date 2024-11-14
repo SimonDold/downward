@@ -13,19 +13,20 @@ ProofLog::ProofLog(const string &reifications_file_name,
     :
     reifications_file_name(reifications_file_name),
     derivations_file_name(derivations_file_name)
-          {
-            std::ofstream reifications_file(reifications_file_name);
-            if (!reifications_file.is_open())
-            {
-                std::cerr << "Failed to open file: " << reifications_file_name << std::endl;
-            }
-            reifications_file.close();
-            std::ofstream derivations_file(derivations_file_name);
-            if (!derivations_file.is_open())
-            {
-                std::cerr << "Failed to open file: " << derivations_file_name << std::endl;
-            }
-            derivations_file.close();
+    {
+        std::ofstream reifications_file(reifications_file_name);
+        if (!reifications_file.is_open()) {
+            std::cerr << "Failed to open file: "
+                << reifications_file_name << std::endl;
+        }
+        reifications_file.close();
+
+        std::ofstream derivations_file(derivations_file_name);
+        if (!derivations_file.is_open()) {
+            std::cerr << "Failed to open file: " 
+                << derivations_file_name << std::endl;
+        }
+        derivations_file.close();
     }
 
 void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
@@ -74,5 +75,21 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
         ostringstream line;
         line << "rup: ~node" << node->get_state().get_id() << "_g" << node->get_g() << " + ~action" << op_id << " + invar >= 1;";
         append_to_proof_log(line.str(), ProofPart::DERIVATION);
+    }
+
+
+    void ProofLog::op_implies_min_cost_delta(int op_id){
+        ostringstream line;
+        line << "rup: ~action" << op_id << " + min_cost_delta >= 1;";
+        append_to_proof_log(line.str(), ProofPart::DERIVATION);
+    }
+
+
+    void ProofLog::reify_min_cost_delta(int min_cost){
+        ostringstream line;
+        line << "red: ~min_cost_delta + delta_geq_" << min_cost << ">= 1; min_cost_delta -> 0";
+        append_to_proof_log(line.str(), ProofPart::REIFICATION);
+        line << "red: min_cost_delta + ~delta_geq_" << min_cost << ">= 1; min_cost_delta -> 1";
+        append_to_proof_log(line.str(), ProofPart::REIFICATION);
     }
 }

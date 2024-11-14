@@ -24,6 +24,8 @@ public:
     void append_to_proof_log(const std::string& line, ProofPart proof_part);
     void add_node_reification(std::optional<SearchNode> node = std::nullopt);
     void add_node_action_invariant(OperatorID op_id, std::optional<SearchNode> node = std::nullopt);
+    void op_implies_min_cost_delta(int op_id);
+    void reify_min_cost_delta(int min_cost);
 };
 
 }
