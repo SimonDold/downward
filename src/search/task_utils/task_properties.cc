@@ -80,8 +80,10 @@ double get_average_operator_cost(TaskProxy task_proxy) {
 int get_min_operator_cost(TaskProxy task_proxy) {
     int min_cost = numeric_limits<int>::max();
     for (OperatorProxy op : task_proxy.get_operators()) {
+        task_proxy.proof_log.op_implies_min_cost_delta(op.get_id());
         min_cost = min(min_cost, op.get_cost());
     }
+    task_proxy.proof_log.reify_min_cost_delta(min_cost);
     return min_cost;
 }
 

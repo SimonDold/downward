@@ -17,7 +17,8 @@ Evaluator::Evaluator(
       use_for_reporting_minima(use_for_reporting_minima),
       use_for_boosting(use_for_boosting),
       use_for_counting_evaluations(use_for_counting_evaluations),
-      log(utils::get_log_for_verbosity(verbosity)) {
+      log(utils::get_log_for_verbosity(verbosity)),
+      proof_log() {
 }
 
 bool Evaluator::dead_ends_are_reliable() const {
