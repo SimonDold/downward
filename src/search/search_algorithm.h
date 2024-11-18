@@ -61,6 +61,10 @@ protected:
     void set_plan(const Plan &plan);
     bool check_goal_and_set_plan(const State &state);
     int get_adjusted_cost(const OperatorProxy &op) const;
+
+    // proof logging functions
+    void proof_log_node_reification(std::optional<SearchNode> node = std::nullopt);
+    void proof_log_node_action_invariant(OperatorID op_id, std::optional<SearchNode> node = std::nullopt);
 public:
     SearchAlgorithm(
         OperatorCost cost_type, int bound, double max_time,

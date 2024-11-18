@@ -170,7 +170,7 @@ SearchStatus EagerSearch::step() {
         }
 
         node->close();
-        proof_log.add_node_reification(node);
+        proof_log_node_reification(node);
         assert(!node->is_dead_end());
         update_f_value_statistics(eval_context);
         statistics.inc_expanded();
@@ -201,7 +201,7 @@ SearchStatus EagerSearch::step() {
 
     for (OperatorID op_id : applicable_ops) {
 
-        proof_log.add_node_action_invariant(op_id, node);
+        proof_log_node_action_invariant(op_id, node);
 
         OperatorProxy op = task_proxy.get_operators()[op_id];
         if ((node->get_real_g() + op.get_cost()) >= bound)

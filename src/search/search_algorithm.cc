@@ -48,7 +48,7 @@ SearchAlgorithm::SearchAlgorithm(
       task(tasks::g_root_task),
       task_proxy(*task),
       log(utils::get_log_for_verbosity(verbosity)),
-      proof_log("reifications.prooflog", "derivations.prooflog"),
+      proof_log(),
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy, log)),
       search_space(state_registry, log),
@@ -72,7 +72,7 @@ SearchAlgorithm::SearchAlgorithm(const plugins::Options &opts) // TODO options o
       task_proxy(*task),
       log(utils::get_log_for_verbosity(
               opts.get<utils::Verbosity>("verbosity"))),
-      proof_log("reifications.prooflog", "derivations.prooflog"),
+      proof_log(),
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy, log)),
       search_space(state_registry, log),
@@ -145,6 +145,29 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
     return get_adjusted_action_cost(op, cost_type, is_unit_cost);
 }
 
+// That sould be only compiled if proof_log flag is set (analogous to debug flag)
+void SearchAlgorithm::proof_log_node_reification(optional<SearchNode> node){
+    assert(node);
+    State s = node->get_state();
+    s.unpack();
+    ostringstream line;
+    line << "R-reification r" << s.get_id() << ": ~r" << s.get_id();
+    vector<int> values = s.get_unpacked_values();
+    for (unsigned int i = 0; i < values.size(); ++i) {
+        line << " + v" << i << "_"<< values[i];
+    }
+    line << " + cost_geq_" << node->get_real_g() 
+        << " >= " << values.size()+1 << ";";
+    proof_log.append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
+}
+
+
+void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, optional<SearchNode> node){
+    assert(node);
+    ostringstream line;
+    line << "rup: ~node" << node->get_state().get_id() << "_g" << node->get_g() << " + ~action" << op_id << " + invar >= 1;";
+    proof_log.append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+}
 
 
 void print_initial_evaluator_values(
