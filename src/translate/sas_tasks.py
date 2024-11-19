@@ -1,10 +1,78 @@
 from typing import List, Tuple
+import re
 
 SAS_FILE_VERSION = 3
 
 DEBUG = False
 
 VarValPair = Tuple[int, int]
+
+def maplet_name(variable: int, value: int) -> str:
+    return f"var_{variable}_{value}"
+
+def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) -> Tuple[str,str]:
+    right_reification = f"{len(conjuncts)} ~" + reification_variable
+    left_reification = "1 " + reification_variable
+    for conjunct in conjuncts:
+        right_reification += f" 1 {conjunct}"
+        left_reification += f" 1 ~{conjunct}"
+    right_reification += f" >= {len(conjuncts)} ;"
+    left_reification += " >= 1 ;"
+    return (left_reification, right_reification)
+
+
+def implication_from_conjunction_to_disjunction(antecendent_conjuncts: list[str], consequent_disjuncts: list[str]) -> str:
+    antecendent = ""
+    for conjunct in antecendent_conjuncts:
+        antecendent += f"{len(consequent_disjuncts)} ~{conjunct} "
+    consequent = ""
+    for disjunct in consequent_disjuncts:
+        consequent += f"1 {disjunct} "
+    return antecendent + consequent + f" >= {len(antecendent_conjuncts)} ;"
+    
+# aka right-reification
+def implication_from_unit_to_conjunction(antecendent: str, consequent_conjuncts: list[str]) -> str:
+    consequent = ""
+    for conjunct in consequent_conjuncts:
+        consequent += f"1 {conjunct} "
+    return f"{len(consequent_conjuncts)} ~{antecendent} " + consequent + f">= {len(consequent_conjuncts)} ;"
+
+def strips_name_to_veripb_name(strips_name: str) -> str:
+        allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\^\\-]'
+        pattern = re.compile(allowed_chars)
+        veripb_name = ""
+        for char in strips_name:
+            if not pattern.match(char.lower()):
+                veripb_name += f"[ASCII{ord(char)}]"
+            else:
+                veripb_name += char
+        return veripb_name
+
+def prime_it(name: str) -> str:
+    return "prime^"+name
+
+def var_changes_name(variable: int) -> str:
+    return f"change_var_{variable}"
+
+def frame_var(variable: int) -> str:
+    return f"frame_var_{variable}"
+
+def frame_axiom(variable: int, value: int) -> Tuple[str, str]:
+    frame_axiom_pos = f"1 ~{frame_var(variable)} + 1 ~{maplet_name(variable, value)} + 1 {prime_it(maplet_name(variable, value))} >= 1"
+    frame_axiom_neg = f"1 ~{frame_var(variable)} + 1 {maplet_name(variable, value)} + 1 ~{prime_it(maplet_name(variable, value))} >= 1"
+    return frame_axiom_pos, frame_axiom_neg
+
+def operator_implies_frame_axioms(operator_name: str, number_variables: int) -> List[str]:
+    frame_axioms = []
+    for i in range(0, number_variables):
+        frame_axioms.append(f"1 ~{operator_name} 1 {frame_var(i)} >= 1 ;")
+    return frame_axioms
+
+def effect_name(operator_name: str, idx: int) -> str:
+    return f"{operator_name}_eff_{idx}"
+
+def weaken_by(constraint: str, variable: str) -> str:
+    return f"1 {variable} " + constraint
 
 class SASTask:
     """Planning task in finite-domain representation.
@@ -86,24 +154,26 @@ class SASTask:
 
     def output(self, sas_stream, opb_stream=None):
         print("begin_version", file=sas_stream)
-        print("* PB-encoding of task:\n", file=opb_stream)
+        print("* PB-encoding of task:", file=opb_stream)
         print(SAS_FILE_VERSION, file=sas_stream)
         print("end_version", file=sas_stream)
         print("begin_metric", file=sas_stream)
         print(int(self.metric), file=sas_stream)
         print("end_metric", file=sas_stream)
-        self.variables.output(sas_stream, opb_stream)
+        number_variables = self.variables.output(sas_stream, opb_stream)
         print(len(self.mutexes), file=sas_stream)
         for mutex in self.mutexes:
             mutex.output(sas_stream)
-        self.init.output(sas_stream)
-        self.goal.output(sas_stream)
+        print("\n* ignoring mutex groups", file=opb_stream)
+        self.init.output(sas_stream, opb_stream)
+        self.goal.output(sas_stream, opb_stream)
         print(len(self.operators), file=sas_stream)
         for op in self.operators:
-            op.output(sas_stream)
+            op.output(sas_stream, number_variables, opb_stream)
         print(len(self.axioms), file=sas_stream)
+        print("\n* ignoring axioms", file=opb_stream)
         for axiom in self.axioms:
-            axiom.output(sas_stream)
+            axiom.output(sas_stream, opb_stream)
 
     def get_encoding_size(self):
         task_size = 0
@@ -167,6 +237,7 @@ class SASVariables:
             print("v%d in {%s}%s" % (var, list(range(rang)), axiom_str))
 
     def output(self, sas_stream, opb_stream=None):
+        frame_axioms = ""
         print(len(self.ranges), file=sas_stream)
         for var, (rang, axiom_layer, values) in enumerate(zip(
                 self.ranges, self.axiom_layers, self.value_names)):
@@ -175,9 +246,22 @@ class SASVariables:
             print(axiom_layer, file=sas_stream)
             print(rang, file=sas_stream)
             assert rang == len(values), (rang, values)
-            for value in values:
+            var_domain_constraints = "* var%d domain constraints \n" %var
+            var_domain_max_one = ""
+            var_domain_min_one = ""
+            for i, value in enumerate(values):
                 print(value, file=sas_stream)
+                var_domain_max_one += f"1 ~{maplet_name(var,i)} "
+                var_domain_min_one += f"1 {maplet_name(var,i)} "
+                frame_axiom_pos, frame_axiom_neg = frame_axiom(var,i)
+                frame_axioms += frame_axiom_pos + "\n" + frame_axiom_neg + "\n"
+
+            var_domain_max_one = var_domain_max_one + f">= {len(values)-1} ;"
+            var_domain_min_one = var_domain_min_one + ">= 1 ;"
+            var_domain_constraints += var_domain_max_one + "\n" + var_domain_min_one + "\n" + frame_axioms
+            print(var_domain_constraints, file=opb_stream)
             print("end_variable", file=sas_stream)
+        return len(self.ranges)
 
     def get_encoding_size(self):
         # A variable with range k has encoding size k + 1 to also give the
@@ -232,8 +316,16 @@ class SASInit:
 
     def output(self, sas_stream, opb_stream=None):
         print("begin_state", file=sas_stream)
-        for val in self.values:
+        state_name = "s{"
+        conjuncts = []
+        for i, val in enumerate(self.values):
             print(val, file=sas_stream)
+            state_name += f"{maplet_name(i,val)},"
+            conjuncts.append(maplet_name(i,val))
+        state_name = state_name[:-1] + "}"
+        left_reification, right_reification = bi_reification_conjunction(state_name, conjuncts)
+        state_reification = "\n* init state reification:\n" + right_reification + "\n" + left_reification
+        print(state_reification, file=opb_stream)
         print("end_state", file=sas_stream)
 
 
@@ -253,8 +345,16 @@ class SASGoal:
     def output(self, sas_stream, opb_stream=None):
         print("begin_goal", file=sas_stream)
         print(len(self.pairs), file=sas_stream)
+        partial_state_name = "p{"
+        conjuncts = []
         for var, val in self.pairs:
             print(var, val, file=sas_stream)
+            partial_state_name += f"[var_{var}-D{val}], "
+            conjuncts.append(maplet_name(var,val))
+        partial_state_name = partial_state_name[:-2] + "}"
+        left_reification, right_reification = bi_reification_conjunction(partial_state_name, conjuncts)
+        partial_state_reification = "\n* goal condition reification:\n" + right_reification + "\n" + left_reification
+        print(partial_state_reification, file=opb_stream)
         print("end_goal", file=sas_stream)
 
     def get_encoding_size(self):
@@ -368,18 +468,46 @@ class SASOperator:
                 cond_str = ""
             print("  v%d: %d -> %d%s" % (var, pre, post, cond_str))
 
-    def output(self, sas_stream, opb_stream=None):
+    
+
+    def output(self, sas_stream, number_variables, opb_stream=None):
         print("begin_operator", file=sas_stream)
         print(self.name[1:-1], file=sas_stream)
+        operator_name = strips_name_to_veripb_name(self.name[1:-1])
+        frame_axioms = operator_implies_frame_axioms(operator_name, number_variables)
+        
         print(len(self.prevail), file=sas_stream)
+        prevail_conjuncts = []
         for var, val in self.prevail:
+            prevail_conjuncts.append(maplet_name(var,val))
             print(var, val, file=sas_stream)
         print(len(self.pre_post), file=sas_stream)
-        for var, pre, post, cond in self.pre_post:
+        postconditions = []
+        preconditions = []
+        reifications_of_postcondition_antecedent_conjuncts = []
+        for i, (var, pre, post, cond) in enumerate(self.pre_post):
             print(len(cond), end=' ', file=sas_stream)
+            postcondition_antecedent_conjuncts = []
             for cvar, cval in cond:
+                postcondition_antecedent_conjuncts.append(maplet_name(cvar,cval))
                 print(cvar, cval, end=' ', file=sas_stream)
+            postcondition = implication_from_conjunction_to_disjunction([operator_name,effect_name(operator_name, i)], [prime_it(maplet_name(var,post))])
+            left_reification_of_postcondition_antecedent_conjuncts, right_reification_of_postcondition_antecedent_conjuncts = bi_reification_conjunction(effect_name(operator_name, i), postcondition_antecedent_conjuncts)
+            reifications_of_postcondition_antecedent_conjuncts.append(left_reification_of_postcondition_antecedent_conjuncts)
+            reifications_of_postcondition_antecedent_conjuncts.append(right_reification_of_postcondition_antecedent_conjuncts)
+            postconditions.append(postcondition)
+            if not pre == -1:
+                preconditions.append(maplet_name(var,pre))
+            frame_axioms[var] = weaken_by(frame_axioms[var], effect_name(operator_name, i))
             print(var, pre, post, file=sas_stream)
+            
+        
+
+        operator_implies_preconditions_and_prevail_conditions = implication_from_unit_to_conjunction(operator_name, prevail_conjuncts + preconditions)
+        operator_reification = f"\n* operator '{self.name[1:-1]}' aka '{strips_name_to_veripb_name(self.name[1:-1])}' reification:\n"
+        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + frame_axioms + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts:
+            operator_reification += x + "\n"
+        print(operator_reification, file=opb_stream)
         print(self.cost, file=sas_stream)
         print("end_operator", file=sas_stream)
 
