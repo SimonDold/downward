@@ -74,6 +74,8 @@ def effect_name(operator_name: str, idx: int) -> str:
 def weaken_by(constraint: str, variable: str) -> str:
     return f"1 {variable} " + constraint
 
+def operator_cost_name(cost: int) -> str:
+    return f"delta_cost_eq_{cost}"
 class SASTask:
     """Planning task in finite-domain representation.
 
@@ -505,10 +507,12 @@ class SASOperator:
 
         operator_implies_preconditions_and_prevail_conditions = implication_from_unit_to_conjunction(operator_name, prevail_conjuncts + preconditions)
         operator_reification = f"\n* operator '{self.name[1:-1]}' aka '{strips_name_to_veripb_name(self.name[1:-1])}' reification:\n"
-        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + frame_axioms + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts:
+        cost = implication_from_unit_to_conjunction(operator_name, [operator_cost_name(self.cost)])
+        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + frame_axioms + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts + ["* cost"] + [cost]:
             operator_reification += x + "\n"
         print(operator_reification, file=opb_stream)
         print(self.cost, file=sas_stream)
+
         print("end_operator", file=sas_stream)
 
     def get_encoding_size(self):
