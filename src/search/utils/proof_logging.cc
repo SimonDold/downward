@@ -2,15 +2,10 @@
 
 #include <fstream>
 #include <iostream>
-#include <sstream>
 
 using namespace std;
 
 namespace utils {
-
-ProofLog::ProofLog()
-    {
-    }
 
 void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
 {
@@ -42,19 +37,4 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
     file << line << std::endl;
     file.close();
 }
-
-    void ProofLog::op_implies_min_cost_delta(int op_id){
-        ostringstream line;
-        line << "rup: ~action" << op_id << " + min_cost_delta >= 1;";
-        append_to_proof_log(line.str(), ProofPart::DERIVATION);
-    }
-
-
-    void ProofLog::reify_min_cost_delta(int min_cost){
-        ostringstream line;
-        line << "red: ~min_cost_delta + delta_geq_" << min_cost << ">= 1; min_cost_delta -> 0";
-        append_to_proof_log(line.str(), ProofPart::REIFICATION);
-        line << "red: min_cost_delta + ~delta_geq_" << min_cost << ">= 1; min_cost_delta -> 1";
-        append_to_proof_log(line.str(), ProofPart::REIFICATION);
-    }
 }

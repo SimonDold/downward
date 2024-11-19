@@ -4,6 +4,7 @@
 
 #include "../task_utils/task_properties.h"
 #include "../utils/logging.h"
+#include "../utils/proof_logging.h"
 
 #include <cstddef>
 #include <limits>
@@ -28,8 +29,8 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
     if (task_properties::is_goal_state(task_proxy, state)) {
         return 0;
     } else {
-        proof_log.append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::REIFICATION);
-        proof_log.append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::DERIVATION);
+        utils::ProofLog::append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::REIFICATION);
+        utils::ProofLog::append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::DERIVATION);
         return min_operator_cost;
     }
 }

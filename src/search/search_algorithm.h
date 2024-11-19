@@ -43,7 +43,6 @@ protected:
     TaskProxy task_proxy;
 
     mutable utils::LogProxy log;
-    mutable utils::ProofLog proof_log;
     PlanManager plan_manager;
     StateRegistry state_registry;
     const successor_generator::SuccessorGenerator &successor_generator;
@@ -63,8 +62,8 @@ protected:
     int get_adjusted_cost(const OperatorProxy &op) const;
 
     // proof logging functions
-    void proof_log_node_reification(std::optional<SearchNode> node = std::nullopt);
-    void proof_log_node_action_invariant(OperatorID op_id, std::optional<SearchNode> node = std::nullopt);
+    void proof_log_node_reification(SearchNode node);
+    void proof_log_node_action_invariant(OperatorID op_id, SearchNode node);
 public:
     SearchAlgorithm(
         OperatorCost cost_type, int bound, double max_time,

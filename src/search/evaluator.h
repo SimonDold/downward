@@ -4,7 +4,6 @@
 #include "evaluation_result.h"
 
 #include "utils/logging.h"
-#include "utils/proof_logging.h"
 
 #include <set>
 
@@ -22,7 +21,6 @@ class Evaluator {
     const bool use_for_counting_evaluations;
 protected:
     mutable utils::LogProxy log;
-    mutable utils::ProofLog proof_log;
 public:
     Evaluator(
         bool use_for_reporting_minima, bool use_for_boosting,

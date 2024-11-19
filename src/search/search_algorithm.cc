@@ -48,7 +48,6 @@ SearchAlgorithm::SearchAlgorithm(
       task(tasks::g_root_task),
       task_proxy(*task),
       log(utils::get_log_for_verbosity(verbosity)),
-      proof_log(),
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy, log)),
       search_space(state_registry, log),
@@ -72,7 +71,6 @@ SearchAlgorithm::SearchAlgorithm(const plugins::Options &opts) // TODO options o
       task_proxy(*task),
       log(utils::get_log_for_verbosity(
               opts.get<utils::Verbosity>("verbosity"))),
-      proof_log(),
       state_registry(task_proxy),
       successor_generator(get_successor_generator(task_proxy, log)),
       search_space(state_registry, log),
@@ -146,9 +144,8 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
 }
 
 // That sould be only compiled if proof_log flag is set (analogous to debug flag)
-void SearchAlgorithm::proof_log_node_reification(optional<SearchNode> node){
-    assert(node);
-    State s = node->get_state();
+void SearchAlgorithm::proof_log_node_reification(SearchNode node){
+    State s = node.get_state();
     s.unpack();
     ostringstream line;
     line << "R-reification r" << s.get_id() << ": ~r" << s.get_id();
@@ -156,17 +153,16 @@ void SearchAlgorithm::proof_log_node_reification(optional<SearchNode> node){
     for (unsigned int i = 0; i < values.size(); ++i) {
         line << " + v" << i << "_"<< values[i];
     }
-    line << " + cost_geq_" << node->get_real_g() 
+    line << " + cost_geq_" << node.get_real_g() 
         << " >= " << values.size()+1 << ";";
-    proof_log.append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
 }
 
 
-void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, optional<SearchNode> node){
-    assert(node);
+void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node){
     ostringstream line;
-    line << "rup: ~node" << node->get_state().get_id() << "_g" << node->get_g() << " + ~action" << op_id << " + invar >= 1;";
-    proof_log.append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+    line << "rup: ~node" << node.get_state().get_id() << "_g" << node.get_g() << " + ~action" << op_id << " + invar >= 1;";
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
 

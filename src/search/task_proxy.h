@@ -9,7 +9,6 @@
 #include "algorithms/int_packer.h"
 #include "utils/collections.h"
 #include "utils/hash.h"
-#include "utils/proof_logging.h"
 #include "utils/system.h"
 
 #include <cassert>
@@ -654,11 +653,8 @@ inline void feed(HashState &hash_state, const State &state) {
 class TaskProxy {
     const AbstractTask *task;
 public:
-    mutable utils::ProofLog proof_log;
     explicit TaskProxy(const AbstractTask &task)
-        : task(&task),
-          proof_log() 
-          {}
+        : task(&task) {}
     ~TaskProxy() = default;
 
     TaskID get_id() const {

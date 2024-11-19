@@ -2,6 +2,7 @@
 
 #include "../utils/logging.h"
 #include "../utils/memory.h"
+#include "../utils/proof_logging.h"
 #include "../utils/system.h"
 
 #include <algorithm>
@@ -77,13 +78,26 @@ double get_average_operator_cost(TaskProxy task_proxy) {
     return average_operator_cost;
 }
 
+void proof_log_op_implies_min_cost_delta(int op_id){
+    ostringstream line;
+    line << "rup: ~action" << op_id << " + min_cost_delta >= 1;";
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+}
+
+void proof_log_reify_min_cost_delta(int min_cost){
+    ostringstream line;
+    line << "red: ~min_cost_delta + delta_geq_" << min_cost << ">= 1; min_cost_delta -> 0" << endl
+        << "red: min_cost_delta + ~delta_geq_" << min_cost << ">= 1; min_cost_delta -> 1";
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
+}
+
 int get_min_operator_cost(TaskProxy task_proxy) {
     int min_cost = numeric_limits<int>::max();
     for (OperatorProxy op : task_proxy.get_operators()) {
-        task_proxy.proof_log.op_implies_min_cost_delta(op.get_id());
+        proof_log_op_implies_min_cost_delta(op.get_id());
         min_cost = min(min_cost, op.get_cost());
     }
-    task_proxy.proof_log.reify_min_cost_delta(min_cost);
+    proof_log_reify_min_cost_delta(min_cost);
     return min_cost;
 }
 
