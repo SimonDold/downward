@@ -38,6 +38,19 @@ def implication_from_unit_to_conjunction(antecendent: str, consequent_conjuncts:
         consequent += f"1 {conjunct} "
     return f"{len(consequent_conjuncts)} ~{antecendent} " + consequent + f">= {len(consequent_conjuncts)} ;"
 
+def implication_from_unit_to_disjunction(antecendent: str, consequent_disjuncts: list[str]) -> str:
+    consequent = ""
+    for disjunct in consequent_disjuncts:
+        consequent += f"1 {disjunct} "
+    return f"1 ~{antecendent} " + consequent + f">= 1 ;"
+
+def implication_from_disjunction_to_unit(antecendent_disjuncts: list[str], consequent: str) -> str:
+    antecendent = ""
+    for disjunct in antecendent_disjuncts:
+        antecendent += f"1 ~{disjunct} "
+    return f"{len(antecendent_disjuncts)} {consequent} " + antecendent + f">= {len(antecendent_disjuncts)} ;"
+
+
 # WARNING: this function has to be syncronized with same named one in the C++ part.
 def strips_name_to_veripb_name(strips_name: str) -> str:
         allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\^\\-]'
@@ -209,8 +222,13 @@ class SASTask:
         self.init.output(sas_stream, opb_stream)
         self.goal.output(sas_stream, opb_stream)
         print(len(self.operators), file=sas_stream)
+        disjuncts =[]
         for op in self.operators:
             op.output(sas_stream, number_variables, max(self.metric, 1), opb_stream)
+            disjuncts.append(strips_name_to_veripb_name(op.name[1:-1]))
+        print("* transition:", file=opb_stream)
+        print(implication_from_unit_to_disjunction("transition", disjuncts), file=opb_stream)
+        print(implication_from_disjunction_to_unit(disjuncts, "transition"), file=opb_stream)
         print(len(self.axioms), file=sas_stream)
         print("\n* ignoring axioms", file=opb_stream)
         for axiom in self.axioms:
