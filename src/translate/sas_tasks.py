@@ -1,7 +1,8 @@
 from typing import List, Tuple
+import math
 import re
 
-SAS_FILE_VERSION = 3
+SAS_FILE_VERSION = 4
 
 DEBUG = False
 
@@ -75,8 +76,45 @@ def effect_name(operator_name: str, idx: int) -> str:
 def weaken_by(constraint: str, variable: str) -> str:
     return f"1 {variable} " + constraint
 
-def operator_cost_name(cost: int) -> str:
-    return f"delta_cost_eq_{cost}"
+def operator_cost_name(cost: int, comperator: str) -> str:
+    if comperator == "=":
+        return f"delta_cost_eq_{cost}"
+    elif comperator == ">=":
+        return f"delta_cost_geq_{cost}"
+    elif comperator == "<=":
+        return f"delta_cost_leq_{cost}"
+    else:
+        assert(False)
+        return "ERROR"
+
+def spent_bit_name(position: int) -> str:
+    return f"c_{position}"
+
+def get_delta_meanings(cost: int, number_variables: int, max_cost: int) -> List[str]: 
+    delta_eq_rreif = f"2 ~{operator_cost_name(cost, '=')} 1 {operator_cost_name(cost, '>=')} 1 {operator_cost_name(cost, '<=')} >= 2 ;"
+    delta_eq_lreif = f"1 {operator_cost_name(cost, '=')} 1 ~{operator_cost_name(cost, '>=')} 1 ~{operator_cost_name(cost, '<=')} >= 1 ;"
+    bits = number_variables + math.ceil(math.log(max_cost,2)) # should we cap this to the number of bits FD could handle?
+    #TODOprooflog
+    #bits = 2
+    maxint = 2**(bits+1) - 1 
+    delta_geq_rreif = ""
+    delta_geq_lreif = ""
+    delta_leq_rreif = ""
+    delta_leq_lreif = ""
+    pos_prime, neg_normal = "", ""
+    neg_prime, pos_normal = "", ""
+    for bit in range(0, bits + 1)[::-1]:
+        pos_normal += f"{2**bit} {spent_bit_name(bit)} "
+        neg_normal += f"{2**bit} ~{spent_bit_name(bit)} "
+        pos_prime += f"{2**bit} {prime_it(spent_bit_name(bit))} "
+        neg_prime += f"{2**bit} ~{prime_it(spent_bit_name(bit))} "
+    delta_geq_rreif = f"{2 * maxint - cost} ~{operator_cost_name(cost, '>=')} " + pos_prime + neg_normal + f" >= {2 * maxint - cost}"
+    delta_geq_lreif = f"{cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {cost + 1}"
+    delta_leq_rreif = f"{2 * maxint - (maxint - cost)} ~{operator_cost_name(cost, '<=')} " + neg_prime + pos_normal + f" >= {2 * maxint - (maxint - cost)}"
+    delta_leq_lreif = f"{maxint - cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint - cost + 1}"
+    return [delta_eq_rreif, delta_eq_lreif, delta_geq_rreif, delta_geq_lreif, delta_leq_rreif, delta_leq_lreif]
+
+
 class SASTask:
     """Planning task in finite-domain representation.
 
@@ -172,7 +210,7 @@ class SASTask:
         self.goal.output(sas_stream, opb_stream)
         print(len(self.operators), file=sas_stream)
         for op in self.operators:
-            op.output(sas_stream, number_variables, opb_stream)
+            op.output(sas_stream, number_variables, max(self.metric, 1), opb_stream)
         print(len(self.axioms), file=sas_stream)
         print("\n* ignoring axioms", file=opb_stream)
         for axiom in self.axioms:
@@ -473,7 +511,7 @@ class SASOperator:
 
     
 
-    def output(self, sas_stream, number_variables, opb_stream=None):
+    def output(self, sas_stream, number_variables=0, max_cost=0, opb_stream=None):
         print("begin_operator", file=sas_stream)
         print(self.name[1:-1], file=sas_stream)
         operator_name = strips_name_to_veripb_name(self.name[1:-1])
@@ -508,8 +546,9 @@ class SASOperator:
 
         operator_implies_preconditions_and_prevail_conditions = implication_from_unit_to_conjunction(operator_name, prevail_conjuncts + preconditions)
         operator_reification = f"\n* operator '{self.name[1:-1]}' aka '{strips_name_to_veripb_name(self.name[1:-1])}' reification:\n"
-        cost = implication_from_unit_to_conjunction(operator_name, [operator_cost_name(self.cost)])
-        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + frame_axioms + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts + ["* cost"] + [cost]:
+        cost = implication_from_unit_to_conjunction(operator_name, [operator_cost_name(self.cost, '=')])
+        delat_meanings = get_delta_meanings(self.cost, number_variables, max_cost)
+        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + frame_axioms + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts + ["* cost"] + [cost] + delat_meanings:
             operator_reification += x + "\n"
         print(operator_reification, file=opb_stream)
         print(self.cost, file=sas_stream)

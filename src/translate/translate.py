@@ -455,7 +455,7 @@ def translate_task(
         goals: List[pddl.Literal],
         actions: List[pddl.PropositionalAction],
         axioms: List[pddl.PropositionalAxiom],
-        metric: bool,
+        metric: int,
         implied_facts: Dict[VarValPair, List[VarValPair]]) -> sas_tasks.SASTask:
     with timers.timing("Processing axioms", block=True):
         axioms, axiom_layer_dict = axiom_rules.handle_axioms(actions, axioms, goals,
@@ -529,7 +529,7 @@ def trivial_task(solvable):
     goal = sas_tasks.SASGoal([goal_fact])
     operators = []
     axioms = []
-    metric = True
+    metric = 1
     return sas_tasks.SASTask(variables, mutexes, init, goal,
                              operators, axioms, metric)
 
@@ -593,7 +593,7 @@ def pddl_to_sas(task):
         sas_task = translate_task(
             strips_to_sas, ranges, translation_key,
             mutex_dict, mutex_ranges, mutex_key,
-            task.init, goal_list, actions, axioms, task.use_min_cost_metric,
+            task.init, goal_list, actions, axioms, task.use_max_cost_metric,
             implied_facts)
 
     print("%d effect conditions simplified" %

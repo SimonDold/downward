@@ -17,7 +17,7 @@ class Task:
                  List[Predicate], functions: List[Function],
                  init: List[Union[Atom, Assign]], goal: Condition,
                  actions: List[Action], axioms: List[Axiom],
-                 use_metric: bool) -> None:
+                 use_metric: int) -> None:
         self.domain_name = domain_name
         self.task_name = task_name
         self.requirements = requirements
@@ -30,7 +30,7 @@ class Task:
         self.actions = actions
         self.axioms = axioms
         self.axiom_counter = 0
-        self.use_min_cost_metric = use_metric
+        self.use_max_cost_metric = use_metric
 
     def add_axiom(self, parameters, condition):
         name = "new-axiom@%d" % self.axiom_counter

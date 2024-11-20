@@ -18,7 +18,7 @@ using namespace std;
 using utils::ExitCode;
 
 namespace tasks {
-static const int PRE_FILE_VERSION = 3;
+static const int PRE_FILE_VERSION = 4;
 shared_ptr<AbstractTask> g_root_task = nullptr;
 
 struct ExplicitVariable {
@@ -232,9 +232,10 @@ static void read_and_verify_version(istream &in) {
 }
 
 static bool read_metric(istream &in) {
-    bool use_metric;
+    int max_abs_cost;
     check_magic(in, "begin_metric");
-    in >> use_metric;
+    in >> max_abs_cost;
+    bool use_metric = (max_abs_cost > 0);
     check_magic(in, "end_metric");
     return use_metric;
 }

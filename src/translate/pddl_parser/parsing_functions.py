@@ -556,6 +556,7 @@ def parse_axiom(context, alist, type_dict, predicate_dict):
 def parse_axioms_and_actions(context, entries, type_dict, predicate_dict):
     the_axioms = []
     the_actions = []
+    the_max_cost = 0
     for no, entry in enumerate(entries, start=1):
         with context.layer(f"Parsing {no}. axiom/action entry"):
             assert_named_block(context, entry, [":derived", ":action"])
@@ -569,7 +570,12 @@ def parse_axioms_and_actions(context, entries, type_dict, predicate_dict):
                     action = parse_action(context, entry, type_dict, predicate_dict)
                     if action is not None:
                         the_actions.append(action)
-    return the_axioms, the_actions
+                    if action.cost:
+                        # TODOprooflog this is extremly ugly
+                        if str(action.cost.expression).split()[0] == "NumericConstant":
+                            the_action_cost =  (int(str(action.cost.expression).split()[1]))
+                            the_max_cost = max(the_max_cost, abs(the_action_cost))
+    return the_axioms, the_actions, the_max_cost
 
 def parse_init(context, alist):
     initial = []
@@ -628,7 +634,7 @@ def parse_task(domain_pddl, task_pddl):
     if not isinstance(domain_pddl, list):
         context.error("Invalid definition of a PDDL domain.")
     domain_name, domain_requirements, types, type_dict, constants, predicates, \
-        predicate_dict, functions, actions, axioms = parse_domain_pddl(context, domain_pddl)
+        predicate_dict, functions, actions, axioms, max_cost = parse_domain_pddl(context, domain_pddl)
     if not isinstance(task_pddl, list):
         context.error("Invalid definition of a PDDL task.")
     task_name, task_domain_name, task_requirements, objects, init, goal, \
@@ -651,7 +657,7 @@ def parse_task(domain_pddl, task_pddl):
 
     return pddl.Task(
         domain_name, task_name, requirements, types, objects,
-        predicates, functions, init, goal, actions, axioms, use_metric)
+        predicates, functions, init, goal, actions, axioms, (max_cost if use_metric else 0) )
 
 
 def parse_domain_pddl(context, domain_pddl):
@@ -730,11 +736,12 @@ def parse_domain_pddl(context, domain_pddl):
             entries.append(first_action)
         entries.extend(iterator)
 
-        the_axioms, the_actions = parse_axioms_and_actions(
+        the_axioms, the_actions, the_max_cost = parse_axioms_and_actions(
             context, entries, type_dict, predicate_dict)
 
         yield the_actions
         yield the_axioms
+        yield the_max_cost
 
 def parse_task_pddl(context, task_pddl, type_dict, predicate_dict):
     iterator = iter(task_pddl)
