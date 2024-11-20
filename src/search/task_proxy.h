@@ -612,6 +612,7 @@ public:
     /* Return the ID of the state within its registry. If the state is not
        registered, return StateID::no_state. */
     StateID get_id() const;
+    int get_id_int() const;
 
     /* Access the unpacked values. Accessing the unpacked values in a state
        that doesn't have them is an error. Use unpack() to ensure the data
@@ -826,6 +827,10 @@ inline const StateRegistry *State::get_registry() const {
 
 inline StateID State::get_id() const {
     return id;
+}
+
+inline int State::get_id_int() const {
+    return id.get_id_int();
 }
 
 inline const PackedStateBin *State::get_buffer() const {

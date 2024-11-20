@@ -47,6 +47,7 @@ void EagerSearch::initialize() {
         << (reopen_closed_nodes ? " with" : " without")
         << " reopening closed nodes, (real) bound = " << bound
         << endl;
+    proof_log_initialize_invar();
     assert(open_list);
 
     set<Evaluator *> evals;
@@ -174,12 +175,15 @@ SearchStatus EagerSearch::step() {
         assert(!node->is_dead_end());
         update_f_value_statistics(eval_context);
         statistics.inc_expanded();
+        proof_log_extend_invar(*node, statistics.get_expanded());
         break;
     }
 
     const State &s = node->get_state();
-    if (check_goal_and_set_plan(s))
+    if (check_goal_and_set_plan(s)) {
+        proof_log_finalize_invar(statistics.get_expanded());
         return SOLVED;
+    }
 
     vector<OperatorID> applicable_ops;
     successor_generator.generate_applicable_ops(s, applicable_ops);

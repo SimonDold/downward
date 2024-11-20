@@ -147,21 +147,60 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
 void SearchAlgorithm::proof_log_node_reification(SearchNode node){
     State s = node.get_state();
     s.unpack();
-    ostringstream line;
-    line << "R-reification r" << s.get_id() << ": ~r" << s.get_id();
     vector<int> values = s.get_unpacked_values();
+    ostringstream line;
+    line << endl << "* Bi-reification of node" << s.get_id_int() << ":";
+    ostringstream r_line;
+    ostringstream l_line;
+    r_line << values.size()+1 << " ~node" << s.get_id_int() ;
+    l_line << "1 node" << s.get_id_int() ;
     for (unsigned int i = 0; i < values.size(); ++i) {
-        line << " + v" << i << "_"<< values[i];
+        r_line << " 1 v" << i << "_"<< values[i];
+        l_line << " 1 ~v" << i << "_"<< values[i];
     }
-    line << " + cost_geq_" << node.get_real_g() 
-        << " >= " << values.size()+1 << ";";
+    r_line << " 1 spent_geq_" << node.get_real_g() 
+        << " >= " << values.size()+1 << "; node" << s.get_id_int() << "-> 0";
+    l_line << " 1 ~spent_geq_" << node.get_real_g() 
+        << " >= 1 ; node" << s.get_id_int() << "-> 1";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
+    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::REIFICATION);
+    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::REIFICATION);
 }
 
+void SearchAlgorithm::proof_log_initialize_invar(){
+    utils::ProofLog::append_to_proof_log("1 invar_-1 >= 1", utils::ProofPart::INVARIANT);
+}
+
+void SearchAlgorithm::proof_log_extend_invar(SearchNode node, int idx){
+    State s = node.get_state();
+    ostringstream line;
+    line << endl << "* Extend invar by node" << s.get_id_int() << ":" << endl;
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
+    ostringstream r_line;
+    ostringstream l_line;
+    r_line << "1 ~invar_" << idx << " 1 invar_" << idx-1 << " 1 node" << s.get_id_int() << " >= 1";
+    l_line << "2 invar_" << idx << " 1 ~invar_" << idx-1 << " 1 ~node" << s.get_id_int() << " >= 2";
+    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
+    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+}
+
+void SearchAlgorithm::proof_log_finalize_invar(int idx){
+    ostringstream line;
+    line << endl << "* Finalize invar by idx" << idx << ":" << endl;
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
+    ostringstream r_line;
+    ostringstream l_line;
+    r_line << "1 ~invar 1 invar_" << idx << " >= 1";
+    l_line << "1 invar 1 ~invar_" << idx << " >= 1";
+    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
+    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+
+}
 
 void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node){
+    OperatorsProxy operators = task_proxy.get_operators();
     ostringstream line;
-    line << "rup: ~node" << node.get_state().get_id() << "_g" << node.get_g() << " + ~action" << op_id << " + invar >= 1;";
+    line << "rup: ~node" << node.get_state().get_id_int() << "_g" << node.get_g() << " + ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << " + invar >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 

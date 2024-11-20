@@ -37,12 +37,13 @@ def implication_from_unit_to_conjunction(antecendent: str, consequent_conjuncts:
         consequent += f"1 {conjunct} "
     return f"{len(consequent_conjuncts)} ~{antecendent} " + consequent + f">= {len(consequent_conjuncts)} ;"
 
+# WARNING: this function has to be syncronized with same named one in the C++ part.
 def strips_name_to_veripb_name(strips_name: str) -> str:
         allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\^\\-]'
         pattern = re.compile(allowed_chars)
         veripb_name = ""
         for char in strips_name:
-            if not pattern.match(char.lower()):
+            if not pattern.match(char):
                 veripb_name += f"[ASCII{ord(char)}]"
             else:
                 veripb_name += char

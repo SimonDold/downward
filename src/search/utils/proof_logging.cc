@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <regex>
 
 using namespace std;
 
@@ -22,6 +23,11 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
             file_name = "derivations.prooflog";
             break;
         }
+    case ProofPart::INVARIANT:
+        {
+            file_name = "invariant.prooflog";
+            break;
+        }
     default:
         cerr << "Error: Not clear where to add." << endl;
         break;
@@ -29,12 +35,27 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
 
     ofstream file(
         file_name
-        , std::ios_base::app);
+        , ios_base::app);
     if (!file.is_open()) {
         cerr << "Error opening " << file_name << " for appending." << endl;
         return;
     }
-    file << line << std::endl;
+    file << line << endl;
     file.close();
+}
+
+// WARNING: this function has to be syncronized with same named one in the python part.
+string ProofLog::strips_name_to_veripb_name(const string& strips_name) {
+    regex pattern("[a-zA-Z0-9\\[\\]\\{\\^\\-]");
+    string veripb_name;
+    for (char c : strips_name) {
+        if (! regex_search(string(1, c), pattern)) {
+            veripb_name += "[ASCII" + to_string(static_cast<int>(c)) + "]";
+        } else {
+            veripb_name += c;
+        }
+    }
+    
+    return veripb_name;
 }
 }

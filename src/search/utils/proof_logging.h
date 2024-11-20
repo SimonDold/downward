@@ -8,7 +8,8 @@ namespace utils {
 
 enum class ProofPart {
     REIFICATION,
-    DERIVATION
+    DERIVATION,
+    INVARIANT
 };
 
 class ProofLog{
@@ -16,6 +17,7 @@ class ProofLog{
 public:
     explicit ProofLog() = delete;
     static void append_to_proof_log(const std::string& line, ProofPart proof_part);
+    static std::string strips_name_to_veripb_name(const std::string& strips_name);
 };
 
 }
