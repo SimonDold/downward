@@ -203,10 +203,16 @@ void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNo
     OperatorsProxy operators = task_proxy.get_operators();
     State s = node.get_state();
     ostringstream line;
-    line << "rup: 1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 invar >= 1;";
+    line << "rup: 1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 prime^invar >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
+void SearchAlgorithm::proof_log_node_transition_invariant(SearchNode node) {
+    State s = node.get_state();
+    ostringstream line;
+    line << "rup: 1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~transition  1 prime^invar >= 1;";
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+}
 
 void print_initial_evaluator_values(
     const EvaluationContext &eval_context) {

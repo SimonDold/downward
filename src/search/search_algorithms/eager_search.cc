@@ -292,6 +292,8 @@ SearchStatus EagerSearch::step() {
             */
         }
     }
+    proof_log_node_transition_invariant(*node);
+
     return IN_PROGRESS;
 }
 

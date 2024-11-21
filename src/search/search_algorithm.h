@@ -67,6 +67,7 @@ protected:
     void proof_log_extend_invar(SearchNode node, int idx);
     void proof_log_finalize_invar(int expanded, int evaulated, SearchNode node);
     void proof_log_node_action_invariant(OperatorID op_id, SearchNode node);
+    void proof_log_node_transition_invariant(SearchNode node);
 public:
     SearchAlgorithm(
         OperatorCost cost_type, int bound, double max_time,
