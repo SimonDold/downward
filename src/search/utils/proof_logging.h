@@ -8,7 +8,8 @@ namespace utils {
 
 enum class ProofPart {
     REIFICATION,
-    DERIVATION
+    DERIVATION,
+    INVARIANT
 };
 
 class ProofLog{

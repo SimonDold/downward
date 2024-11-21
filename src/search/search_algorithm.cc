@@ -164,9 +164,29 @@ void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment
         << "  >= " << values.size()+1 << "; node[" << s.get_id_int() << "," << node.get_g() << "] " << "-> 0";
     l_line << " 1 ~spent_geq_" << node.get_real_g() 
         << " >= 1 ; node[" << s.get_id_int() << "," << node.get_g() << "] " << "-> 1";
-    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
-    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::REIFICATION);
-    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::REIFICATION);
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
+    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
+    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+    //TODOprooflog remove code duplicate
+
+    ostringstream prime_line;
+    prime_line << endl << "* Bi-reification of prime^node[" << s.get_id_int() << "," << node.get_g() << "] " << ":";
+    // TODOprooflog add get_proof_log_name to SearchNode class
+    ostringstream r_prime_line;
+    ostringstream l_prime_line;
+    r_prime_line << values.size()+1 << " ~prime^node[" << s.get_id_int() << "," << node.get_g() << "] " ;
+    l_prime_line << "1 prime^node[" << s.get_id_int() << "," << node.get_g() << "] " ;
+    for (unsigned int i = 0; i < values.size(); ++i) {
+        r_prime_line << " 1 prime^v" << i << "_"<< values[i] << " ";
+        l_prime_line << " 1 ~prime^v" << i << "_"<< values[i] << " ";
+    }
+    r_prime_line << " 1 prime^spent_geq_" << node.get_real_g() 
+        << "  >= " << values.size()+1 << "; prime^node[" << s.get_id_int() << "," << node.get_g() << "] " << "-> 0";
+    l_prime_line << " 1 ~prime^spent_geq_" << node.get_real_g() 
+        << " >= 1 ; prime^node[" << s.get_id_int() << "," << node.get_g() << "] " << "-> 1";
+    utils::ProofLog::append_to_proof_log(prime_line.str(), utils::ProofPart::INVARIANT);
+    utils::ProofLog::append_to_proof_log(r_prime_line.str(), utils::ProofPart::INVARIANT);
+    utils::ProofLog::append_to_proof_log(l_prime_line.str(), utils::ProofPart::INVARIANT);
 }
 
 void SearchAlgorithm::proof_log_initialize_invar(){
@@ -203,7 +223,7 @@ void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNo
     OperatorsProxy operators = task_proxy.get_operators();
     State s = node.get_state();
     ostringstream line;
-    line << "rup: 1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 prime^invar >= 1;";
+    line << endl << "rup: 1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 prime^invar >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 

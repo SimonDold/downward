@@ -31,9 +31,8 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
     } else {
         /*
         add reification of phi[state,g] but i dont have the g value :(
+        atm i am cheating inside of TieBreakingOpenList<Entry>::do_insertion
         */
-        utils::ProofLog::append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::REIFICATION);
-        utils::ProofLog::append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::DERIVATION);
         return min_operator_cost;
     }
 }
