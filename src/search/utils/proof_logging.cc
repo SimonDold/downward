@@ -50,7 +50,8 @@ string ProofLog::strips_name_to_veripb_name(const string& strips_name) {
     string veripb_name;
     for (char c : strips_name) {
         if (! regex_search(string(1, c), pattern)) {
-            veripb_name += "[ASCII" + to_string(static_cast<int>(c)) + "]";
+            //veripb_name += "[ASCII" + to_string(static_cast<int>(c)) + "]";
+            veripb_name += "_";
         } else {
             veripb_name += c;
         }

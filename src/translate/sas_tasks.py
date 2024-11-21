@@ -12,11 +12,11 @@ def maplet_name(variable: int, value: int) -> str:
     return f"var_{variable}_{value}"
 
 def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) -> Tuple[str,str]:
-    right_reification = f"{len(conjuncts)} ~" + reification_variable
-    left_reification = "1 " + reification_variable
+    right_reification = f" {len(conjuncts)} ~" + reification_variable
+    left_reification = " 1 " + reification_variable + " "
     for conjunct in conjuncts:
-        right_reification += f" 1 {conjunct}"
-        left_reification += f" 1 ~{conjunct}"
+        right_reification += f" 1 {conjunct} "
+        left_reification += f" 1 ~{conjunct} "
     right_reification += f" >= {len(conjuncts)} ;"
     left_reification += " >= 1 ;"
     return (left_reification, right_reification)
@@ -25,30 +25,30 @@ def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) 
 def implication_from_conjunction_to_disjunction(antecendent_conjuncts: list[str], consequent_disjuncts: list[str]) -> str:
     antecendent = ""
     for conjunct in antecendent_conjuncts:
-        antecendent += f"{len(consequent_disjuncts)} ~{conjunct} "
+        antecendent += f" {len(consequent_disjuncts)} ~{conjunct} "
     consequent = ""
     for disjunct in consequent_disjuncts:
-        consequent += f"1 {disjunct} "
+        consequent += f" 1 {disjunct} "
     return antecendent + consequent + f" >= {len(antecendent_conjuncts)} ;"
     
 # aka right-reification
 def implication_from_unit_to_conjunction(antecendent: str, consequent_conjuncts: list[str]) -> str:
     consequent = ""
     for conjunct in consequent_conjuncts:
-        consequent += f"1 {conjunct} "
-    return f"{len(consequent_conjuncts)} ~{antecendent} " + consequent + f">= {len(consequent_conjuncts)} ;"
+        consequent += f" 1 {conjunct} "
+    return f" {len(consequent_conjuncts)} ~{antecendent} " + consequent + f" >= {len(consequent_conjuncts)} ;"
 
 def implication_from_unit_to_disjunction(antecendent: str, consequent_disjuncts: list[str]) -> str:
     consequent = ""
     for disjunct in consequent_disjuncts:
-        consequent += f"1 {disjunct} "
-    return f"1 ~{antecendent} " + consequent + f">= 1 ;"
+        consequent += f" 1 {disjunct} "
+    return f" 1 ~{antecendent} " + consequent + f" >= 1 ;"
 
 def implication_from_disjunction_to_unit(antecendent_disjuncts: list[str], consequent: str) -> str:
     antecendent = ""
     for disjunct in antecendent_disjuncts:
-        antecendent += f"1 ~{disjunct} "
-    return f"{len(antecendent_disjuncts)} {consequent} " + antecendent + f">= {len(antecendent_disjuncts)} ;"
+        antecendent += f" 1 ~{disjunct} "
+    return f" {len(antecendent_disjuncts)} {consequent} " + antecendent + f" >= {len(antecendent_disjuncts)} ;"
 
 
 # WARNING: this function has to be syncronized with same named one in the C++ part.
@@ -58,13 +58,14 @@ def strips_name_to_veripb_name(strips_name: str) -> str:
         veripb_name = ""
         for char in strips_name:
             if not pattern.match(char):
-                veripb_name += f"[ASCII{ord(char)}]"
+                #veripb_name += f"[ASCII{ord(char)}]"
+                veripb_name += "_"
             else:
                 veripb_name += char
         return veripb_name
 
 def prime_it(name: str) -> str:
-    return "prime^"+name
+    return "prime^" + name
 
 def var_changes_name(variable: int) -> str:
     return f"change_var_{variable}"
@@ -73,21 +74,21 @@ def frame_var(variable: int) -> str:
     return f"frame_var_{variable}"
 
 def frame_axiom(variable: int, value: int) -> Tuple[str, str]:
-    frame_axiom_pos = f"1 ~{frame_var(variable)} + 1 ~{maplet_name(variable, value)} + 1 {prime_it(maplet_name(variable, value))} >= 1"
-    frame_axiom_neg = f"1 ~{frame_var(variable)} + 1 {maplet_name(variable, value)} + 1 ~{prime_it(maplet_name(variable, value))} >= 1"
+    frame_axiom_pos = f" 1 ~{frame_var(variable)}  1 ~{maplet_name(variable, value)}  1 {prime_it(maplet_name(variable, value))}  >= 1"
+    frame_axiom_neg = f" 1 ~{frame_var(variable)}  1 {maplet_name(variable, value)}  1 ~{prime_it(maplet_name(variable, value))}  >= 1"
     return frame_axiom_pos, frame_axiom_neg
 
 def operator_implies_frame_axioms(operator_name: str, number_variables: int) -> List[str]:
     frame_axioms = []
     for i in range(0, number_variables):
-        frame_axioms.append(f"1 ~{operator_name} 1 {frame_var(i)} >= 1 ;")
+        frame_axioms.append(f" 1 ~{operator_name}  1 {frame_var(i)}  >= 1 ;")
     return frame_axioms
 
 def effect_name(operator_name: str, idx: int) -> str:
-    return f"{operator_name}_eff_{idx}"
+    return f"{operator_name}_effcond_{idx}"
 
 def weaken_by(constraint: str, variable: str) -> str:
-    return f"1 {variable} " + constraint
+    return f" 1 {variable} " + constraint
 
 def operator_cost_name(cost: int, comperator: str) -> str:
     if comperator == "=":
@@ -117,14 +118,14 @@ def get_delta_meanings(cost: int, number_variables: int, max_cost: int) -> List[
     pos_prime, neg_normal = "", ""
     neg_prime, pos_normal = "", ""
     for bit in range(0, bits + 1)[::-1]:
-        pos_normal += f"{2**bit} {spent_bit_name(bit)} "
-        neg_normal += f"{2**bit} ~{spent_bit_name(bit)} "
-        pos_prime += f"{2**bit} {prime_it(spent_bit_name(bit))} "
-        neg_prime += f"{2**bit} ~{prime_it(spent_bit_name(bit))} "
-    delta_geq_rreif = f"{2 * maxint - cost} ~{operator_cost_name(cost, '>=')} " + pos_prime + neg_normal + f" >= {2 * maxint - cost}"
-    delta_geq_lreif = f"{cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {cost + 1}"
-    delta_leq_rreif = f"{2 * maxint - (maxint - cost)} ~{operator_cost_name(cost, '<=')} " + neg_prime + pos_normal + f" >= {2 * maxint - (maxint - cost)}"
-    delta_leq_lreif = f"{maxint - cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint - cost + 1}"
+        pos_normal += f" {2**bit} {spent_bit_name(bit)} "
+        neg_normal += f" {2**bit} ~{spent_bit_name(bit)} "
+        pos_prime += f" {2**bit} {prime_it(spent_bit_name(bit))} "
+        neg_prime += f" {2**bit} ~{prime_it(spent_bit_name(bit))} "
+    delta_geq_rreif = f" {2 * maxint - cost} ~{operator_cost_name(cost, '>=')} " + pos_prime + neg_normal + f" >= {2 * maxint - cost}"
+    delta_geq_lreif = f" {cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {cost + 1}"
+    delta_leq_rreif = f" {2 * maxint - (maxint - cost)} ~{operator_cost_name(cost, '<=')} " + neg_prime + pos_normal + f" >= {2 * maxint - (maxint - cost)}"
+    delta_leq_lreif = f" {maxint - cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint - cost + 1}"
     return [delta_eq_rreif, delta_eq_lreif, delta_geq_rreif, delta_geq_lreif, delta_leq_rreif, delta_leq_lreif]
 
 
@@ -296,10 +297,10 @@ class SASVariables:
             print("v%d in {%s}%s" % (var, list(range(rang)), axiom_str))
 
     def output(self, sas_stream, opb_stream=None):
-        frame_axioms = ""
         print(len(self.ranges), file=sas_stream)
         for var, (rang, axiom_layer, values) in enumerate(zip(
                 self.ranges, self.axiom_layers, self.value_names)):
+            frame_axioms = ""
             print("begin_variable", file=sas_stream)
             print("var%d" % var, file=sas_stream)
             print(axiom_layer, file=sas_stream)
