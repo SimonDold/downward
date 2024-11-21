@@ -138,7 +138,7 @@ void ProofLog::add_spent_geq_x_bireification(const int x){
     append_to_proof_log(l_prime_line.str(), ProofPart::INVARIANT);
 
     ostringstream derivation_line;
-    derivation_line << endl << "pol  @spent_geq_" << x << "_Rreif  @prime^spent_geq_" << x << "_Lreif  @delta_cost_geq_MIN  +  + " << (1 << bits) << " d ;";
+    derivation_line << endl << "pol  @spent_geq_" << x << "_Rreif  @prime^spent_geq_" << x << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
     append_to_proof_log(derivation_line.str(), ProofPart::DERIVATION);
 }
 
@@ -147,9 +147,12 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     lemmas << endl << endl <<"* entry lemmas" << endl
         << "rup  1 ~s_init  1 spent_geq_1  1 invar  >= 1 ;" << endl
         << "* goal lemma" << endl
-        << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  ~invar  >= 1 ;" << endl
+        << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  1 ~invar  >= 1 ;" << endl
         << "* transition lemma" << endl
-        << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl;
+        << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
+        << "output NONE" << endl 
+        << "conclusion NONE" << endl
+        << "end pseudo-Boolean proof" << endl;
     append_to_proof_log(lemmas.str(), ProofPart::DERIVATION);
 }
 
