@@ -62,10 +62,10 @@ protected:
     int get_adjusted_cost(const OperatorProxy &op) const;
 
     // proof logging functions
-    void proof_log_node_reification(SearchNode node);
+    void proof_log_node_reification(SearchNode node, std::string comment);
     void proof_log_initialize_invar();
     void proof_log_extend_invar(SearchNode node, int idx);
-    void proof_log_finalize_invar(int idx);
+    void proof_log_finalize_invar(int expanded, int evaulated, SearchNode node);
     void proof_log_node_action_invariant(OperatorID op_id, SearchNode node);
 public:
     SearchAlgorithm(

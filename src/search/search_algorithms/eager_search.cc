@@ -103,6 +103,7 @@ void EagerSearch::initialize() {
         node.open_initial();
 
         open_list->insert(eval_context, initial_state.get_id());
+        proof_log_node_reification(node, "inital");
     }
 
     print_initial_evaluator_values(eval_context);
@@ -171,19 +172,18 @@ SearchStatus EagerSearch::step() {
         }
 
         node->close();
-        proof_log_node_reification(*node);
         assert(!node->is_dead_end());
         update_f_value_statistics(eval_context);
         statistics.inc_expanded();
-        proof_log_extend_invar(*node, statistics.get_expanded());
         break;
     }
 
     const State &s = node->get_state();
     if (check_goal_and_set_plan(s)) {
-        proof_log_finalize_invar(statistics.get_expanded());
+        proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), *node);
         return SOLVED;
     }
+    proof_log_extend_invar(*node, statistics.get_expanded());
 
     vector<OperatorID> applicable_ops;
     successor_generator.generate_applicable_ops(s, applicable_ops);
@@ -248,6 +248,7 @@ SearchStatus EagerSearch::step() {
             succ_node.open_new_node(*node, op, get_adjusted_cost(op));
 
             open_list->insert(succ_eval_context, succ_state.get_id());
+            proof_log_node_reification(succ_node, "succ node");
             if (search_progress.check_progress(succ_eval_context)) {
                 statistics.print_checkpoint_line(succ_node.get_g());
                 reward_progress();

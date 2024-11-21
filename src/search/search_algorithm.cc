@@ -144,24 +144,26 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
 }
 
 // That sould be only compiled if proof_log flag is set (analogous to debug flag)
-void SearchAlgorithm::proof_log_node_reification(SearchNode node){
+void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment = ""){
     State s = node.get_state();
     s.unpack();
     vector<int> values = s.get_unpacked_values();
     ostringstream line;
-    line << endl << "* Bi-reification of node" << s.get_id_int() << ":";
+    line << endl << "*** " << comment << endl;
+    line << endl << "* Bi-reification of node[" << s.get_id_int() << "," << node.get_g() << "] " << ":";
+    // TODOprooflog add get_proof_log_name to SearchNode class
     ostringstream r_line;
     ostringstream l_line;
-    r_line << values.size()+1 << " ~node" << s.get_id_int() ;
-    l_line << "1 node" << s.get_id_int() ;
+    r_line << values.size()+1 << " ~node[" << s.get_id_int() << "," << node.get_g() << "] " ;
+    l_line << "1 node[" << s.get_id_int() << "," << node.get_g() << "] " ;
     for (unsigned int i = 0; i < values.size(); ++i) {
         r_line << " 1 v" << i << "_"<< values[i] << " ";
         l_line << " 1 ~v" << i << "_"<< values[i] << " ";
     }
     r_line << " 1 spent_geq_" << node.get_real_g() 
-        << "  >= " << values.size()+1 << "; node" << s.get_id_int() << "-> 0";
+        << "  >= " << values.size()+1 << "; node[" << s.get_id_int() << "," << node.get_g() << "] " << "-> 0";
     l_line << " 1 ~spent_geq_" << node.get_real_g() 
-        << " >= 1 ; node" << s.get_id_int() << "-> 1";
+        << " >= 1 ; node[" << s.get_id_int() << "," << node.get_g() << "] " << "-> 1";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
     utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::REIFICATION);
     utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::REIFICATION);
@@ -174,17 +176,22 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, int idx){
     State s = node.get_state();
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " 1 node" << s.get_id_int() << " ";
-    l_line << " 1 ~node" << s.get_id_int() << " ";
+    r_line << " 1 ~phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    r_line << " 1 node[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_line << " 1 phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_line << " 1 ~node[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
 }
 
-void SearchAlgorithm::proof_log_finalize_invar(int rhs){
+void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, SearchNode node){
+    State s = node.get_state();
     ostringstream r_line;
     ostringstream l_line;
-    r_line << "1 ~invar >= 1" << endl;
-    l_line << " " << rhs << " invar >= " << rhs << endl;
+    r_line << " 1 ~phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    r_line << expanded + 1 << " ~invar >= " << expanded + 1 << endl;
+    l_line << " 1 phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_line << " " << expanded + evaluated << " invar >= " << expanded + evaluated << endl;
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
 
@@ -192,8 +199,9 @@ void SearchAlgorithm::proof_log_finalize_invar(int rhs){
 
 void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node){
     OperatorsProxy operators = task_proxy.get_operators();
+    State s = node.get_state();
     ostringstream line;
-    line << "rup: 1 ~node" << node.get_state().get_id_int() << "_g" << node.get_g() << "  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 invar >= 1;";
+    line << "rup: 1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 invar >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
