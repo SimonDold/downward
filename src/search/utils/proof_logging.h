@@ -18,6 +18,7 @@ public:
     static void append_to_proof_log(const std::string& line, ProofPart proof_part);
     static void append_to_invariant_right(const std::string& summand);
     static void append_to_invariant_left(const std::string& summand);
+    static void add_spent_geq_x_bireification(const int x);
     static std::string strips_name_to_veripb_name(const std::string& strips_name);
 };
 

@@ -48,6 +48,7 @@ void EagerSearch::initialize() {
         << " reopening closed nodes, (real) bound = " << bound
         << endl;
     proof_log_initialize_invar();
+    utils::ProofLog::add_spent_geq_x_bireification(0);
     assert(open_list);
 
     set<Evaluator *> evals;

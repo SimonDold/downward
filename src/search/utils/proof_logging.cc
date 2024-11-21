@@ -65,6 +65,29 @@ void ProofLog::append_to_invariant_left(const string& summand) {
     file.close();
 }
 
+void ProofLog::add_spent_geq_x_bireification(const int x){
+    
+    int bits = 8; // TODOprooflog this is hardcoded atm :(
+    
+    ostringstream r_line;
+    ostringstream l_line;
+    r_line << "@spent_geq_" << x << "_Rreif ";
+    l_line << "@spent_geq_" << x << "_Lreif ";
+    for (int i = bits - 1; i >= 0; --i) {
+        r_line << " " << (1 << i) << " c_" << i << " ";
+        l_line << " " << (1 << i) << " ~c_" << i << " ";
+    }
+    r_line << x << " ~spent_geq_" << x << "  >= " << x;
+    l_line << ((1 << bits) - 1 - x) << " spent_geq_" << x << "  >= " << ((1 << bits) - 1 - x);
+
+    append_to_proof_log(r_line.str(), ProofPart::REIFICATION);
+    append_to_proof_log(l_line.str(), ProofPart::REIFICATION);
+
+    ostringstream derivation_line;
+    derivation_line << "pol  @spent_geq_" << x << "_Rreif  @prime^spent_geq_" << x << "_Lreif  @delta_cost_geq_MIN  +  + " << (1 << bits) << " d ;";
+    append_to_proof_log(derivation_line.str(), ProofPart::DERIVATION);
+}
+
 // WARNING: this function has to be syncronized with same named one in the python part.
 string ProofLog::strips_name_to_veripb_name(const string& strips_name) {
     regex pattern("[a-zA-Z0-9\\[\\]\\{\\^\\-]");
