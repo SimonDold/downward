@@ -80,7 +80,13 @@ double get_average_operator_cost(TaskProxy task_proxy) {
 
 void proof_log_op_implies_min_cost_delta(OperatorProxy op){
     ostringstream line;
-    line << "rup: ~" << utils::ProofLog::strips_name_to_veripb_name(op.get_name()) << " + delta_cost_geq_MIN >= 1;";
+    line << "rup: 1 ~" << utils::ProofLog::strips_name_to_veripb_name(op.get_name()) << "  1 delta_cost_geq_MIN  >= 1;";
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+}
+
+void proof_log_transition_implies_min_cost_delta(){
+    ostringstream line;
+    line << "rup: ~transition + delta_cost_geq_MIN >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
@@ -98,6 +104,7 @@ int get_min_operator_cost(TaskProxy task_proxy) {
         proof_log_op_implies_min_cost_delta(op);
         min_cost = min(min_cost, op.get_cost());
     }
+    proof_log_transition_implies_min_cost_delta();
     proof_log_reify_min_cost_delta(min_cost);
     return min_cost;
 }

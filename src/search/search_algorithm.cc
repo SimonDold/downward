@@ -168,32 +168,25 @@ void SearchAlgorithm::proof_log_node_reification(SearchNode node){
 }
 
 void SearchAlgorithm::proof_log_initialize_invar(){
-    utils::ProofLog::append_to_proof_log("1 invar_-1 >= 1", utils::ProofPart::INVARIANT);
 }
 
 void SearchAlgorithm::proof_log_extend_invar(SearchNode node, int idx){
     State s = node.get_state();
-    ostringstream line;
-    line << endl << "* Extend invar by node" << s.get_id_int() << ":" << endl;
-    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
     ostringstream r_line;
     ostringstream l_line;
-    r_line << "1 ~invar_" << idx << " 1 invar_" << idx-1 << " 1 node" << s.get_id_int() << " >= 1";
-    l_line << "2 invar_" << idx << " 1 ~invar_" << idx-1 << " 1 ~node" << s.get_id_int() << " >= 2";
-    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
-    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+    r_line << " 1 node" << s.get_id_int() << " ";
+    l_line << " 1 ~node" << s.get_id_int() << " ";
+    utils::ProofLog::append_to_invariant_right(r_line.str());
+    utils::ProofLog::append_to_invariant_left(l_line.str());
 }
 
-void SearchAlgorithm::proof_log_finalize_invar(int idx){
-    ostringstream line;
-    line << endl << "* Finalize invar by idx" << idx << ":" << endl;
-    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
+void SearchAlgorithm::proof_log_finalize_invar(int rhs){
     ostringstream r_line;
     ostringstream l_line;
-    r_line << "1 ~invar 1 invar_" << idx << " >= 1";
-    l_line << "1 invar 1 ~invar_" << idx << " >= 1";
-    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
-    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+    r_line << " " << rhs << " ~invar >= " << rhs << endl;
+    l_line << " 1 invar >= 1" << endl;
+    utils::ProofLog::append_to_invariant_right(r_line.str());
+    utils::ProofLog::append_to_invariant_left(l_line.str());
 
 }
 

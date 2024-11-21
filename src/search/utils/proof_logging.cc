@@ -23,11 +23,6 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
             file_name = "derivations.prooflog";
             break;
         }
-    case ProofPart::INVARIANT:
-        {
-            file_name = "invariant.prooflog";
-            break;
-        }
     default:
         cerr << "Error: Not clear where to add." << endl;
         break;
@@ -41,6 +36,32 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
         return;
     }
     file << line << endl;
+    file.close();
+}
+
+void ProofLog::append_to_invariant_right(const string& summand) {
+    string file_name = "invariant_right.prooflog";
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << summand;
+    file.close();
+}
+
+void ProofLog::append_to_invariant_left(const string& summand) {
+    string file_name = "invariant_left.prooflog";
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << summand;
     file.close();
 }
 
