@@ -4,6 +4,7 @@
 #include "evaluation_result.h"
 
 #include "utils/logging.h"
+#include "utils/proof_logging.h"
 
 #include <set>
 

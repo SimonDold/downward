@@ -71,6 +71,16 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         heuristic = heuristic_cache[state].h;
         result.set_count_evaluation(false);
     } else {
+        int g_val = eval_context.get_g_value();
+        ostringstream r_line;
+        ostringstream l_line;
+//        node[" << s.get_id_int() << "," << node.get_g() << "] "
+        r_line << " 1 phi[" << state.get_id_int() << "," << g_val << "] ";
+        l_line << " 1 ~phi[" << state.get_id_int() << "," << g_val << "] ";
+        utils::ProofLog::append_to_invariant_right(r_line.str());
+        utils::ProofLog::append_to_invariant_left(l_line.str());
+        // TO invarBi: "... 1 phi_[state,g] ..."
+        // TO sub_invarsBI: "\n phi_[state,g] <=> ..." 
         heuristic = compute_heuristic(state);
         if (cache_evaluator_values) {
             heuristic_cache[state] = HEntry(heuristic, false);

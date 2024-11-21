@@ -188,10 +188,12 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, Sear
     State s = node.get_state();
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " 1 ~phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
-    r_line << expanded + 1 << " ~invar >= " << expanded + 1 << endl;
-    l_line << " 1 phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
-    l_line << " " << expanded + evaluated << " invar >= " << expanded + evaluated << endl;
+    // phi[state,g] is actually part of the overapproximation  // r_line << " 1 ~phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    r_line << expanded << " ~invar >= " << expanded << endl;
+    r_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
+    //l_line << " 1 phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_line << " " << expanded + evaluated - 1 << " invar >= " << expanded + evaluated - 1 << endl;
+    l_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
 
