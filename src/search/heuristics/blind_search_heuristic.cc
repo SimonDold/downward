@@ -29,6 +29,9 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
     if (task_properties::is_goal_state(task_proxy, state)) {
         return 0;
     } else {
+        /*
+        add reification of phi[state,g] but i dont have the g value :(
+        */
         utils::ProofLog::append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::REIFICATION);
         utils::ProofLog::append_to_proof_log("* TODO: proof blind heuristic value", utils::ProofPart::DERIVATION);
         return min_operator_cost;

@@ -66,8 +66,26 @@ void TieBreakingOpenList<Entry>::do_insertion(
     EvaluationContext &eval_context, const Entry &entry) {
     vector<int> key;
     key.reserve(evaluators.size());
-    for (const shared_ptr<Evaluator> &evaluator : evaluators)
-        key.push_back(eval_context.get_evaluator_value_or_infinity(evaluator.get()));
+    for (const shared_ptr<Evaluator> &evaluator : evaluators) {
+        int value = eval_context.get_evaluator_value_or_infinity(evaluator.get());
+        key.push_back(value);
+        int g_val = eval_context.get_g_value();
+        State s = eval_context.get_state();
+        int bits = 8;
+        int min_cost = 1;
+
+        // I just know that the evaluator is the blind heuristic with x = min cost
+        // I can not share the view that a heuristic just says that a node should be expanded or not :(
+        utils::ProofLog::add_spent_geq_x_bireification(g_val + min_cost);
+        ostringstream r_line;
+        ostringstream l_line;
+        r_line  << endl << " * Rreif of phi[" << s.get_id_int() << "," << g_val << "]   but it is fake ATM :( " << endl;
+        r_line << "1 ~phi[" << s.get_id_int() << "," << g_val << "]  1 node[" << s.get_id_int() << "," << g_val << "]  1 spent_geq_" << g_val + min_cost << "  >= 1";
+        l_line << " * Lreif of phi[" << s.get_id_int() << "," << g_val << "]" << endl;
+        l_line << "2 phi[" << s.get_id_int() << "," << g_val << "]  1 ~node[" << s.get_id_int() << "," << g_val << "]  1 ~spent_geq_" << g_val + min_cost << "  >= 2";
+        utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::REIFICATION);
+        utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::REIFICATION);
+    }
 
     buckets[key].push_back(entry);
     ++size;
