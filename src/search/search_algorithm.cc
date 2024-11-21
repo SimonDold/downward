@@ -183,8 +183,8 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, int idx){
 void SearchAlgorithm::proof_log_finalize_invar(int rhs){
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " " << rhs << " ~invar >= " << rhs << endl;
-    l_line << " 1 invar >= 1" << endl;
+    r_line << "1 ~invar >= 1" << endl;
+    l_line << " " << rhs << " invar >= " << rhs << endl;
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
 
