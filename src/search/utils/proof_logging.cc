@@ -149,7 +149,7 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "* goal lemma" << endl
         << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  ~invar  >= 1 ;" << endl
         << "* transition lemma" << endl
-        << "rup  1 ~invar  1 ~transition  1 invar  >= 1 ; " <<endl;
+        << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl;
     append_to_proof_log(lemmas.str(), ProofPart::DERIVATION);
 }
 
