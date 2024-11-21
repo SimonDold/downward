@@ -309,16 +309,22 @@ class SASVariables:
             var_domain_constraints = "* var%d domain constraints \n" %var
             var_domain_max_one = ""
             var_domain_min_one = ""
+            var_prime_domain_max_one = ""
+            var_prime_domain_min_one = ""
             for i, value in enumerate(values):
                 print(value, file=sas_stream)
                 var_domain_max_one += f"1 ~{maplet_name(var,i)} "
                 var_domain_min_one += f"1 {maplet_name(var,i)} "
+                var_prime_domain_max_one += f"1 ~{prime_it(maplet_name(var,i))} "
+                var_prime_domain_min_one += f"1 {prime_it(maplet_name(var,i))} "
                 frame_axiom_pos, frame_axiom_neg = frame_axiom(var,i)
                 frame_axioms += frame_axiom_pos + "\n" + frame_axiom_neg + "\n"
 
             var_domain_max_one = var_domain_max_one + f">= {len(values)-1} ;"
             var_domain_min_one = var_domain_min_one + ">= 1 ;"
-            var_domain_constraints += var_domain_max_one + "\n" + var_domain_min_one + "\n" + frame_axioms
+            var_prime_domain_max_one = var_prime_domain_max_one + f">= {len(values)-1} ;"
+            var_prime_domain_min_one = var_prime_domain_min_one + ">= 1 ;"
+            var_domain_constraints += var_domain_max_one + "\n" + var_domain_min_one + "\n" + var_prime_domain_max_one + "\n" + var_prime_domain_min_one + "\n" + frame_axioms
             print(var_domain_constraints, file=opb_stream)
             print("end_variable", file=sas_stream)
         return len(self.ranges)
@@ -383,6 +389,7 @@ class SASInit:
             state_name += f"{maplet_name(i,val)},"
             conjuncts.append(maplet_name(i,val))
         state_name = state_name[:-1] + "}"
+        state_name = "s_init"
         left_reification, right_reification = bi_reification_conjunction(state_name, conjuncts)
         state_reification = "\n* init state reification:\n" + right_reification + "\n" + left_reification
         print(state_reification, file=opb_stream)
@@ -412,6 +419,7 @@ class SASGoal:
             partial_state_name += f"[var_{var}-D{val}], "
             conjuncts.append(maplet_name(var,val))
         partial_state_name = partial_state_name[:-2] + "}"
+        partial_state_name = "goal"
         left_reification, right_reification = bi_reification_conjunction(partial_state_name, conjuncts)
         partial_state_reification = "\n* goal condition reification:\n" + right_reification + "\n" + left_reification
         print(partial_state_reification, file=opb_stream)
