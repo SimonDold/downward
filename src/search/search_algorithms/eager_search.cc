@@ -182,6 +182,7 @@ SearchStatus EagerSearch::step() {
     const State &s = node->get_state();
     if (check_goal_and_set_plan(s)) {
         proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), *node);
+        utils::ProofLog::finalize_lemmas(node->get_g());
         return SOLVED;
     }
     proof_log_extend_invar(*node, statistics.get_expanded());

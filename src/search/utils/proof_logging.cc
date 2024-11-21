@@ -142,6 +142,17 @@ void ProofLog::add_spent_geq_x_bireification(const int x){
     append_to_proof_log(derivation_line.str(), ProofPart::DERIVATION);
 }
 
+void ProofLog::finalize_lemmas(int optimal_cost) {
+    ostringstream lemmas;
+    lemmas << endl << endl <<"* entry lemmas" << endl
+        << "rup  1 ~s_init  1 spent_geq_1  1 invar  >= 1 ;" << endl
+        << "* goal lemma" << endl
+        << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  ~invar  >= 1 ;" << endl
+        << "* transition lemma" << endl
+        << "rup  1 ~invar  1 ~transition  1 invar  >= 1 ; " <<endl;
+    append_to_proof_log(lemmas.str(), ProofPart::DERIVATION);
+}
+
 // WARNING: this function has to be syncronized with same named one in the python part.
 string ProofLog::strips_name_to_veripb_name(const string& strips_name) {
     regex pattern("[a-zA-Z0-9\\[\\]\\{\\^\\-]");
