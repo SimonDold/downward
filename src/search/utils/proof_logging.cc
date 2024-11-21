@@ -61,6 +61,8 @@ void ProofLog::append_to_invariant_right(const string& summand) {
     file.close();
 }
 
+// TODOprooflog remove 4fold code duplication 
+
 void ProofLog::append_to_invariant_left(const string& summand) {
     string file_name = "invariant_left.prooflog";
     ofstream file(
@@ -73,6 +75,35 @@ void ProofLog::append_to_invariant_left(const string& summand) {
     file << summand;
     file.close();
 }
+
+void ProofLog::append_to_invariant_prime_right(const string& summand) {
+    string file_name = "invariant_prime_right.prooflog";
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << summand;
+    file.close();
+}
+
+void ProofLog::append_to_invariant_prime_left(const string& summand) {
+    string file_name = "invariant_prime_left.prooflog";
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << summand;
+    file.close();
+}
+
+
+
 
 void ProofLog::add_spent_geq_x_bireification(const int x){
     

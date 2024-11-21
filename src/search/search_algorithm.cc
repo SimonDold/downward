@@ -202,6 +202,15 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, int idx){
     l_line << " 1 ~node[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
+    // TODOprooflog remove code duplicate
+    ostringstream r_prime_line;
+    ostringstream l_prime_line;
+    r_prime_line << " 1 ~prime^phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    r_prime_line << " 1 prime^node[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_prime_line << " 1 prime^phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_prime_line << " 1 ~prime^node[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
+    utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
 
 void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, SearchNode node){
@@ -216,7 +225,17 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, Sear
     l_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
-
+    //TODOprooflog remove code duplicate
+    ostringstream r_prime_line;
+    ostringstream l_prime_line;
+    // phi[state,g] is actually part of the overapproximation  // r_line << " 1 ~phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    r_prime_line << expanded << " ~prime^invar >= " << expanded << endl;
+    r_prime_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
+    //l_line << " 1 phi[" << s.get_id_int() << "," << node.get_g() << "] " << " ";
+    l_prime_line << " " << expanded + evaluated - 1 << " prime^invar >= " << expanded + evaluated - 1 << endl;
+    l_prime_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
+    utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
+    utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
 
 void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node){

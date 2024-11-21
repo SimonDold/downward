@@ -79,6 +79,15 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         l_line << " 1 ~phi[" << state.get_id_int() << "," << g_val << "] ";
         utils::ProofLog::append_to_invariant_right(r_line.str());
         utils::ProofLog::append_to_invariant_left(l_line.str());
+        // TODOprooflog remove code duplicate
+        ostringstream r_prime_line;
+        ostringstream l_prime_line;
+//        node[" << s.get_id_int() << "," << node.get_g() << "] "
+        r_prime_line << " 1 prime^phi[" << state.get_id_int() << "," << g_val << "] ";
+        l_prime_line << " 1 ~prime^phi[" << state.get_id_int() << "," << g_val << "] ";
+        utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
+        utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
+
         // TO invarBi: "... 1 phi_[state,g] ..."
         // TO sub_invarsBI: "\n phi_[state,g] <=> ..." 
         heuristic = compute_heuristic(state);
