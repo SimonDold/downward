@@ -71,7 +71,6 @@ void TieBreakingOpenList<Entry>::do_insertion(
         key.push_back(value);
         int g_val = eval_context.get_g_value();
         State s = eval_context.get_state();
-        int bits = 8;
         int min_cost = 1;
 
         // I just know that the evaluator is the blind heuristic with x = min cost
