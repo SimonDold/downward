@@ -4,6 +4,9 @@
 #include <sstream>
 #include <string>
 
+// TODOprooflog remove global variables
+extern int proof_log_var_count;
+extern int proof_log_max_cost_bits;
 namespace utils {
 
 enum class ProofPart {
@@ -11,6 +14,8 @@ enum class ProofPart {
     DERIVATION,
     INVARIANT
 };
+
+int ceil_log_2(int x);
 
 class ProofLog{
 

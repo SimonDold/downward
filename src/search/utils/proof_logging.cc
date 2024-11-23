@@ -1,12 +1,27 @@
 #include "proof_logging.h"
 
+#include <cassert>
 #include <fstream>
 #include <iostream>
 #include <regex>
 
 using namespace std;
 
+
+int proof_log_var_count;
+int proof_log_max_cost_bits;
+
 namespace utils {
+
+// TODOprooflog where should this live?
+int ceil_log_2(int x) {
+    assert(x > 0); // Invalid input
+    int result = 0;
+    while ((x & (1 << (result + 1))) != 0) {
+        result++;
+    }
+    return result;
+}
 
 void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
 {
@@ -102,13 +117,9 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
     file.close();
 }
 
-
-
-
 void ProofLog::add_spent_geq_x_bireification(const int x){
-    
-    int bits = 8; // TODOprooflog this is hardcoded atm :(
-    
+    int bits = proof_log_var_count + proof_log_max_cost_bits;
+    // here we will need more bits once we talk about infinity
     ostringstream r_line;
     ostringstream l_line;
     r_line << "@spent_geq_" << x << "_Rreif ";

@@ -4,6 +4,7 @@
 
 #include "../plugins/plugin.h"
 #include "../utils/collections.h"
+#include "../utils/proof_logging.h"
 #include "../utils/timer.h"
 
 #include <algorithm>
@@ -235,6 +236,9 @@ static bool read_metric(istream &in) {
     int max_abs_cost;
     check_magic(in, "begin_metric");
     in >> max_abs_cost;
+
+    proof_log_max_cost_bits = utils::ceil_log_2(max_abs_cost);
+
     bool use_metric = (max_abs_cost > 0);
     check_magic(in, "end_metric");
     return use_metric;
@@ -243,6 +247,9 @@ static bool read_metric(istream &in) {
 static vector<ExplicitVariable> read_variables(istream &in) {
     int count;
     in >> count;
+ 
+    proof_log_var_count = count;
+    
     vector<ExplicitVariable> variables;
     variables.reserve(count);
     for (int i = 0; i < count; ++i) {
