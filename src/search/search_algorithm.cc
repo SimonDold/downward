@@ -144,49 +144,74 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
 }
 
 // That sould be only compiled if proof_log flag is set (analogous to debug flag)
-void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment = ""){
+
+void proof_log_node_Rreif(SearchNode node, bool is_balance, bool is_prime){
     State s = node.get_state();
     s.unpack();
     vector<int> values = s.get_unpacked_values();
+    ostringstream r_prime_line;
+    r_prime_line << values.size()+1 << " ~" << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "B-" : "") << node.get_g() << "] " ;
+    for (unsigned int i = 0; i < values.size(); ++i) {
+        r_prime_line << " 1 " << (is_prime ? "prime^" : "") << "v" << i << "_"<< values[i] << " ";
+    }
+    r_prime_line << " 1 " << (is_prime ? "prime^" : "")
+        << (is_balance ? "balance_leq_B-" : "spent_geq_")
+        << node.get_real_g() 
+        << "  >= " << values.size() + 1;
+    utils::ProofLog::append_to_proof_log(r_prime_line.str(), utils::ProofPart::INVARIANT);
+}
+
+void proof_log_node_Lreif(SearchNode node, bool is_balance, bool is_prime){
+    State s = node.get_state();
+    s.unpack();
+    vector<int> values = s.get_unpacked_values();
+    ostringstream l_prime_line;
+    l_prime_line << "1 " << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "B-" : "") << node.get_g() << "] " ;
+    for (unsigned int i = 0; i < values.size(); ++i) {
+        l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << "v" << i << "_"<< values[i] << " ";
+    }
+    l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << (is_balance ? "balance_leq_B-" : "spent_geq_") << node.get_real_g() 
+        << " >= 1";
+    utils::ProofLog::append_to_proof_log(l_prime_line.str(), utils::ProofPart::INVARIANT);
+
+}
+
+void proof_log_node_spend_Rreif(SearchNode node){
+    proof_log_node_Rreif(node, false, false);
+}
+void proof_log_node_spend_Lreif(SearchNode node){
+    proof_log_node_Lreif(node, false, false);
+    }
+void proof_log_node_spend_prime_Rreif(SearchNode node){
+    proof_log_node_Rreif(node, false, true);
+}
+void proof_log_node_spend_prime_Lreif(SearchNode node){
+    proof_log_node_Lreif(node, false, true);
+}
+void proof_log_node_balance_Rreif(SearchNode node){
+    proof_log_node_Rreif(node, true, false);
+}
+void proof_log_node_balance_Lreif(SearchNode node){
+    proof_log_node_Lreif(node, true, false);}
+void proof_log_node_balance_prime_Rreif(SearchNode node){
+    proof_log_node_Rreif(node, true, true);}
+void proof_log_node_balance_prime_Lreif(SearchNode node){
+    proof_log_node_Lreif(node, true, true);}
+
+void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment = ""){
+    State s = node.get_state();
     ostringstream line;
     line << endl << "*** " << comment << endl;
-    line << endl << "* Bi-reification of node[" << s.get_id_int() << "," << node.get_g() << "] " << ":";
-    // TODOprooflog add get_proof_log_name to SearchNode class
-    ostringstream r_line;
-    ostringstream l_line;
-    r_line << values.size()+1 << " ~node[" << s.get_id_int() << "," << node.get_g() << "] " ;
-    l_line << "1 node[" << s.get_id_int() << "," << node.get_g() << "] " ;
-    for (unsigned int i = 0; i < values.size(); ++i) {
-        r_line << " 1 v" << i << "_"<< values[i] << " ";
-        l_line << " 1 ~v" << i << "_"<< values[i] << " ";
-    }
-    r_line << " 1 spent_geq_" << node.get_real_g() 
-        << "  >= " << values.size() + 1;
-    l_line << " 1 ~spent_geq_" << node.get_real_g() 
-        << " >= 1";
+    line << endl << "* Bi-reification of node[" << s.get_id_int() << "," << node.get_g() << "] and node[" << s.get_id_int() << ",B-" << node.get_g() << "] " << ":";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
-    utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
-    utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
-    //TODOprooflog remove code duplicate
-
-    ostringstream prime_line;
-    prime_line << endl << "* Bi-reification of prime^node[" << s.get_id_int() << "," << node.get_g() << "] " << ":";
-    // TODOprooflog add get_proof_log_name to SearchNode class
-    ostringstream r_prime_line;
-    ostringstream l_prime_line;
-    r_prime_line << values.size()+1 << " ~prime^node[" << s.get_id_int() << "," << node.get_g() << "] " ;
-    l_prime_line << "1 prime^node[" << s.get_id_int() << "," << node.get_g() << "] " ;
-    for (unsigned int i = 0; i < values.size(); ++i) {
-        r_prime_line << " 1 prime^v" << i << "_"<< values[i] << " ";
-        l_prime_line << " 1 ~prime^v" << i << "_"<< values[i] << " ";
-    }
-    r_prime_line << " 1 prime^spent_geq_" << node.get_real_g() 
-        << "  >= " << values.size() + 1;
-    l_prime_line << " 1 ~prime^spent_geq_" << node.get_real_g() 
-        << " >= 1";
-    utils::ProofLog::append_to_proof_log(prime_line.str(), utils::ProofPart::INVARIANT);
-    utils::ProofLog::append_to_proof_log(r_prime_line.str(), utils::ProofPart::INVARIANT);
-    utils::ProofLog::append_to_proof_log(l_prime_line.str(), utils::ProofPart::INVARIANT);
+    proof_log_node_spend_Rreif(node);
+    proof_log_node_spend_Lreif(node);
+    proof_log_node_spend_prime_Rreif(node);
+    proof_log_node_spend_prime_Lreif(node);
+    proof_log_node_balance_Rreif(node);
+    proof_log_node_balance_Lreif(node);
+    proof_log_node_balance_prime_Rreif(node);
+    proof_log_node_balance_prime_Lreif(node);
 }
 
 void SearchAlgorithm::proof_log_initialize_invar(){
