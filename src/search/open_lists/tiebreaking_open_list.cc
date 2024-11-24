@@ -76,6 +76,14 @@ void TieBreakingOpenList<Entry>::do_insertion(
         // I just know that the evaluator is the blind heuristic with x = min cost
         // I can not share the view that a heuristic just says that a node should be expanded or not :(
         utils::ProofLog::add_spent_geq_x_bireification(g_val + min_cost);
+
+
+        // this belongs to blind heuristic
+        int bits = 8;//proof_log_var_count + proof_log_max_cost_bits;
+        ostringstream derivation_line;
+        derivation_line << endl << "pol  @spent_geq_" << (g_val + min_cost) << "_Rreif  @prime^spent_geq_" << (g_val + min_cost) << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
+        utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
+
         ostringstream r_line;
         ostringstream l_line;
         r_line  << endl << " * Rreif of phi[" << s.get_id_int() << "," << g_val << "]   but it is fake ATM :( " << endl;

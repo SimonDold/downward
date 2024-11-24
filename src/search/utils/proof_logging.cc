@@ -117,40 +117,29 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
     file.close();
 }
 
-void ProofLog::add_spent_geq_x_bireification(const int x){
+void add_spent_geq_x_bireification_aux(const int x, bool is_prime){
     int bits = proof_log_var_count + proof_log_max_cost_bits;
     // here we will need more bits once we talk about infinity
-    ostringstream r_line;
-    ostringstream l_line;
-    r_line << "@spent_geq_" << x << "_Rreif ";
-    l_line << "@spent_geq_" << x << "_Lreif ";
-    for (int i = bits - 1; i >= 0; --i) {
-        r_line << " " << (1 << i) << " c_" << i << " ";
-        l_line << " " << (1 << i) << " ~c_" << i << " ";
-    }
-    r_line << x << " ~spent_geq_" << x << "  >= " << x;
-    l_line << ((1 << bits) - x) << " spent_geq_" << x << "  >= " << ((1 << bits) - x);
-
-    append_to_proof_log(r_line.str(), ProofPart::INVARIANT);
-    append_to_proof_log(l_line.str(), ProofPart::INVARIANT);
-
     ostringstream r_prime_line;
     ostringstream l_prime_line;
-    r_prime_line << "@prime^spent_geq_" << x << "_Rreif ";
-    l_prime_line << "@prime^spent_geq_" << x << "_Lreif ";
+    r_prime_line << "@" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "_Rreif ";
+    l_prime_line << "@" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "_Lreif ";
     for (int i = bits - 1; i >= 0; --i) {
-        r_prime_line << " " << (1 << i) << " prime^c_" << i << " ";
-        l_prime_line << " " << (1 << i) << " ~prime^c_" << i << " ";
+        r_prime_line << " " << (1 << i) << " " << (is_prime ? "prime^" : "") << "e_" << i << " ";
+        l_prime_line << " " << (1 << i) << " ~" << (is_prime ? "prime^" : "") << "e_" << i << " ";
     }
-    r_prime_line << x << " ~prime^spent_geq_" << x << "  >= " << x;
+    r_prime_line << x << " ~" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << x;
     l_prime_line << ((1 << bits) - x) << " prime^spent_geq_" << x << "  >= " << ((1 << bits) - x);
 
-    append_to_proof_log(r_prime_line.str(), ProofPart::INVARIANT);
-    append_to_proof_log(l_prime_line.str(), ProofPart::INVARIANT);
+    ProofLog::append_to_proof_log(r_prime_line.str(), ProofPart::INVARIANT);
+    ProofLog::append_to_proof_log(l_prime_line.str(), ProofPart::INVARIANT);
 
-    ostringstream derivation_line;
-    derivation_line << endl << "pol  @spent_geq_" << x << "_Rreif  @prime^spent_geq_" << x << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
-    append_to_proof_log(derivation_line.str(), ProofPart::DERIVATION);
+}
+
+void ProofLog::add_spent_geq_x_bireification(const int x){
+    add_spent_geq_x_bireification_aux(x, false);
+    add_spent_geq_x_bireification_aux(x, true);
+
 }
 
 void ProofLog::finalize_lemmas(int optimal_cost) {
