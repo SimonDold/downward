@@ -105,7 +105,7 @@ def operator_cost_name(cost: int, comperator: str) -> str:
         return "ERROR"
 
 def spent_bit_name(position: int) -> str:
-    return f"c_{position}"
+    return f"e_{position}"
 
 def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) -> List[str]: 
     delta_eq_rreif = f"2 {neg(operator_cost_name(cost, '='))} 1 {operator_cost_name(cost, '>=')} 1 {operator_cost_name(cost, '<=')} >= 2 ;"
