@@ -17,11 +17,11 @@ def neg(pb_var: str) -> str:
 def implication_from_conjunction_to_disjunction(antecendent_conjuncts: list[str], consequent_disjuncts: list[str]) -> str:
     antecendent = ""
     for conjunct in antecendent_conjuncts:
-        antecendent += f" {max(1,len(consequent_disjuncts))} {neg(conjunct)} "
+        antecendent += f" 1 {neg(conjunct)} "
     consequent = ""
     for disjunct in consequent_disjuncts:
         consequent += f" 1 {disjunct} "
-    return antecendent + consequent + f" >= {max(1,len(consequent_disjuncts))} ;"
+    return antecendent + consequent + f" >= 1 ;"
 
 # aka right-reification of conjunction
 def implication_from_unit_to_conjunction(antecendent: str, consequent_conjuncts: list[str]) -> str:
@@ -43,7 +43,7 @@ def implication_from_unit_to_disjunction(antecendent: str, consequent_disjuncts:
 
 
 def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) -> Tuple[str,str]:
-    right_reification = implication_from_conjunction_to_disjunction(conjuncts, [neg(reification_variable)])
+    right_reification = implication_from_conjunction_to_disjunction(conjuncts, [reification_variable])
     left_reification = implication_from_unit_to_disjunction(neg(reification_variable), [neg(x) for x in conjuncts] )
     return (left_reification, right_reification)
 
