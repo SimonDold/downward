@@ -117,29 +117,42 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
     file.close();
 }
 
-void add_spent_geq_x_bireification_aux(const int x, bool is_prime){
+void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance){
     int bits = proof_log_var_count + proof_log_max_cost_bits;
     // here we will need more bits once we talk about infinity
-    ostringstream r_prime_line;
-    ostringstream l_prime_line;
-    r_prime_line << "@" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "_Rreif ";
-    l_prime_line << "@" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "_Lreif ";
+    int maxint = 1 << bits;
+    ostringstream r_prime;
+    ostringstream l_prime;
+    r_prime << "@" << (is_prime ? "prime^" : "") << (balance ? "balance_leq_" : "spent_geq_") << x << "_Rreif ";
+    l_prime << "@" << (is_prime ? "prime^" : "") << (balance ? "balance_leq_" : "spent_geq_") << x << "_Lreif ";
     for (int i = bits - 1; i >= 0; --i) {
-        r_prime_line << " " << (1 << i) << " " << (is_prime ? "prime^" : "") << "e_" << i << " ";
-        l_prime_line << " " << (1 << i) << " ~" << (is_prime ? "prime^" : "") << "e_" << i << " ";
+        r_prime << " " << (1 << i) << " " << (is_prime ? "prime^" : "") << "e_" << i << " ";
+        l_prime << " " << (1 << i) << " ~" << (is_prime ? "prime^" : "") << "e_" << i << " ";
+        if (balance) {
+            r_prime << " " << (1 << i) << " ~b_" << i << " ";
+            l_prime << " " << (1 << i) << " b_" << i << " ";
+        }
+
     }
-    r_prime_line << x << " ~" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << x;
-    l_prime_line << ((1 << bits) - x) << " prime^spent_geq_" << x << "  >= " << ((1 << bits) - x);
-
-    ProofLog::append_to_proof_log(r_prime_line.str(), ProofPart::INVARIANT);
-    ProofLog::append_to_proof_log(l_prime_line.str(), ProofPart::INVARIANT);
-
+    if (balance) {
+        r_prime << 2 * maxint - (maxint - x) << " ~" << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << 2 * maxint - (maxint - x);
+        l_prime << (maxint - x + 1) << " " << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << maxint - x + 1;
+    } else {
+        r_prime << x << " ~" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << x;
+        l_prime << ((1 << bits) - x) << " " << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << ((1 << bits) - x);
+    }
+    ProofLog::append_to_proof_log(r_prime.str(), ProofPart::INVARIANT);
+    ProofLog::append_to_proof_log(l_prime.str(), ProofPart::INVARIANT);
 }
 
 void ProofLog::add_spent_geq_x_bireification(const int x){
-    add_spent_geq_x_bireification_aux(x, false);
-    add_spent_geq_x_bireification_aux(x, true);
+    add_spent_geq_x_bireification_aux(x, false, false);
+    add_spent_geq_x_bireification_aux(x, true, false);
+}
 
+void ProofLog::add_balance_leq_x_bireification(const int x){
+    add_spent_geq_x_bireification_aux(x, false, true);
+    add_spent_geq_x_bireification_aux(x, true, true);
 }
 
 void ProofLog::finalize_lemmas(int optimal_cost) {
