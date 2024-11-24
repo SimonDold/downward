@@ -237,7 +237,7 @@ static bool read_metric(istream &in) {
     check_magic(in, "begin_metric");
     in >> max_abs_cost;
 
-    proof_log_max_cost_bits = utils::ceil_log_2(max_abs_cost);
+    proof_log_max_cost_bits = utils::ceil_log_2(max(max_abs_cost, 1));
 
     bool use_metric = (max_abs_cost > 0);
     check_magic(in, "end_metric");

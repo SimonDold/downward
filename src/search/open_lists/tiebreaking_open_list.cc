@@ -78,44 +78,6 @@ void TieBreakingOpenList<Entry>::do_insertion(
         utils::ProofLog::add_spent_geq_x_bireification(g_val + min_cost);
 
 
-        // this belongs to blind heuristic
-        int bits = 8;//proof_log_var_count + proof_log_max_cost_bits;
-        ostringstream derivation_line;
-        derivation_line << endl << "pol  @spent_geq_" << (g_val + min_cost) << "_Rreif  @prime^spent_geq_" << (g_val + min_cost) << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
-        utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
-
-        ostringstream r_line;
-        ostringstream l_line;
-        r_line  << endl << " * Rreif of phi[" << s.get_id_int() << "," << g_val << "]   but it is fake ATM :( " << endl;
-        r_line << "1 ~phi[" << s.get_id_int() << "," << g_val << "]  1 node[" << s.get_id_int() << "," << g_val << "]  1 spent_geq_" << g_val + min_cost << "  >= 1";
-        l_line << " * Lreif of phi[" << s.get_id_int() << "," << g_val << "]" << endl;
-        l_line << "2 phi[" << s.get_id_int() << "," << g_val << "]  1 ~node[" << s.get_id_int() << "," << g_val << "]  1 ~spent_geq_" << g_val + min_cost << "  >= 2";
-        utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
-        utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
-// TODOproflog: remove code duplicate
-        ostringstream r_prime_line;
-        ostringstream l_prime_line;
-        r_prime_line  << endl << " * Rreif of prime^phi[" << s.get_id_int() << "," << g_val << "]   but it is fake ATM :( " << endl;
-        r_prime_line << "1 ~prime^phi[" << s.get_id_int() << "," << g_val << "]  1 prime^node[" << s.get_id_int() << "," << g_val << "]  1 prime^spent_geq_" << g_val + min_cost << "  >= 1";
-        l_prime_line << " * Lreif of prime^phi[" << s.get_id_int() << "," << g_val << "]" << endl;
-        l_prime_line << "2 prime^phi[" << s.get_id_int() << "," << g_val << "]  1 ~prime^node[" << s.get_id_int() << "," << g_val << "]  1 ~prime^spent_geq_" << g_val + min_cost << "  >= 2";
-        utils::ProofLog::append_to_proof_log(r_prime_line.str(), utils::ProofPart::INVARIANT);
-        utils::ProofLog::append_to_proof_log(l_prime_line.str(), utils::ProofPart::INVARIANT);
-
-        ostringstream entry_lemma;
-        entry_lemma << endl << "* heuristic proofs:" << endl << "rup  1 ~node[" << s.get_id_int() << "," << g_val << "]  1 phi[" << s.get_id_int() << "," << g_val << "]  >= 1 ;";
-        ostringstream entry_prime_lemma;
-        entry_prime_lemma << "rup  1 ~prime^node[" << s.get_id_int() << "," << g_val << "]  1 prime^phi[" << s.get_id_int() << "," << g_val << "]  >= 1 ;";
-        ostringstream goal_lemma;
-        goal_lemma << "rup  1 ~goal  1 spent_geq_" << g_val + min_cost << "  1 ~phi[" << s.get_id_int() << "," << g_val << "]  >= 1 ;";
-        ostringstream transition_lemma;
-        transition_lemma << "rup  1 ~phi[" << s.get_id_int() << "," << g_val << "]  1 ~transition  1 prime^phi[" << s.get_id_int() << "," << g_val << "]  >= 1 ;";
-
-        utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION);
-        utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION);
-        utils::ProofLog::append_to_proof_log(goal_lemma.str(), utils::ProofPart::DERIVATION);
-        utils::ProofLog::append_to_proof_log(transition_lemma.str(), utils::ProofPart::DERIVATION);
-
     }
 
     buckets[key].push_back(entry);

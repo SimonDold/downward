@@ -830,7 +830,7 @@ inline StateID State::get_id() const {
 }
 
 inline int State::get_id_int() const {
-    return id.get_id_int();
+    return  id.get_id_int();
 }
 
 inline const PackedStateBin *State::get_buffer() const {

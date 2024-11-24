@@ -163,6 +163,10 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  1 ~invar  >= 1 ;" << endl
         << "* transition lemma" << endl
         << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
+        << "* FAKE goal lemma" << endl
+        << "rup  1 ~goal  1 spent_geq_" << optimal_cost+1 << "  1 ~invar  >= 1 ;" << endl
+        << "* FAKE goal lemma" << endl
+        << "rup  1 ~goal  1 spent_geq_" << optimal_cost-1 << "  1 ~invar  >= 1 ;" << endl
         << "output NONE" << endl 
         << "conclusion NONE" << endl
         << "end pseudo-Boolean proof" << endl;

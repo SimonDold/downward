@@ -33,6 +33,43 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
         add reification of phi[state,g] but i dont have the g value :(
         atm i am cheating inside of TieBreakingOpenList<Entry>::do_insertion
         */
+
+        State s = ancestor_state;
+        s.unpack();
+            assert( s.get_id_int() >= 0);
+               // this belongs to blind heuristic
+        utils::ProofLog::add_balance_leq_x_bireification(min_operator_cost);
+        int bits = 8;//proof_log_var_count + proof_log_max_cost_bits;
+        ostringstream derivation_line;
+        derivation_line << endl << "pol  @balance_leq_" << (min_operator_cost) << "_Rreif  @prime^balance_leq_" << (min_operator_cost) << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
+        utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
+
+        for (int i=0; i<=1 ; ++i){
+            ostringstream r_line;
+            ostringstream l_line;
+            r_line  << endl << " * Rreif of " << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "] " << endl;
+            r_line << "1 ~" << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << min_operator_cost << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 1";
+            l_line << " * Lreif of " << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "]" << endl;
+            l_line << "2 " << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << min_operator_cost << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 2";
+            utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
+            utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+        }
+
+        ostringstream entry_lemma;
+        entry_lemma << endl << "* heuristic proofs:" << endl << "rup  1 ~node[" << s.get_id_int() << ",balance_leq_" << min_operator_cost << "]  1 phi[" << s.get_id_int() << "]  >= 1 ;";
+        ostringstream entry_prime_lemma;
+        entry_prime_lemma << "rup  1 ~prime^node[" << s.get_id_int() << ",balance_leq_" << min_operator_cost << "]  1 prime^phi[" << s.get_id_int() << "]  >= 1 ;";
+        ostringstream goal_lemma;
+        goal_lemma << "rup  1 ~goal  1 balance_leq_" << min_operator_cost << "  1 ~phi[" << s.get_id_int() << "]  >= 1 ;";
+        ostringstream transition_lemma;
+        transition_lemma << "rup  1 ~phi[" << s.get_id_int() << "]  1 ~transition  1 prime^phi[" << s.get_id_int() << "]  >= 1 ;";
+
+        utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION);
+        utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION);
+        utils::ProofLog::append_to_proof_log(goal_lemma.str(), utils::ProofPart::DERIVATION);
+        utils::ProofLog::append_to_proof_log(transition_lemma.str(), utils::ProofPart::DERIVATION);
+
+
         return min_operator_cost;
     }
 }

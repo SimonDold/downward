@@ -72,21 +72,20 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         result.set_count_evaluation(false);
     } else {
         int g_val = eval_context.get_g_value();
-        ostringstream r_line;
-        ostringstream l_line;
-//        node[" << s.get_id_int() << "," << node.get_g() << "] "
-        r_line << " 1 phi[" << state.get_id_int() << "," << g_val << "] ";
-        l_line << " 1 ~phi[" << state.get_id_int() << "," << g_val << "] ";
-        utils::ProofLog::append_to_invariant_right(r_line.str());
-        utils::ProofLog::append_to_invariant_left(l_line.str());
-        // TODOprooflog remove code duplicate
-        ostringstream r_prime_line;
-        ostringstream l_prime_line;
-//        node[" << s.get_id_int() << "," << node.get_g() << "] "
-        r_prime_line << " 1 prime^phi[" << state.get_id_int() << "," << g_val << "] ";
-        l_prime_line << " 1 ~prime^phi[" << state.get_id_int() << "," << g_val << "] ";
-        utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
-        utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
+        for (int i=0; i<=1; ++i) {
+            ostringstream r_line;
+            ostringstream l_line;
+            assert( state.get_id_int() >= 0);
+            r_line << " 1 " << (i ? "prime^" : "") << "phi[" << state.get_id_int() << "] ";
+            l_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << state.get_id_int() << "] ";
+            if (i){
+                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
+                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
+            } else {
+                utils::ProofLog::append_to_invariant_right(r_line.str());
+                utils::ProofLog::append_to_invariant_left(l_line.str());
+                }
+        }
 
         // TO invarBi: "... 1 phi_[state,g] ..."
         // TO sub_invarsBI: "\n phi_[state,g] <=> ..." 
