@@ -66,29 +66,32 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
 
     int heuristic = NO_VALUE;
 
+        state.unpack();
+        vector<int> values = state.get_unpacked_values();
+
+
+        for (int i=0; i<=1; ++i) {
+
+            // Bi-reify state[x]
+            ostringstream r_state_line;
+            ostringstream l_state_line;
+    
+            for (unsigned int j = 0; j < values.size(); ++j) {
+                r_state_line << " 1 " << (i ? "prime^" : "") << "var_" << j << "_"<< values[j] << " ";
+                l_state_line << " 1 ~" << (i ? "prime^" : "") << "var_" << j << "_"<< values[j] << " ";
+            }
+
+            r_state_line << values.size() << " ~" << (i ? "prime^" : "") << "state[" << state.get_id_int() << "]  >= " << values.size();
+            l_state_line << "1 " << (i ? "prime^" : "") << "state[" << state.get_id_int() << "]  >= 1" ;
+            utils::ProofLog::append_to_proof_log(r_state_line.str(), utils::ProofPart::INVARIANT);
+            utils::ProofLog::append_to_proof_log(l_state_line.str(), utils::ProofPart::INVARIANT);
+        }
+
     if (!calculate_preferred && cache_evaluator_values &&
         heuristic_cache[state].h != NO_VALUE && !heuristic_cache[state].dirty) {
         heuristic = heuristic_cache[state].h;
         result.set_count_evaluation(false);
     } else {
-        int g_val = eval_context.get_g_value();
-        for (int i=0; i<=1; ++i) {
-            ostringstream r_line;
-            ostringstream l_line;
-            assert( state.get_id_int() >= 0);
-            r_line << " 1 " << (i ? "prime^" : "") << "phi[" << state.get_id_int() << "] ";
-            l_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << state.get_id_int() << "] ";
-            if (i){
-                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
-                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
-            } else {
-                utils::ProofLog::append_to_invariant_right(r_line.str());
-                utils::ProofLog::append_to_invariant_left(l_line.str());
-                }
-        }
-
-        // TO invarBi: "... 1 phi_[state,g] ..."
-        // TO sub_invarsBI: "\n phi_[state,g] <=> ..." 
         heuristic = compute_heuristic(state);
         if (cache_evaluator_values) {
             heuristic_cache[state] = HEntry(heuristic, false);
