@@ -112,6 +112,21 @@ void EagerSearch::initialize() {
         node.open_initial();
 
         open_list->insert(eval_context, initial_state.get_id());
+
+            // TODOprooflog remove code duplicate (in eagersearch::step)
+        for (int i=0; i<=1; ++i) {
+            ostringstream r_line;
+            ostringstream l_line;
+            r_line << " 1 " << (i ? "prime^" : "") << "phi[" << initial_state.get_id_int() << "] ";
+            l_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << initial_state.get_id_int() << "] ";
+            if (i){
+                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
+                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
+            } else {
+                utils::ProofLog::append_to_invariant_right(r_line.str());
+                utils::ProofLog::append_to_invariant_left(l_line.str());
+                }
+        }
         proof_log_node_reification(node, "inital");
     }
 
@@ -181,6 +196,7 @@ SearchStatus EagerSearch::step() {
         }
 
         node->close();
+        proof_log_extend_invar(*node, statistics.get_expanded());
         assert(!node->is_dead_end());
         update_f_value_statistics(eval_context);
         statistics.inc_expanded();
@@ -193,7 +209,6 @@ SearchStatus EagerSearch::step() {
         utils::ProofLog::finalize_lemmas(node->get_g());
         return SOLVED;
     }
-    proof_log_extend_invar(*node, statistics.get_expanded());
 
     vector<OperatorID> applicable_ops;
     successor_generator.generate_applicable_ops(s, applicable_ops);
@@ -258,7 +273,21 @@ SearchStatus EagerSearch::step() {
             succ_node.open_new_node(*node, op, get_adjusted_cost(op));
 
             open_list->insert(succ_eval_context, succ_state.get_id());
-            proof_log_node_reification(succ_node, "succ node");
+            // TODOprooflog remove code duplicate (in eagersearch::initialize)
+            for (int i=0; i<=1; ++i) {
+            ostringstream r_line;
+            ostringstream l_line;
+            r_line << " 1 " << (i ? "prime^" : "") << "phi[" << succ_state.get_id_int() << "] ";
+            l_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << succ_state.get_id_int() << "] ";
+            if (i){
+                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
+                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
+            } else {
+                utils::ProofLog::append_to_invariant_right(r_line.str());
+                utils::ProofLog::append_to_invariant_left(l_line.str());
+                }
+        }
+            proof_log_node_reification(succ_node, "new succ node");
             if (search_progress.check_progress(succ_eval_context)) {
                 statistics.print_checkpoint_line(succ_node.get_g());
                 reward_progress();
@@ -294,6 +323,7 @@ SearchStatus EagerSearch::step() {
                 succ_node.update_closed_node_parent(
                     *node, op, get_adjusted_cost(op));
             }
+            proof_log_node_reification(succ_node, "update succ node");
         } else {
             /*
               We found an equally or more expensive path to an open or closed
