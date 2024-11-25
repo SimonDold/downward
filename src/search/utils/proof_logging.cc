@@ -159,17 +159,48 @@ void ProofLog::add_balance_leq_x_bireification(const int x){
 }
 
 void ProofLog::finalize_lemmas(int optimal_cost) {
+    int bits = proof_log_var_count + proof_log_max_cost_bits;
+    ostringstream r_budget;
+    ostringstream l_budget;
+    r_budget << "* varcount: " << proof_log_var_count << endl << "* max cost bits: " << proof_log_max_cost_bits << endl; 
+    r_budget << "@budget_Rreif  ";
+    l_budget << "@budget_Lreif  ";
+    for (int i = bits - 1; i >= 0; --i) {
+        r_budget << " " << (1 << i) << " b_" << i << " ";
+        l_budget << " " << (1 << i) << " ~b_" << i << " ";
+    }
+    r_budget << " >= " << optimal_cost;
+    l_budget << " >= " << (1 << bits)-optimal_cost-1;
+    append_to_proof_log(r_budget.str(), ProofPart::INVARIANT);
+    append_to_proof_log(l_budget.str(), ProofPart::INVARIANT);
+
+
+
+
+    ostringstream spent_all;
+    spent_all << "pol  @budget_Lreif  @balance_leq_0_Lreif +  @spent_geq_" << optimal_cost << "_Rreif + " << (1 << (bits+2)) << " d"
+        << endl << "e 1 ~spent_geq_" << optimal_cost << "  1 balance_leq_0  >= 1 ; -1";
+    append_to_proof_log(spent_all.str(), ProofPart::DERIVATION);
+
+
     ostringstream lemmas;
-    lemmas << endl << endl <<"* entry lemmas" << endl
-        << "rup  1 ~s_init  1 spent_geq_1  1 invar  >= 1 ;" << endl
-        << "* goal lemma" << endl
-        << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  1 ~invar  >= 1 ;" << endl
-        << "* transition lemma" << endl
+    lemmas << endl << endl <<"* entry lemma balance" << endl
+        << "rup  1 ~s_init  1 balance_leq_" << optimal_cost << "  1 invar  >= 1 ;" << endl
+        << "* goal lemma balance" << endl
+        << "rup  1 ~goal  1 balance_leq_" << 0 << "  1 ~invar  >= 1 ;" << endl
+        << "* transition lemma spent" << endl
         << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
-        << "* FAKE goal lemma" << endl
+        << "rup  1 ~goal  1 balance_leq_" << 1 << "  1 ~invar  >= 1 ;" << endl
+        << endl << endl <<"* entry lemma spent" << endl 
+        << "rup  1 ~s_init  1 spent_geq_1  1 invar  >= 1 ;" << endl
+        << "* goal lemma spent" << endl
+        << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  1 ~invar  >= 1 ;" << endl
+        << "* transition lemma spent" << endl
+        << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
+        << "* FAKE goal lemma spent" << endl
         << "rup  1 ~goal  1 spent_geq_" << optimal_cost+1 << "  1 ~invar  >= 1 ;" << endl
-        << "* FAKE goal lemma" << endl
-        << "rup  1 ~goal  1 spent_geq_" << optimal_cost-1 << "  1 ~invar  >= 1 ;" << endl
+        << "* FAKE check" << endl
+        << "rup  >= 1 ;" << endl
         << "output NONE" << endl 
         << "conclusion NONE" << endl
         << "end pseudo-Boolean proof" << endl;
