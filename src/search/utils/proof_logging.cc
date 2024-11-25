@@ -138,8 +138,8 @@ void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance)
 
     }
     if (balance) {
-        r_prime << 2 * maxint - (maxint - x) << " ~" << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << 2 * maxint - (maxint - x);
-        l_prime << (maxint - x + 1) << " " << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << maxint - x + 1;
+        r_prime << 2 * maxint - (maxint + x) - 1 << " ~" << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << 2 * maxint - (maxint + x) - 1;
+        l_prime << (maxint + x) << " " << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << maxint + x;
     } else {
         r_prime << x << " ~" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << x;
         l_prime << ((1 << bits) - x) << " " << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << ((1 << bits) - x);
