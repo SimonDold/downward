@@ -14,13 +14,16 @@ int proof_log_max_cost_bits;
 namespace utils {
 
 // TODOprooflog where should this live?
-int ceil_log_2(int x) {
-    assert(x > 0); // Invalid input
-    int result = 0;
-    while ((x & (1 << (result + 1))) != 0) {
-        result++;
+int ceil_log_2(int val) { // https://stackoverflow.com/a/994647/27389055
+    assert(val > 0); // Invalid input
+    val = val + val; // rounding up
+    if (val == 1) return 0;
+    unsigned int ret = 0;
+    while (val > 1) {
+        val >>= 1;
+        ret++;
     }
-    return result;
+    return ret;
 }
 
 void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
