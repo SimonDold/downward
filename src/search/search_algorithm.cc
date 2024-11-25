@@ -149,16 +149,15 @@ void proof_log_node_Rreif(SearchNode node, bool is_balance, bool is_prime){
     State s = node.get_state();
     s.unpack();
     assert( s.get_id_int() >= 0);
-    vector<int> values = s.get_unpacked_values();
     ostringstream r_prime_line;
-    r_prime_line << values.size()+1 << " ~" << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "] " ;
-    for (unsigned int i = 0; i < values.size(); ++i) {
-        r_prime_line << " 1 " << (is_prime ? "prime^" : "") << "v" << i << "_"<< values[i] << " ";
-    }
+    r_prime_line << "2 ~" << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "] " ;
+    
+    r_prime_line << " 1 " << (is_prime ? "prime^" : "") << "state[" << s.get_id_int() << "] ";
+    
     r_prime_line << " 1 " << (is_prime ? "prime^" : "")
         << (is_balance ? "balance_leq_" : "spent_geq_")
         << node.get_real_g() 
-        << "  >= " << values.size() + 1;
+        << "  >= 2";
     utils::ProofLog::append_to_proof_log(r_prime_line.str(), utils::ProofPart::INVARIANT);
 }
 
@@ -169,9 +168,8 @@ void proof_log_node_Lreif(SearchNode node, bool is_balance, bool is_prime){
     vector<int> values = s.get_unpacked_values();
     ostringstream l_prime_line;
     l_prime_line << "1 " << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "] " ;
-    for (unsigned int i = 0; i < values.size(); ++i) {
-        l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << "v" << i << "_"<< values[i] << " ";
-    }
+    l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << "state[" << s.get_id_int() << "] ";
+    
     l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_real_g() 
         << " >= 1";
     utils::ProofLog::append_to_proof_log(l_prime_line.str(), utils::ProofPart::INVARIANT);
