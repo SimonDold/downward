@@ -52,7 +52,7 @@ void EagerSearch::initialize() {
 
 
         // this belongs to blind heuristic
-        int bits = 8;//proof_log_var_count + proof_log_max_cost_bits;
+        int bits = proof_log_var_count + proof_log_max_cost_bits;
         ostringstream derivation_line;
         derivation_line << endl << "pol  @spent_geq_" << 0 << "_Rreif  @prime^spent_geq_" << 0 << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
         utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
