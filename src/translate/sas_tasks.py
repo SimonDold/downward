@@ -613,7 +613,7 @@ class SASOperator:
         print(len(self.prevail), file=sas_stream)
         proof_log_object_prevail = self.proof_log_init_prevail()
         for var, val in self.prevail:
-            proof_log_object_prevail = self.proof_log_update_prevail(proof_log_object_prevail)
+            proof_log_object_prevail = self.proof_log_update_prevail(var, val, proof_log_object_prevail)
             print(var, val, file=sas_stream)
         print(len(self.pre_post), file=sas_stream)
 
