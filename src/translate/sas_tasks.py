@@ -43,7 +43,7 @@ def implication_from_unit_to_disjunction(antecendent: str, consequent_disjuncts:
 
 
 def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) -> Tuple[str,str]:
-    right_reification = implication_from_conjunction_to_disjunction(conjuncts, [reification_variable])
+    right_reification = implication_from_unit_to_conjunction(reification_variable, conjuncts)
     left_reification = implication_from_unit_to_disjunction(neg(reification_variable), [neg(x) for x in conjuncts] )
     return (left_reification, right_reification)
 
