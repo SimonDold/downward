@@ -174,6 +174,11 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     append_to_proof_log(r_budget.str(), ProofPart::INVARIANT);
     append_to_proof_log(l_budget.str(), ProofPart::INVARIANT);
 
+    // define spent_geq_optimal_cost+1 and balance_leq_-1
+    add_spent_geq_x_bireification_aux(optimal_cost+1, false, false);
+    add_spent_geq_x_bireification_aux(optimal_cost+1, true, false);
+    add_spent_geq_x_bireification_aux(-1, false, true);
+    add_spent_geq_x_bireification_aux(-1, true, true);
 
 
 
@@ -182,6 +187,18 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << endl << "e 1 ~spent_geq_" << optimal_cost << "  1 balance_leq_0  >= 1 ; -1";
     append_to_proof_log(spent_all.str(), ProofPart::DERIVATION);
 
+    ostringstream spent_even_more;
+    spent_even_more << "pol  @budget_Lreif  @balance_leq_-1_Lreif +  @spent_geq_" << optimal_cost+1 << "_Rreif + " << (1 << (bits+2)) << " d"
+        << endl << "e 1 ~spent_geq_" << optimal_cost+1 << "  1 balance_leq_-1  >= 1 ; -1";
+    append_to_proof_log(spent_even_more.str(), ProofPart::DERIVATION);
+
+    ostringstream sanity;
+    sanity << "* help for sanity check" << endl;
+    sanity << "pol  @balance_leq_-1_Rreif  @balance_leq_0_Lreif  + " << (1 << (bits+2)) << " d" << endl;
+    sanity << "e  1 ~balance_leq_-1  1 balance_leq_0  >= 1 ; -1" << endl;
+    sanity << "pol  @spent_geq_" << optimal_cost << "_Lreif  @spent_geq_" << optimal_cost+1 << "_Rreif  + " << (1 << (bits+2)) << " d" << endl;
+    sanity << "e  1 spent_geq_" << optimal_cost << "  1 ~spent_geq_" << optimal_cost+1 << " >= 1 ; -1" << endl;
+    append_to_proof_log(sanity.str(), ProofPart::DERIVATION);
 
     ostringstream lemmas;
     lemmas << endl << endl <<"* entry lemma balance" << endl
@@ -197,10 +214,10 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "rup  1 ~goal  1 spent_geq_" << optimal_cost << "  1 ~invar  >= 1 ;" << endl
         << "* transition lemma spent" << endl
         << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
-        << "* FAKE goal lemma spent" << endl
-        << "rup  1 ~goal  1 spent_geq_" << optimal_cost+1 << "  1 ~invar  >= 1 ;" << endl
-        << "* FAKE check" << endl
-        << "rup  >= 1 ;" << endl
+        << "* sanity check: goal lemma spent" << endl
+        << "notrup  1 ~goal  1 spent_geq_" << optimal_cost+1 << "  1 ~invar  >= 1 ;" << endl
+        << "* sanity check: goal lemma balance" << endl
+        << "notrup  1 ~goal  1 balance_leq_-1  1 ~invar  >= 1 ;" << endl
         << "output NONE" << endl 
         << "conclusion NONE" << endl
         << "end pseudo-Boolean proof" << endl;
