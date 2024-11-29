@@ -166,6 +166,11 @@ ExplicitVariable::ExplicitVariable(istream &in) {
     check_magic(in, "begin_variable");
     in >> name;
     in >> axiom_layer;
+
+    if (axiom_layer > -1) {
+        ++proof_log_var_count;
+    }
+    
     in >> domain_size;
     in >> ws;
     fact_names.resize(domain_size);
@@ -247,9 +252,6 @@ static bool read_metric(istream &in) {
 static vector<ExplicitVariable> read_variables(istream &in) {
     int count;
     in >> count;
- 
-    proof_log_var_count = count;
-    
     vector<ExplicitVariable> variables;
     variables.reserve(count);
     for (int i = 0; i < count; ++i) {

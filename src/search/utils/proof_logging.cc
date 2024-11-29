@@ -183,21 +183,21 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
 
 
     ostringstream spent_all;
-    spent_all << "pol  @budget_Lreif  @balance_leq_0_Lreif +  @spent_geq_" << optimal_cost << "_Rreif + " << (1 << (bits+2)) << " d"
-        << endl << "e 1 ~spent_geq_" << optimal_cost << "  1 balance_leq_0  >= 1 ; -1";
+    spent_all << "pol  @budget_Lreif  @balance_leq_0_Lreif +  @spent_geq_" << optimal_cost << "_Rreif + "
+        << endl << "* sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl << "rup 1 ~spent_geq_" << optimal_cost << "  1 balance_leq_0  >= 1 ; -1";
     append_to_proof_log(spent_all.str(), ProofPart::DERIVATION);
 
     ostringstream spent_even_more;
-    spent_even_more << "pol  @budget_Lreif  @balance_leq_-1_Lreif +  @spent_geq_" << optimal_cost+1 << "_Rreif + " << (1 << (bits+2)) << " d"
-        << endl << "e 1 ~spent_geq_" << optimal_cost+1 << "  1 balance_leq_-1  >= 1 ; -1";
+    spent_even_more << "pol  @budget_Lreif  @balance_leq_-1_Lreif +  @spent_geq_" << optimal_cost+1 << "_Rreif + "
+        << endl << "* sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl << "rup 1 ~spent_geq_" << optimal_cost+1 << "  1 balance_leq_-1  >= 1 ; -1";
     append_to_proof_log(spent_even_more.str(), ProofPart::DERIVATION);
 
     ostringstream sanity;
     sanity << "* help for sanity check" << endl;
-    sanity << "pol  @balance_leq_-1_Rreif  @balance_leq_0_Lreif  + " << (1 << (bits+2)) << " d" << endl;
-    sanity << "e  1 ~balance_leq_-1  1 balance_leq_0  >= 1 ; -1" << endl;
-    sanity << "pol  @spent_geq_" << optimal_cost << "_Lreif  @spent_geq_" << optimal_cost+1 << "_Rreif  + " << (1 << (bits+2)) << " d" << endl;
-    sanity << "e  1 spent_geq_" << optimal_cost << "  1 ~spent_geq_" << optimal_cost+1 << " >= 1 ; -1" << endl;
+    sanity << "pol  @balance_leq_-1_Rreif  @balance_leq_0_Lreif  + " << endl;
+    sanity << "rup  1 ~balance_leq_-1  1 balance_leq_0  >= 1 ; -1" << endl;
+    sanity << "pol  @spent_geq_" << optimal_cost << "_Lreif  @spent_geq_" << optimal_cost+1 << "_Rreif  + " << endl;
+    sanity << "rup  1 spent_geq_" << optimal_cost << "  1 ~spent_geq_" << optimal_cost+1 << " >= 1 ; -1" << endl;
     append_to_proof_log(sanity.str(), ProofPart::DERIVATION);
 
     ostringstream lemmas;
