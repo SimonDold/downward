@@ -352,7 +352,7 @@ class SASVariables:
         var_domain_min_one += f"1 {maplet_name(var,i)} "
         var_prime_domain_max_one += f"1 {neg(prime_it(maplet_name(var,i)))} "
         var_prime_domain_min_one += f"1 {prime_it(maplet_name(var,i))} "
-        if axiom_layer > -1:
+        if axiom_layer == -1:
             frame_axiom_pos, frame_axiom_neg = frame_axiom(var,i)
             frame_axioms += frame_axiom_pos + "\n" + frame_axiom_neg + "\n"
         return (frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one)
