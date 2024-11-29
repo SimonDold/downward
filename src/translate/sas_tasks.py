@@ -211,6 +211,45 @@ class SASTask:
             axiom.dump()
         print("metric: %s" % self.metric)
 
+    def proof_log_init_transition(self) -> List[str]:
+        return [] # disjuncts
+
+    def proof_log_update_transition(self, op_name: str, proof_log_object: List[str]) -> List[str]:
+            disjuncts = proof_log_object
+            disjuncts.append(strips_name_to_veripb_name(op_name))
+            return disjuncts
+
+    def proof_log_finalize_transition(self, proof_log_object: List[str]) -> str:
+            disjuncts = proof_log_object
+            result = "* transition:\n"
+            result += implication_from_unit_to_disjunction("transition", disjuncts)
+            result += "\n"
+            result += implication_from_disjunction_to_unit(disjuncts, "transition")
+            return result
+
+    def proof_log_init_axioms(self) -> dict[Tuple[int, int], Tuple[str, str, int]]:
+        return dict() # behaviour_constraints # maplet to List[string,string,int] 
+
+    def proof_log_update_axioms(self, axiom_id, axiom_effect: Tuple[int, int], proof_log_object: dict[Tuple[int, int], Tuple[str, str, int]]) -> dict[Tuple[int, int], Tuple[str, str, int]]:
+            behaviour_constraints = proof_log_object
+            if not axiom_effect in behaviour_constraints:
+                behaviour_constraints[axiom_effect] = ["","", 0]
+            behaviour_constraints[axiom_effect] = [behaviour_constraints[axiom_effect][0]+f" 1 {axiom_name(axiom_id)} ",
+                                                    behaviour_constraints[axiom_effect][1]+f" 1 {neg(axiom_name(axiom_id))} ",
+                                                    behaviour_constraints[axiom_effect][2]+1]
+            return behaviour_constraints
+
+    def proof_log_finalize_axioms(self, proof_log_object: dict[Tuple[int, int], Tuple[str, str, int]]) -> str:
+            behaviour_constraints = proof_log_object
+            result = "\n* axioms\n"
+            for (var, val) in behaviour_constraints:
+                result += behaviour_constraints[(var, val)][0] + \
+                    f" 1 {neg(maplet_name(var, val))}  >=  1\n" + \
+                    behaviour_constraints[(var, val)][1] + \
+                    f" {behaviour_constraints[(var, val)][2]} {maplet_name(var, val)}  >=  {behaviour_constraints[(var, val)][2]}\n"
+            return result
+
+
     def output(self, sas_stream, opb_stream=None):
         print("begin_version", file=sas_stream)
         print("* PB-encoding of task:", file=opb_stream)
@@ -227,28 +266,18 @@ class SASTask:
         self.init.output(sas_stream, opb_stream)
         self.goal.output(sas_stream, opb_stream)
         print(len(self.operators), file=sas_stream)
-        disjuncts =[]
+        proof_log_object_transition = self.proof_log_init_transition()
         for op in self.operators:
             op.output(sas_stream, primary_list, max(self.metric, 1), opb_stream)
-            disjuncts.append(strips_name_to_veripb_name(op.name[1:-1]))
-        print("* transition:", file=opb_stream)
-        print(implication_from_unit_to_disjunction("transition", disjuncts), file=opb_stream)
-        print(implication_from_disjunction_to_unit(disjuncts, "transition"), file=opb_stream)
+            proof_log_object_transition = self.proof_log_update_transition(op.name[1:-1], proof_log_object_transition)
+        print(self.proof_log_finalize_transition(proof_log_object_transition), file=opb_stream)
         print(len(self.axioms), file=sas_stream)
-        print("\n* axioms", file=opb_stream)
-        behaviour_constraints = dict() # maplet to List[string,string,int] 
+        proof_log_object_axioms = self.proof_log_init_axioms()
         for i, axiom in enumerate(self.axioms):
             axiom.output(sas_stream, i, opb_stream)
-            if axiom.effect in behaviour_constraints:
-                behaviour_constraints[axiom.effect] = [behaviour_constraints[axiom.effect][0]+f" 1 {axiom_name(i)} ",
-                                                        behaviour_constraints[axiom.effect][1]+f" 1 {neg(axiom_name(i))} ",
-                                                        behaviour_constraints[axiom.effect][2]+1]
-            else:
-                behaviour_constraints[axiom.effect] = [f" 1 {axiom_name(i)} ", f" 1 {neg(axiom_name(i))} ",1]
-        for (var, val) in behaviour_constraints:
-            print(behaviour_constraints[(var, val)][0]+f" 1 {neg(maplet_name(var, val))}  >=  1\n"+
-             behaviour_constraints[(var, val)][1]+f" {behaviour_constraints[(var, val)][2]} {maplet_name(var, val)}  >=  {behaviour_constraints[(var, val)][2]}\n"
-            , file=opb_stream)
+            proof_log_object_axioms = self.proof_log_update_axioms(i, axiom.effect, proof_log_object_axioms)
+        print(self.proof_log_finalize_axioms(proof_log_object_axioms), file=opb_stream)
+        
 
 
 
@@ -743,39 +772,38 @@ class SASAxiom:
         var, val = self.effect
         print("  v%d: %d" % (var, val))
 
-    def proof_log_init(self): # todo
-        return derive_dict
+    def proof_log_init(self) -> Tuple[str,str,str,str]:
+        return "","","","" #fire_constraint_Lreif, fire_constraint_Rreif, fire_constraint_prime_Lreif, fire_constraint_prime_Rreif
 
-    def proof_log_update(self): # todo
-        return layer_dict
+    def proof_log_update(self, var: int, val: int, proof_log_object: Tuple[str,str,str,str]) -> Tuple[str,str,str,str]:
+        fire_constraint_Lreif, fire_constraint_Rreif, fire_constraint_prime_Lreif, fire_constraint_prime_Rreif = proof_log_object
 
-    def proof_log_finalize(self): # todo
-        return layer_dict
+        fire_constraint_Lreif += f" 1 {neg(maplet_name(var, val))} "
+        fire_constraint_Rreif += f" 1 {maplet_name(var, val)}"
+        fire_constraint_prime_Lreif += f" 1 {neg(prime_it(maplet_name(var, val)))} "
+        fire_constraint_prime_Rreif += f" 1 {prime_it(maplet_name(var, val))}"
+
+        return fire_constraint_Lreif, fire_constraint_Rreif, fire_constraint_prime_Lreif, fire_constraint_prime_Rreif
+
+    def proof_log_finalize(self, condition_length: int, axiom_id: int, proof_log_object: Tuple[str, str, str, str]) -> str:
+        fire_constraint_Lreif, fire_constraint_Rreif, fire_constraint_prime_Lreif, fire_constraint_prime_Rreif = proof_log_object
+
+        fire_constraint_Lreif += f" 1 {axiom_name(axiom_id)}  >=  1"
+        fire_constraint_Rreif += f" {condition_length} {neg(axiom_name(axiom_id))}  >=  {condition_length}\n"
+        fire_constraint_prime_Lreif += f" 1 {prime_it(axiom_name(axiom_id))}  >=  1"
+        fire_constraint_prime_Rreif += f" {condition_length} {neg(prime_it(axiom_name(axiom_id)))}  >=  {condition_length}\n"
+
+        return fire_constraint_Lreif + "\n" + fire_constraint_Rreif + "\n" + fire_constraint_prime_Lreif + "\n" + fire_constraint_prime_Rreif
 
     def output(self, sas_stream, axiom_id, opb_stream=None):
         print("begin_rule", file=sas_stream)
         print(len(self.condition), file=sas_stream)
-        #proof_log_object = self.proof_log_init()
-        fire_constraint_Rreif = ""
-        fire_constraint_Lreif = ""
-        fire_constraint_prime_Rreif = ""
-        fire_constraint_prime_Lreif = ""
-        
+        proof_log_object = self.proof_log_init()
         for var, val in self.condition:
-            fire_constraint_Lreif += f" 1 {neg(maplet_name(var, val))} "
-            fire_constraint_Rreif += f" 1 {maplet_name(var, val)}"
-            fire_constraint_prime_Lreif += f" 1 {neg(prime_it(maplet_name(var, val)))} "
-            fire_constraint_prime_Rreif += f" 1 {prime_it(maplet_name(var, val))}"
             print(var, val, file=sas_stream)
+            proof_log_object = self.proof_log_update(var, val, proof_log_object)
         var, val = self.effect
-        fire_constraint_Lreif += f" 1 {axiom_name(axiom_id)}  >=  1"
-        fire_constraint_Rreif += f" {len(self.condition)} {neg(axiom_name(axiom_id))}  >=  {len(self.condition)}\n"
-        fire_constraint_prime_Lreif += f" 1 {prime_it(axiom_name(axiom_id))}  >=  1"
-        fire_constraint_prime_Rreif += f" {len(self.condition)} {neg(prime_it(axiom_name(axiom_id)))}  >=  {len(self.condition)}\n"
-        print(fire_constraint_Lreif, file=opb_stream)
-        print(fire_constraint_Rreif, file=opb_stream)
-        print(fire_constraint_prime_Lreif, file=opb_stream)
-        print(fire_constraint_prime_Rreif, file=opb_stream)
+        print(self.proof_log_finalize(len(self.condition), axiom_id, proof_log_object), file=opb_stream)
         print(var, 1 - val, val, file=sas_stream)
         print("end_rule", file=sas_stream)
 
