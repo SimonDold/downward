@@ -67,6 +67,9 @@ def strips_name_to_veripb_name(strips_name: str) -> str:
 def maplet_name(variable: int, value: int) -> str:
     return f"var_{variable}_{value}"
 
+def axiom_name(axiom_id: int) -> str:
+    return f"axiom_{axiom_id}"
+
 def prime_it(name: str) -> str:
     return "prime^" + name
 
@@ -81,10 +84,10 @@ def frame_axiom(variable: int, value: int) -> Tuple[str, str]:
     frame_axiom_neg = f" 1 {neg(frame_var(variable))}  1 {maplet_name(variable, value)}  1 {neg(prime_it(maplet_name(variable, value)))}  >= 1"
     return frame_axiom_pos, frame_axiom_neg
 
-def operator_implies_frame_axioms(operator_name: str, primary_variable_count: int) -> List[str]:
-    frame_axioms = []
-    for i in range(0, primary_variable_count):
-        frame_axioms.append(f" 1 {neg(operator_name)}  1 {frame_var(i)}  >= 1 ;")
+def operator_implies_frame_axioms(operator_name: str, primary_list: List[int]) -> dict[int, str]:
+    frame_axioms = dict()
+    for var in primary_list:
+        frame_axioms[var] = f" 1 {neg(operator_name)}  1 {frame_var(var)}  >= 1 ;"
     return frame_axioms
 
 def effect_name(operator_name: str, idx: int) -> str:
@@ -216,7 +219,7 @@ class SASTask:
         print("begin_metric", file=sas_stream)
         print(int(self.metric), file=sas_stream)
         print("end_metric", file=sas_stream)
-        primary_variable_count = self.variables.output(sas_stream, opb_stream)
+        layer_dict, primary_list = self.variables.output(sas_stream, opb_stream)
         print(len(self.mutexes), file=sas_stream)
         for mutex in self.mutexes:
             mutex.output(sas_stream)
@@ -226,15 +229,28 @@ class SASTask:
         print(len(self.operators), file=sas_stream)
         disjuncts =[]
         for op in self.operators:
-            op.output(sas_stream, primary_variable_count, max(self.metric, 1), opb_stream)
+            op.output(sas_stream, primary_list, max(self.metric, 1), opb_stream)
             disjuncts.append(strips_name_to_veripb_name(op.name[1:-1]))
         print("* transition:", file=opb_stream)
         print(implication_from_unit_to_disjunction("transition", disjuncts), file=opb_stream)
         print(implication_from_disjunction_to_unit(disjuncts, "transition"), file=opb_stream)
         print(len(self.axioms), file=sas_stream)
-        print("\n* ignoring axioms", file=opb_stream)
-        for axiom in self.axioms:
-            axiom.output(sas_stream, opb_stream)
+        print("\n* axioms", file=opb_stream)
+        behaviour_constraints = dict() # maplet to List[string,string,int] 
+        for i, axiom in enumerate(self.axioms):
+            axiom.output(sas_stream, i, opb_stream)
+            if axiom.effect in behaviour_constraints:
+                behaviour_constraints[axiom.effect] = [behaviour_constraints[axiom.effect][0]+f" 1 {axiom_name(i)} ",
+                                                        behaviour_constraints[axiom.effect][1]+f" 1 {neg(axiom_name(i))} ",
+                                                        behaviour_constraints[axiom.effect][2]+1]
+            else:
+                behaviour_constraints[axiom.effect] = [f" 1 {axiom_name(i)} ", f" 1 {neg(axiom_name(i))} ",1]
+        for (var, val) in behaviour_constraints:
+            print(behaviour_constraints[(var, val)][0]+f" 1 {neg(maplet_name(var, val))}  >=  1\n"+
+             behaviour_constraints[(var, val)][1]+f" {behaviour_constraints[(var, val)][2]} {maplet_name(var, val)}  >=  {behaviour_constraints[(var, val)][2]}\n"
+            , file=opb_stream)
+
+
 
     def get_encoding_size(self):
         task_size = 0
@@ -301,14 +317,15 @@ class SASVariables:
         #frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one
         return ("", "", "", "", "") 
     
-    def proof_log_var_update(self, var: str, i: int, x: Tuple[str,str,str,str,str]) -> Tuple[str,str,str,str,str]:
+    def proof_log_var_update(self, var: str, i: int, axiom_layer: int, x: Tuple[str,str,str,str,str]) -> Tuple[str,str,str,str,str]:
         (frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one) = x
         var_domain_max_one += f"1 {neg(maplet_name(var,i))} "
         var_domain_min_one += f"1 {maplet_name(var,i)} "
         var_prime_domain_max_one += f"1 {neg(prime_it(maplet_name(var,i)))} "
         var_prime_domain_min_one += f"1 {prime_it(maplet_name(var,i))} "
-        frame_axiom_pos, frame_axiom_neg = frame_axiom(var,i)
-        frame_axioms += frame_axiom_pos + "\n" + frame_axiom_neg + "\n"
+        if axiom_layer > -1:
+            frame_axiom_pos, frame_axiom_neg = frame_axiom(var,i)
+            frame_axioms += frame_axiom_pos + "\n" + frame_axiom_neg + "\n"
         return (frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one)
         
     def proof_log_var_finalize(self, length: int, x: Tuple[str,str,str,str,str]) -> str:
@@ -322,23 +339,25 @@ class SASVariables:
 
     def output(self, sas_stream, opb_stream=None):
         print(len(self.ranges), file=sas_stream)
-        primary_variable_count = 0
+        layer_dict = dict()
+        primary_list = []
         for var, (rang, axiom_layer, values) in enumerate(zip(
                 self.ranges, self.axiom_layers, self.value_names)):
             print("begin_variable", file=sas_stream)
             print("var%d" % var, file=sas_stream)
             print(axiom_layer, file=sas_stream)
+            layer_dict[var] = axiom_layer
             if axiom_layer == -1:
-                primary_variable_count += 1
+                primary_list += [var]
             print(rang, file=sas_stream)
             assert rang == len(values), (rang, values)
             proof_log_object = self.proof_log_var_init()
             for i, value in enumerate(values):
                 print(value, file=sas_stream)
-                proof_log_object = self.proof_log_var_update(var, i, proof_log_object)
+                proof_log_object = self.proof_log_var_update(var, i, axiom_layer, proof_log_object)
             print(("* var%d domain constraints \n" %var) + self.proof_log_var_finalize(len(values), proof_log_object), file=opb_stream)
             print("end_variable", file=sas_stream)
-        return primary_variable_count
+        return layer_dict, primary_list
 
     def get_encoding_size(self):
         # A variable with range k has encoding size k + 1 to also give the
@@ -568,9 +587,9 @@ class SASOperator:
         prevail_conjuncts.append(maplet_name(var,val))
         return prevail_conjuncts
 
-    def proof_log_init(self, primary_variable_count: int) -> Tuple[str, List[str], List[str], List[str], List[str]]:
+    def proof_log_init(self, primary_list: List[int]) -> Tuple[str, dict[int, str], List[str], List[str], List[str]]:
         operator_name = strips_name_to_veripb_name(self.name[1:-1])
-        frame_axioms = operator_implies_frame_axioms(operator_name, primary_variable_count)
+        frame_axioms = operator_implies_frame_axioms(operator_name, primary_list)
         postconditions = []
         preconditions = []
         reifications_of_postcondition_antecedent_conjuncts = []
@@ -583,7 +602,7 @@ class SASOperator:
         postcondition_antecedent_conjuncts.append(maplet_name(cvar,cval))
         return postcondition_antecedent_conjuncts
 
-    def proof_log_update(self, i: int, var: int, pre: int,  post: int, proof_log_object_inner: List[str], proof_log_object: Tuple[str, List[str], List[str], List[str], List[str]]) -> Tuple[str, List[str], List[str], List[str], List[str]]:
+    def proof_log_update(self, i: int, var: int, pre: int,  post: int, proof_log_object_inner: List[str], proof_log_object: Tuple[str, dict[int, str], List[str], List[str], List[str]]) -> Tuple[str, dict[int, str], List[str], List[str], List[str]]:
         postcondition_antecedent_conjuncts = proof_log_object_inner
         (operator_name, frame_axioms, postconditions, preconditions, reifications_of_postcondition_antecedent_conjuncts) = proof_log_object
         postcondition = implication_from_conjunction_to_disjunction([operator_name, effect_name(operator_name, i)], [prime_it(maplet_name(var,post))])
@@ -596,17 +615,17 @@ class SASOperator:
         frame_axioms[var] = weaken_by(frame_axioms[var], effect_name(operator_name, i))
         return (operator_name, frame_axioms, postconditions, preconditions, reifications_of_postcondition_antecedent_conjuncts)
     
-    def proof_log_finalize(self, primary_variable_count: int, max_cost: int, prevail_conjuncts: List[str], proof_log_object: Tuple[str, List[str], List[str], List[str], List[str]]) -> str:
+    def proof_log_finalize(self, primary_variable_count: int, max_cost: int, prevail_conjuncts: List[str], proof_log_object: Tuple[str, dict[int, str], List[str], List[str], List[str]]) -> str:
         (operator_name, frame_axioms, postconditions, preconditions, reifications_of_postcondition_antecedent_conjuncts) = proof_log_object
         operator_implies_preconditions_and_prevail_conditions = implication_from_unit_to_conjunction(operator_name, prevail_conjuncts + preconditions)
         operator_reification = f"\n* operator '{self.name[1:-1]}' aka '{strips_name_to_veripb_name(self.name[1:-1])}' reification:\n"
         cost = implication_from_unit_to_conjunction(operator_name, [operator_cost_name(self.cost, '=')])
         delat_meanings = get_delta_meanings(self.cost, primary_variable_count, max_cost)
-        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + frame_axioms + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts + ["* cost"] + [cost] + delat_meanings:
+        for x in ["* op implies pre:"] + [operator_implies_preconditions_and_prevail_conditions] + ["* post:"] + postconditions + ["* weak frame:"] + [frame_axioms[fa] for fa in frame_axioms] + ["* effect conditions:"] + reifications_of_postcondition_antecedent_conjuncts + ["* cost"] + [cost] + delat_meanings:
             operator_reification += x + "\n"
         return operator_reification
 
-    def output(self, sas_stream, primary_variable_count, max_cost, opb_stream=None):
+    def output(self, sas_stream, primary_list, max_cost, opb_stream=None):
         print("begin_operator", file=sas_stream)
         print(self.name[1:-1], file=sas_stream)
         
@@ -617,7 +636,7 @@ class SASOperator:
             print(var, val, file=sas_stream)
         print(len(self.pre_post), file=sas_stream)
 
-        proof_log_object = self.proof_log_init(primary_variable_count)
+        proof_log_object = self.proof_log_init(primary_list)
         for i, (var, pre, post, cond) in enumerate(self.pre_post):
             print(len(cond), end=' ', file=sas_stream)
             proof_log_object_inner = self.proof_log_init_inner()
@@ -626,7 +645,8 @@ class SASOperator:
                 print(cvar, cval, end=' ', file=sas_stream)
             proof_log_object = self.proof_log_update(i, var, pre, post, proof_log_object_inner, proof_log_object)
             print(var, pre, post, file=sas_stream)
-        print(self.proof_log_finalize(primary_variable_count, max_cost, proof_log_object_prevail, proof_log_object), file=opb_stream)
+        #   
+        print(self.proof_log_finalize(len(primary_list), max_cost, proof_log_object_prevail, proof_log_object), file=opb_stream)
         print(self.cost, file=sas_stream)
         print("end_operator", file=sas_stream)
 
@@ -723,12 +743,39 @@ class SASAxiom:
         var, val = self.effect
         print("  v%d: %d" % (var, val))
 
-    def output(self, sas_stream, opb_stream=None):
+    def proof_log_init(self): # todo
+        return derive_dict
+
+    def proof_log_update(self): # todo
+        return layer_dict
+
+    def proof_log_finalize(self): # todo
+        return layer_dict
+
+    def output(self, sas_stream, axiom_id, opb_stream=None):
         print("begin_rule", file=sas_stream)
         print(len(self.condition), file=sas_stream)
+        #proof_log_object = self.proof_log_init()
+        fire_constraint_Rreif = ""
+        fire_constraint_Lreif = ""
+        fire_constraint_prime_Rreif = ""
+        fire_constraint_prime_Lreif = ""
+        
         for var, val in self.condition:
+            fire_constraint_Lreif += f" 1 {neg(maplet_name(var, val))} "
+            fire_constraint_Rreif += f" 1 {maplet_name(var, val)}"
+            fire_constraint_prime_Lreif += f" 1 {neg(prime_it(maplet_name(var, val)))} "
+            fire_constraint_prime_Rreif += f" 1 {prime_it(maplet_name(var, val))}"
             print(var, val, file=sas_stream)
         var, val = self.effect
+        fire_constraint_Lreif += f" 1 {axiom_name(axiom_id)}  >=  1"
+        fire_constraint_Rreif += f" {len(self.condition)} {neg(axiom_name(axiom_id))}  >=  {len(self.condition)}\n"
+        fire_constraint_prime_Lreif += f" 1 {prime_it(axiom_name(axiom_id))}  >=  1"
+        fire_constraint_prime_Rreif += f" {len(self.condition)} {neg(prime_it(axiom_name(axiom_id)))}  >=  {len(self.condition)}\n"
+        print(fire_constraint_Lreif, file=opb_stream)
+        print(fire_constraint_Rreif, file=opb_stream)
+        print(fire_constraint_prime_Lreif, file=opb_stream)
+        print(fire_constraint_prime_Rreif, file=opb_stream)
         print(var, 1 - val, val, file=sas_stream)
         print("end_rule", file=sas_stream)
 
