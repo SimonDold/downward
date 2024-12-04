@@ -159,6 +159,7 @@ void ProofLog::add_balance_leq_x_bireification(const int x){
 }
 
 void ProofLog::finalize_lemmas(int optimal_cost) {
+    append_to_proof_log("* finalize:\n", ProofPart::INVARIANT);
     int bits = proof_log_var_count + proof_log_max_cost_bits;
     ostringstream r_budget;
     ostringstream l_budget;
@@ -174,6 +175,11 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     append_to_proof_log(r_budget.str(), ProofPart::INVARIANT);
     append_to_proof_log(l_budget.str(), ProofPart::INVARIANT);
 
+    // ensure to define spent_geq_optimal_cost and balance_leq_0
+    add_spent_geq_x_bireification_aux(optimal_cost, false, false);
+    add_spent_geq_x_bireification_aux(optimal_cost, true, false);
+    add_spent_geq_x_bireification_aux(0, false, true);
+    add_spent_geq_x_bireification_aux(0, true, true);
     // define spent_geq_optimal_cost+1 and balance_leq_-1
     add_spent_geq_x_bireification_aux(optimal_cost+1, false, false);
     add_spent_geq_x_bireification_aux(optimal_cost+1, true, false);
@@ -207,7 +213,7 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "rup  1 ~goal  1 balance_leq_" << 0 << "  1 ~invar  >= 1 ;" << endl
         << "* transition lemma spent" << endl
         << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
-        << "rup  1 ~goal  1 balance_leq_" << 1 << "  1 ~invar  >= 1 ;" << endl
+        << "notrup  1 ~goal  1 balance_leq_" << 1 << "  1 ~invar  >= 1 ;" << endl
         << endl << endl <<"* entry lemma spent" << endl 
         << "rup  1 ~s_init  1 spent_geq_1  1 invar  >= 1 ;" << endl
         << "* goal lemma spent" << endl
