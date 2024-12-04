@@ -80,7 +80,7 @@ double get_average_operator_cost(TaskProxy task_proxy) {
 
 void proof_log_op_implies_min_cost_delta(OperatorProxy op){
     ostringstream line;
-    line << "rup  1 ~" << utils::ProofLog::strips_name_to_veripb_name(op.get_name()) << "  1 delta_cost_geq_MIN  >= 1;";
+    line << "rup  1 ~op_" << op.get_id() << "  1 delta_cost_geq_MIN  >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 

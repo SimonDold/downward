@@ -110,6 +110,9 @@ def operator_cost_name(cost: int, comperator: str) -> str:
 def spent_bit_name(position: int) -> str:
     return f"e_{position}"
 
+def op_name(idx: int) -> str:
+    return f"op_{idx}"
+
 def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) -> List[str]: 
     delta_eq_rreif = f"2 {neg(operator_cost_name(cost, '='))} 1 {operator_cost_name(cost, '>=')} 1 {operator_cost_name(cost, '<=')} >= 2 ;"
     delta_eq_lreif = f"1 {operator_cost_name(cost, '=')} 1 {neg(operator_cost_name(cost, '>='))} 1 {neg(operator_cost_name(cost, '<='))} >= 1 ;"
@@ -267,9 +270,9 @@ class SASTask:
         self.goal.output(sas_stream, opb_stream)
         print(len(self.operators), file=sas_stream)
         proof_log_object_transition = self.proof_log_init_transition()
-        for op in self.operators:
-            op.output(sas_stream, primary_list, max(self.metric, 1), opb_stream)
-            proof_log_object_transition = self.proof_log_update_transition(op.name[1:-1], proof_log_object_transition)
+        for op_id, op in enumerate(self.operators):
+            op.output(sas_stream, op_id, primary_list, max(self.metric, 1), opb_stream)
+            proof_log_object_transition = self.proof_log_update_transition(op_name(op_id), proof_log_object_transition)
         print(self.proof_log_finalize_transition(proof_log_object_transition), file=opb_stream)
         print(len(self.axioms), file=sas_stream)
         proof_log_object_axioms = self.proof_log_init_axioms()
@@ -616,8 +619,8 @@ class SASOperator:
         prevail_conjuncts.append(maplet_name(var,val))
         return prevail_conjuncts
 
-    def proof_log_init(self, primary_list: List[int]) -> Tuple[str, dict[int, str], List[str], List[str], List[str]]:
-        operator_name = strips_name_to_veripb_name(self.name[1:-1])
+    def proof_log_init(self, op_id, primary_list: List[int]) -> Tuple[str, dict[int, str], List[str], List[str], List[str]]:
+        operator_name = op_name(op_id)
         frame_axioms = operator_implies_frame_axioms(operator_name, primary_list)
         postconditions = []
         preconditions = []
@@ -654,7 +657,7 @@ class SASOperator:
             operator_reification += x + "\n"
         return operator_reification
 
-    def output(self, sas_stream, primary_list, max_cost, opb_stream=None):
+    def output(self, sas_stream, op_id, primary_list, max_cost, opb_stream=None):
         print("begin_operator", file=sas_stream)
         print(self.name[1:-1], file=sas_stream)
         
@@ -665,7 +668,7 @@ class SASOperator:
             print(var, val, file=sas_stream)
         print(len(self.pre_post), file=sas_stream)
 
-        proof_log_object = self.proof_log_init(primary_list)
+        proof_log_object = self.proof_log_init(op_id, primary_list)
         for i, (var, pre, post, cond) in enumerate(self.pre_post):
             print(len(cond), end=' ', file=sas_stream)
             proof_log_object_inner = self.proof_log_init_inner()

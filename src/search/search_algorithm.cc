@@ -276,7 +276,7 @@ void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNo
     s.unpack();
             assert( s.get_id_int() >= 0);
     ostringstream line;
-    line << endl << "rup  1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~" << utils::ProofLog::strips_name_to_veripb_name(operators[op_id].get_name()) << "  1 prime^invar >= 1;";
+    line << endl << "rup  1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~op_" << operators[op_id].get_id() << "  1 prime^invar >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
