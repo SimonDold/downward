@@ -167,7 +167,7 @@ ExplicitVariable::ExplicitVariable(istream &in) {
     in >> name;
     in >> axiom_layer;
 
-    if (axiom_layer > -1) {
+    if (axiom_layer == -1) {
         ++proof_log_var_count;
     }
     
