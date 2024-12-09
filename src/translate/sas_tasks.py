@@ -117,6 +117,7 @@ def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) ->
     delta_eq_rreif = f"2 {neg(operator_cost_name(cost, '='))} 1 {operator_cost_name(cost, '>=')} 1 {operator_cost_name(cost, '<=')} >= 2 ;"
     delta_eq_lreif = f"1 {operator_cost_name(cost, '=')} 1 {neg(operator_cost_name(cost, '>='))} 1 {neg(operator_cost_name(cost, '<='))} >= 1 ;"
     bits = primary_variable_count + math.ceil(math.log(max_cost,2)) # should we cap this to the number of bits FD could handle?
+    bits = 4
     maxint = 2**(bits+1) - 1 
     delta_geq_rreif = ""
     delta_geq_lreif = ""
@@ -231,26 +232,40 @@ class SASTask:
             return result
 
     def proof_log_init_axioms(self) -> dict[Tuple[int, int], Tuple[str, str, int]]:
-        return dict() # behaviour_constraints # maplet to List[string,string,int] 
+        return dict(), dict()
+        # behaviour_constraints # maplet to List[string,string,int]
+        # behaviour_prime_constraints
 
-    def proof_log_update_axioms(self, axiom_id, axiom_effect: Tuple[int, int], proof_log_object: dict[Tuple[int, int], Tuple[str, str, int]]) -> dict[Tuple[int, int], Tuple[str, str, int]]:
-            behaviour_constraints = proof_log_object
+    def proof_log_update_axioms(self, axiom_id, axiom_effect: Tuple[int, int], proof_log_object: Tuple[dict[Tuple[int, int], Tuple[str, str, int]], dict[Tuple[int, int], Tuple[str, str, int]]]) -> Tuple[dict[Tuple[int, int], Tuple[str, str, int]], dict[Tuple[int, int], Tuple[str, str, int]]]:
+            behaviour_constraints, behaviour_prime_constraints = proof_log_object
             if not axiom_effect in behaviour_constraints:
                 behaviour_constraints[axiom_effect] = ["","", 0]
+                behaviour_prime_constraints[axiom_effect] = ["","", 0]
             behaviour_constraints[axiom_effect] = [behaviour_constraints[axiom_effect][0]+f" 1 {axiom_name(axiom_id)} ",
                                                     behaviour_constraints[axiom_effect][1]+f" 1 {neg(axiom_name(axiom_id))} ",
                                                     behaviour_constraints[axiom_effect][2]+1]
-            return behaviour_constraints
+            behaviour_prime_constraints[axiom_effect] = [behaviour_prime_constraints[axiom_effect][0]+f" 1 {axiom_name(axiom_id)} ",
+                                                    behaviour_prime_constraints[axiom_effect][1]+f" 1 {neg(axiom_name(axiom_id))} ",
+                                                    behaviour_prime_constraints[axiom_effect][2]+1]
+            return behaviour_constraints, behaviour_prime_constraints
 
-    def proof_log_finalize_axioms(self, proof_log_object: dict[Tuple[int, int], Tuple[str, str, int]]) -> str:
-            behaviour_constraints = proof_log_object
+    def proof_log_finalize_axioms(self, proof_log_object: Tuple[dict[Tuple[int, int], Tuple[str, str, int]], dict[Tuple[int, int], Tuple[str, str, int]]]) -> str:
+            behaviour_constraints, behaviour_prime_constraints = proof_log_object
             result = "\n* axioms\n"
+            result_prime = "\n\n* axiom Prime\n"
             for (var, val) in behaviour_constraints:
                 result += behaviour_constraints[(var, val)][0] + \
                     f" 1 {neg(maplet_name(var, val))}  >=  1\n" + \
                     behaviour_constraints[(var, val)][1] + \
-                    f" {behaviour_constraints[(var, val)][2]} {maplet_name(var, val)}  >=  {behaviour_constraints[(var, val)][2]}\n"
-            return result
+                    f" {behaviour_constraints[(var, val)][2]} {maplet_name(var, val)} " + \
+                    f" >=  {behaviour_constraints[(var, val)][2]}\n"
+                result_prime += behaviour_prime_constraints[(var, val)][0] + \
+                    f" 1 {neg(prime_it(maplet_name(var, val)))}  >=  1\n" + \
+                    behaviour_prime_constraints[(var, val)][1] + \
+                    f" {behaviour_prime_constraints[(var, val)][2]} {prime_it(maplet_name(var, val))} " + \
+                    f" >=  {behaviour_prime_constraints[(var, val)][2]}\n"
+
+            return result + result_prime
 
 
     def output(self, sas_stream, opb_stream=None):
