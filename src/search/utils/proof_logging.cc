@@ -66,6 +66,19 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
     file.close();
 }
 
+void ProofLog::append_to_proof_file(const string &line, const string &file_name)
+{
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << line;
+    file.close();
+}
+
 void ProofLog::append_to_invariant_right(const string& summand) {
     string file_name = "invariant_right.prooflog";
     ofstream file(
@@ -146,6 +159,18 @@ void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance)
     }
     ProofLog::append_to_proof_log(r_prime.str(), ProofPart::INVARIANT);
     ProofLog::append_to_proof_log(l_prime.str(), ProofPart::INVARIANT);
+    
+    // bireif of inverse statement  b_leq_2 iff ~b_geq_3    sp_geq_2 iff ~sp_leq_1
+    ostringstream r;
+    ostringstream l;
+    r << " 1 ~" << (is_prime ? "prime^" : "") << (balance ? "balance_leq_" : "spend_geq_")
+        << x << "  1 ~" << (is_prime ? "prime^" : "") << (balance ? "balance_geq_" : "spend_leq_") << x + ( balance ? 1 : -1) << "  >= 1 ;";
+    l << " 1 " << (is_prime ? "prime^" : "") << (balance ? "balance_leq_" : "spend_geq_")
+        << x << "  1 " << (is_prime ? "prime^" : "") << (balance ? "balance_geq_" : "spend_leq_") << x + ( balance ? 1 : -1) << "  >= 1 ;";
+    
+    ProofLog::append_to_proof_log(r.str(), ProofPart::INVARIANT);
+    ProofLog::append_to_proof_log(l.str(), ProofPart::INVARIANT);
+
 }
 
 void ProofLog::add_spent_geq_x_bireification(const int x){
@@ -159,6 +184,10 @@ void ProofLog::add_balance_leq_x_bireification(const int x){
 }
 
 void ProofLog::finalize_lemmas(int optimal_cost) {
+
+    // TODOprooflogging remove this:
+        append_to_proof_log("* ensure non empty REIF file", ProofPart::REIFICATION);
+
     append_to_proof_log("* finalize:\n", ProofPart::INVARIANT);
     int bits = proof_log_var_count + proof_log_max_cost_bits;
     ostringstream r_budget;
@@ -213,7 +242,6 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "rup  1 ~goal  1 balance_leq_" << 0 << "  1 ~invar  >= 1 ;" << endl
         << "* transition lemma spent" << endl
         << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
-        << "notrup  1 ~goal  1 balance_leq_" << 1 << "  1 ~invar  >= 1 ;" << endl
         << endl << endl <<"* entry lemma spent" << endl 
         << "rup  1 ~s_init  1 spent_geq_1  1 invar  >= 1 ;" << endl
         << "* goal lemma spent" << endl
@@ -221,8 +249,10 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "* transition lemma spent" << endl
         << "rup  1 ~invar  1 ~transition  1 prime^invar  >= 1 ; " <<endl
         << "* sanity check: goal lemma spent" << endl
+        << "notrup  >= 1 ;" << endl
         << "notrup  1 ~goal  1 spent_geq_" << optimal_cost+1 << "  1 ~invar  >= 1 ;" << endl
         << "* sanity check: goal lemma balance" << endl
+        << "notrup  >= 1 ;" << endl
         << "notrup  1 ~goal  1 balance_leq_-1  1 ~invar  >= 1 ;" << endl
         << "output NONE" << endl 
         << "conclusion NONE" << endl

@@ -22,6 +22,7 @@ class ProofLog{
 public:
     explicit ProofLog() = delete;
     static void append_to_proof_log(const std::string& line, ProofPart proof_part);
+    static void append_to_proof_file(const std::string& line, const std::string& file);
     static void append_to_invariant_right(const std::string& summand);
     static void append_to_invariant_left(const std::string& summand);
     static void append_to_invariant_prime_right(const std::string& summand);

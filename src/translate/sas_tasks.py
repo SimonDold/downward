@@ -360,9 +360,9 @@ class SASVariables:
                 axiom_str = ""
             print("v%d in {%s}%s" % (var, list(range(rang)), axiom_str))
 
-    def proof_log_var_init(self) -> Tuple[str,str,str,str,str]:
+    def proof_log_var_init(self, var: int) -> Tuple[str,str,str,str,str]:
         #frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one
-        return ("", "", "", "", "") 
+        return ("", "", f"@dom_{var}_min_one ", "", "") 
     
     def proof_log_var_update(self, var: str, i: int, axiom_layer: int, x: Tuple[str,str,str,str,str]) -> Tuple[str,str,str,str,str]:
         (frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one) = x
@@ -398,7 +398,7 @@ class SASVariables:
                 primary_list += [var]
             print(rang, file=sas_stream)
             assert rang == len(values), (rang, values)
-            proof_log_object = self.proof_log_var_init()
+            proof_log_object = self.proof_log_var_init(var)
             for i, value in enumerate(values):
                 print(value, file=sas_stream)
                 proof_log_object = self.proof_log_var_update(var, i, axiom_layer, proof_log_object)

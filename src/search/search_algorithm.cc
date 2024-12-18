@@ -204,7 +204,7 @@ void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment
     assert( s.get_id_int() >= 0);
     ostringstream line;
     line << endl << "*** " << comment << endl;
-    line << endl << "* Bi-reification of node[" << s.get_id_int() << "," << node.get_g() << "] and node[" << s.get_id_int() << ",balance_leq_" << node.get_g() << "] " << ":";
+    line << endl << "* Bi-reification of node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] and node[" << s.get_id_int() << ",balance_leq_" << node.get_g() << "] " << ":";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
     proof_log_node_spend_Rreif(node);
     proof_log_node_spend_Lreif(node);
@@ -254,11 +254,16 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, Sear
     for (int i = 0; i<=1; ++i){
         ostringstream r_prime_line;
         ostringstream l_prime_line;
+
+        r_prime_line << " 1 " << (i ? "prime^" : "") << "phi[" << s.get_id_int() << "] ";
+        l_prime_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << s.get_id_int() << "] ";
+
+
         r_prime_line << A+1 << " ~" << (i ? "prime^" : "") << "invar >= " << A+1 << endl;
         r_prime_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
         r_prime_line << "* A = " << A << endl << "* M = " << M << endl;
         r_prime_line << "* A2 = " << A2 << endl << "* M2 = " << M2 << endl;
-        l_prime_line << " " << A+M2 << " " << (i ? "prime^" : "") << "invar >= " << A+M2 << endl; // why A+M2?  does it have to do with goal node state being (not) added to invariant/expanded?
+        l_prime_line << " " << A+M2+1 << " " << (i ? "prime^" : "") << "invar >= " << A+M2+1 << endl;
         l_prime_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
         if (i) {
             utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
@@ -283,7 +288,7 @@ void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNo
 void SearchAlgorithm::proof_log_node_transition_invariant(SearchNode node) {
     State s = node.get_state();
     ostringstream line;
-    line << "rup  1 ~node[" << s.get_id_int() << "," << node.get_g() << "]  1 ~transition  1 prime^invar >= 1;";
+    line << "rup  1 ~node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "]  1 ~transition  1 prime^invar >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
