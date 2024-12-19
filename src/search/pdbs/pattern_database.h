@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "../task_proxy.h"
+#include "../utils/proof_logging.h"
 
 #include <vector>
 
@@ -36,6 +37,11 @@ public:
     int get_multiplier(int var) const {
         return hash_multipliers[var];
     }
+
+    void bireif_abstract_state(int state_index) const;
+    void bireif_abstract_state_with_balance(int abstract_state_index, int balance) const;
+    std::string get_name() const;
+    std::string abstract_state(int state_index) const;
 };
 
 class PatternDatabase {

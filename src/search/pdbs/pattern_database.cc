@@ -54,6 +54,61 @@ int Projection::unrank(int index, int var) const {
     return temp % domain_sizes[var];
 }
 
+string get_name_aux(Pattern pattern){
+    ostringstream name;
+    name << "{";
+    for (auto & var : pattern) {
+        name << var << "_";
+    }
+    name << "}";
+    return name.str();
+}
+
+string Projection::get_name() const {
+    return get_name_aux(pattern);
+}
+
+string Projection::abstract_state(int state_index) const {
+    ostringstream name;
+    name << "a_" << get_name() << "[s[" << state_index << "]]";
+    return name.str();
+}
+
+void Projection::bireif_abstract_state(int state_index) const{
+    for (int i=0; i<=1; ++i) {
+        ostringstream rreif;
+        ostringstream lreif;
+        rreif << "@" << (i ? "prime^" : "") << abstract_state(state_index) << "_Rreif  "
+            << pattern.size() << " ~" << (i ? "prime^" : "") << "a_" << get_name_aux(pattern) << "[s["<< state_index <<"]] ";
+        lreif << "@" << (i ? "prime^" : "") << abstract_state(state_index) << "_Lreif  "
+            << "1 " << (i ? "prime^" : "") << "a_" << get_name_aux(pattern) << "[s["<< state_index <<"]] ";
+        for (auto & var : pattern) {
+            rreif << " 1 " << (i ? "prime^" : "") << "var_" << var << "_" << unrank(state_index, var) << " ";
+            lreif << " 1 ~" << (i ? "prime^" : "") << "var_" << var << "_" << unrank(state_index, var) << " ";
+        }
+        rreif << " >= " << pattern.size() << " ;";
+        lreif << " >= 1 ;";
+        utils::ProofLog::append_to_proof_log("* Bi-Reif of abstract state", utils::ProofPart::INVARIANT);
+        utils::ProofLog::append_to_proof_log(rreif.str(), utils::ProofPart::INVARIANT);
+        utils::ProofLog::append_to_proof_log(lreif.str(), utils::ProofPart::INVARIANT);
+    }
+}
+
+void Projection::bireif_abstract_state_with_balance(int state_index, int balance) const {
+    for (int i=0; i<=1; ++i) {
+        ostringstream name;
+        name << "node[a_" << get_name() << "[s[" << state_index << "]],balance_geq_" << balance << "]";
+        ostringstream r_reif;
+        ostringstream l_reif;
+        r_reif << " 2 ~" << (i ? "prime^" : "") << name.str()
+            << "  1 " << (i ? "prime^" : "") << "a_" << get_name() << "[s[" << state_index << "]]  1 " << (i ? "prime^" : "") << "balance_geq_" << balance << "  >= 2 ;";
+        l_reif << " 1 " << (i ? "prime^" : "") << name.str() 
+            << "  1 ~" << (i ? "prime^" : "") << "a_" << get_name() << "[s[" << state_index << "]]  1 ~" << (i ? "prime^" : "") << "balance_geq_" << balance << "  >= 1 ;";
+        utils::ProofLog::append_to_proof_log(r_reif.str(), utils::ProofPart::INVARIANT);
+        utils::ProofLog::append_to_proof_log(l_reif.str(), utils::ProofPart::INVARIANT);
+    }
+}
+
 PatternDatabase::PatternDatabase(
     Projection &&projection,
     vector<int> &&distances)
@@ -62,7 +117,9 @@ PatternDatabase::PatternDatabase(
 }
 
 int PatternDatabase::get_value(const vector<int> &state) const {
-    return distances[projection.rank(state)];
+    int result = distances[projection.rank(state)];
+    projection.bireif_abstract_state_with_balance(projection.rank(state), result);
+    return result;
 }
 
 double PatternDatabase::compute_mean_finite_h() const {
