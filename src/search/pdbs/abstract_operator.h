@@ -34,6 +34,12 @@ class AbstractOperator {
     std::vector<FactPair> regression_preconditions;
 
     /*
+      The preconditions that were created by multiplying out the
+      operator.
+    */
+    std::vector<FactPair> abstract_preconditions;
+
+    /*
       Effect of the operator during regression search on a given
       abstract state number.
     */
@@ -43,6 +49,7 @@ public:
         int concrete_op_id,
         int cost,
         std::vector<FactPair> &&regression_preconditions,
+        std::vector<FactPair> &&abstract_preconditions,
         int hash_effect);
 
     /*
@@ -51,6 +58,15 @@ public:
     */
     const std::vector<FactPair> &get_regression_preconditions() const {
         return regression_preconditions;
+    }
+
+    /*
+      Returns variable value pairs which represent the preconditions of
+      the abstract operator that were created by multiplying out the
+      operator.
+    */
+    const std::vector<FactPair> &get_abstract_preconditions() const {
+      return abstract_preconditions;
     }
 
     /*
