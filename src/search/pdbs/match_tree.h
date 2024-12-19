@@ -56,6 +56,10 @@ public:
     */
     void get_applicable_operator_ids(
         int state_index, std::vector<int> &operator_ids) const;
+    void bireif_state(int state_index) const;
+    void bireif_abstract_state_with_balance_geq(int state_index, int balance) const;
+    std::string abstract_state_with_balance_geq(int state_index, int balance) const;
+    std::string abstract_state(int state_index) const;
     void dump(utils::LogProxy &log) const;
 };
 }

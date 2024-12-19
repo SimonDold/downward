@@ -167,6 +167,37 @@ void MatchTree::get_applicable_operator_ids(
         get_applicable_operator_ids_recursive(root, state_index, operator_ids);
 }
 
+void MatchTree::bireif_state(int state_index) const{
+    projection.bireif_abstract_state(state_index);
+}
+
+void MatchTree::bireif_abstract_state_with_balance_geq(int state_index, int balance) const {
+    for (int i=0; i<=1; ++i) {
+        ostringstream r_reif;
+        ostringstream l_reif;
+        r_reif << " 2 ~" << (i ? "prime^" : "") << abstract_state_with_balance_geq(state_index, balance) 
+            << "  1 " << (i ? "prime^" : "") << "a_" << projection.get_name() << "[s[" << state_index << "]]  1 " << (i ? "prime^" : "") << "balance_geq_" << balance << "  >= 2 ;";
+        l_reif << " 1 " << (i ? "prime^" : "") << abstract_state_with_balance_geq(state_index, balance) 
+            << "  1 ~" << (i ? "prime^" : "") << "a_" << projection.get_name() << "[s[" << state_index << "]]  1 ~" << (i ? "prime^" : "") << "balance_geq_" << balance << "  >= 1 ;";
+        utils::ProofLog::append_to_proof_log(r_reif.str(), utils::ProofPart::INVARIANT);
+        utils::ProofLog::append_to_proof_log(l_reif.str(), utils::ProofPart::INVARIANT);
+    }
+}
+
+string MatchTree::abstract_state(int state_index) const {
+    return projection.abstract_state(state_index);
+    ostringstream name;
+    name << "a_" << projection.get_name() << "[s[" << state_index << "]]";
+    return name.str();
+
+}
+
+string MatchTree::abstract_state_with_balance_geq(int state_index, int balance) const {
+    ostringstream name;
+    name << "node["<< abstract_state(state_index) <<",balance_geq_" << balance << "]";
+    return name.str();
+}
+
 void MatchTree::dump_recursive(Node *node, utils::LogProxy &log) const {
     if (log.is_at_least_debug()) {
         if (!node) {
