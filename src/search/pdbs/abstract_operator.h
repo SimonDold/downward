@@ -37,7 +37,7 @@ class AbstractOperator {
       The preconditions that were created by multiplying out the
       operator.
     */
-    std::vector<FactPair> abstract_preconditions;
+    std::vector<FactPair> specialization_pairs;
 
     /*
       Effect of the operator during regression search on a given
@@ -49,7 +49,7 @@ public:
         int concrete_op_id,
         int cost,
         std::vector<FactPair> &&regression_preconditions,
-        std::vector<FactPair> &&abstract_preconditions,
+        std::vector<FactPair> &&specializition_pairs,
         int hash_effect);
 
     /*
@@ -66,7 +66,7 @@ public:
       operator.
     */
     const std::vector<FactPair> &get_abstract_preconditions() const {
-      return abstract_preconditions;
+      return specialization_pairs;
     }
 
     /*

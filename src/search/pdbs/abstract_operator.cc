@@ -11,12 +11,12 @@ AbstractOperator::AbstractOperator(
     int concrete_op_id,
     int cost,
     vector<FactPair> &&regression_preconditions,
-    vector<FactPair> &&abstract_preconditions,
+    vector<FactPair> &&specialization_pairs,
     int hash_effect)
     : concrete_op_id(concrete_op_id),
       cost(cost),
       regression_preconditions(move(regression_preconditions)),
-      abstract_preconditions(move(abstract_preconditions)),
+      specialization_pairs(move(specialization_pairs)),
       hash_effect(hash_effect) {
 }
 
