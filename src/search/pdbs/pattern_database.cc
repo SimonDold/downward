@@ -49,8 +49,10 @@ int Projection::rank(const vector<int> &state) const {
     return index;
 }
 
-int Projection::unrank(int index, int var) const {
-    int temp = index / hash_multipliers[var];
+int Projection::unrank(int state_index, int var) const {
+    assert(hash_multipliers.size()>var);
+    assert(hash_multipliers[var]>0);
+    int temp = state_index / hash_multipliers[var];
     return temp % domain_sizes[var];
 }
 
