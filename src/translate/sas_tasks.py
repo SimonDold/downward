@@ -362,7 +362,7 @@ class SASVariables:
 
     def proof_log_var_init(self, var: int) -> Tuple[str,str,str,str,str]:
         #frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one
-        return ("", "", f"@dom_{var}_min_one ", "", "") 
+        return ("", f"@dom_{var}_max_one ", f"@dom_{var}_min_one ", "", "") 
     
     def proof_log_var_update(self, var: str, i: int, axiom_layer: int, x: Tuple[str,str,str,str,str]) -> Tuple[str,str,str,str,str]:
         (frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one) = x
