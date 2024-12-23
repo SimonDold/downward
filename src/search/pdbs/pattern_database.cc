@@ -82,9 +82,9 @@ void Projection::bireif_abstract_state(int state_index) const{
             << pattern.size() << " ~" << (i ? "prime^" : "") << "a_" << get_name_aux(pattern) << "[s["<< state_index <<"]] ";
         lreif << "@" << (i ? "prime^" : "") << abstract_state(state_index) << "_Lreif  "
             << "1 " << (i ? "prime^" : "") << "a_" << get_name_aux(pattern) << "[s["<< state_index <<"]] ";
-        for (auto & var : pattern) {
-            rreif << " 1 " << (i ? "prime^" : "") << "var_" << var << "_" << unrank(state_index, var) << " ";
-            lreif << " 1 ~" << (i ? "prime^" : "") << "var_" << var << "_" << unrank(state_index, var) << " ";
+        for (int var_position = 0; var_position < pattern.size(); ++var_position) {
+            rreif << " 1 " << (i ? "prime^" : "") << "var_" << pattern[var_position] << "_" << unrank(state_index, var_position) << " ";
+            lreif << " 1 ~" << (i ? "prime^" : "") << "var_" << pattern[var_position] << "_" << unrank(state_index, var_position) << " ";
         }
         rreif << " >= " << pattern.size() << " ;";
         lreif << " >= 1 ;";
