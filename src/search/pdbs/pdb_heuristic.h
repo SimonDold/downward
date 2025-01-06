@@ -11,6 +11,7 @@ class PatternDatabase;
 // Implements a heuristic for a single PDB.
 class PDBHeuristic : public Heuristic {
     std::shared_ptr<PatternDatabase> pdb;
+    void certify_heuristic_pdb(int return_value, State s);
 protected:
     virtual int compute_heuristic(const State &ancestor_state) override;
 public:

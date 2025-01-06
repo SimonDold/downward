@@ -49,7 +49,6 @@ public:
         int concrete_op_id,
         int cost,
         std::vector<FactPair> &&regression_preconditions,
-        std::vector<FactPair> &&specializition_pairs,
         int hash_effect);
 
     /*
@@ -65,7 +64,7 @@ public:
       the abstract operator that were created by multiplying out the
       operator.
     */
-    const std::vector<FactPair> &get_abstract_preconditions() const {
+    const std::vector<FactPair> &get_specialized_preconditions() const {
       return specialization_pairs;
     }
 

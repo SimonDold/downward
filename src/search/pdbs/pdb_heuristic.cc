@@ -26,11 +26,36 @@ PDBHeuristic::PDBHeuristic(
       pdb(get_pdb_from_generator(task, pattern)) {
 }
 
+void PDBHeuristic::certify_heuristic_pdb(int return_value, State s) {
+
+        s.unpack();
+            assert( s.get_id_int() >= 0);
+            
+        utils::ProofLog::add_balance_leq_x_bireification(return_value);
+
+        for (int i=0; i<=1 ; ++i){
+
+        // Bi-Reif phi(node,heuristic): 
+            ostringstream r_line;
+            ostringstream l_line;
+            r_line  << endl << " *pdb PHI: Rreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "] " << endl;
+            r_line << "1 ~" << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "rev_indu  >= 1";
+            l_line << " *pdb PHI: Lreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]" << endl;
+            l_line << "1 " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "rev_indu  >= 1";
+            utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
+            utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+        }
+}
+
+
 int PDBHeuristic::compute_heuristic(const State &ancestor_state) {
     State state = convert_ancestor_state(ancestor_state);
     int h = pdb->get_value(state.get_unpacked_values());
-    if (h == numeric_limits<int>::max())
+    if (h == numeric_limits<int>::max()) {
         return DEAD_END;
+    }
+    certify_heuristic_pdb(h, ancestor_state);
+    certify_heuristic(h, ancestor_state);
     return h;
 }
 

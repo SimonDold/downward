@@ -129,6 +129,50 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
     return result;
 }
 
+
+void Heuristic::certify_heuristic(int return_value, State s) const {
+
+        utils::ProofLog::append_to_proof_log(
+        "*CH1 just evaluated h(s) with \n** h=" + get_description() + " "
+        + "\n**CH1 s = " + to_string(s.get_id_int()) + " "
+        + "\n**CH1 h(s) = " + to_string(return_value)
+        , utils::ProofPart::INVARIANT);
+        
+        
+        s.unpack();
+            assert( s.get_id_int() >= 0);
+            
+        utils::ProofLog::add_balance_leq_x_bireification(return_value);
+
+
+        for (int i=0; i<=1 ; ++i){
+        // Bi-Reif node: 
+            ostringstream r_node;
+            ostringstream l_node;
+            r_node  << endl << " * pdb NODE: Rreif of " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "] " << endl;
+            r_node << "2 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 " << (i ? "" : "prime^") << "state[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << return_value << "  >= 2";
+            l_node << "1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 ~" << (i ? "" : "prime^") << "state[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << return_value << "  >= 1";
+            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::INVARIANT);
+            utils::ProofLog::append_to_proof_log(l_node.str(), utils::ProofPart::INVARIANT);
+        }
+    // heuristic lemmas
+    ostringstream entry_lemma;
+    entry_lemma << endl << "* " + get_description() + " heuristic proofs:  AFTER_CH_1 btw " << endl
+        << " rup  1 ~node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    ostringstream entry_prime_lemma;
+    entry_prime_lemma << " rup  1 ~prime^node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 prime^phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    ostringstream goal_lemma;
+    goal_lemma << " rup  1 ~goal  1 balance_leq_" << 0 << "  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    ostringstream transition_lemma;
+    transition_lemma << " rup  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]  1 ~transition  1 prime^phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+
+    utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION);
+    utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION);
+    utils::ProofLog::append_to_proof_log(goal_lemma.str(), utils::ProofPart::DERIVATION);
+    utils::ProofLog::append_to_proof_log(transition_lemma.str(), utils::ProofPart::DERIVATION);
+    
+}
+
 bool Heuristic::does_cache_estimates() const {
     return cache_evaluator_values;
 }

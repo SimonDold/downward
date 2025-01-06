@@ -44,6 +44,9 @@ public:
     virtual bool is_reliable_dead_end(
         EvaluationContext &eval_context) const override;
     virtual void get_path_dependent_evaluators(set<Evaluator *> &evals) override;
+    std::string get_priority_evaluator_name() const { // should be override(?)
+        return evaluators[0]->get_description();
+    }
 };
 
 template<class Entry>

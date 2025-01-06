@@ -49,6 +49,9 @@ public:
         EvaluationContext &eval_context) const override;
     virtual bool is_reliable_dead_end(
         EvaluationContext &eval_context) const override;
+    std::string get_priority_evaluator_name() const { // should be override(?)
+        return evaluators[1]->get_description(); // 1 and not 0 becuase 1 is the g-eval but we care about the h_eval...
+    }
 };
 
 
@@ -66,19 +69,8 @@ void TieBreakingOpenList<Entry>::do_insertion(
     EvaluationContext &eval_context, const Entry &entry) {
     vector<int> key;
     key.reserve(evaluators.size());
-    for (const shared_ptr<Evaluator> &evaluator : evaluators) {
-        int value = eval_context.get_evaluator_value_or_infinity(evaluator.get());
-        key.push_back(value);
-        int g_val = eval_context.get_g_value();
-        State s = eval_context.get_state();
-        int min_cost = 1;
-
-        // I just know that the evaluator is the blind heuristic with x = min cost
-        // I can not share the view that a heuristic just says that a node should be expanded or not :(
-        utils::ProofLog::add_spent_geq_x_bireification(g_val + min_cost);
-
-
-    }
+    for (const shared_ptr<Evaluator> &evaluator : evaluators)
+        key.push_back(eval_context.get_evaluator_value_or_infinity(evaluator.get()));
 
     buckets[key].push_back(entry);
     ++size;

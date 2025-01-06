@@ -86,6 +86,8 @@ public:
     virtual EvaluationResult compute_result(
         EvaluationContext &eval_context) override;
 
+    void certify_heuristic(int return_value, State s) const;
+
     virtual bool does_cache_estimates() const override;
     virtual bool is_estimate_cached(const State &state) const override;
     virtual int get_cached_estimate(const State &state) const override;

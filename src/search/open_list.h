@@ -123,6 +123,7 @@ public:
     virtual bool is_dead_end(EvaluationContext &eval_context) const = 0;
     virtual bool is_reliable_dead_end(
         EvaluationContext &eval_context) const = 0;
+    virtual std::string get_priority_evaluator_name() const = 0;
 };
 
 

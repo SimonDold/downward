@@ -57,6 +57,9 @@ public:
     virtual void get_path_dependent_evaluators(set<Evaluator *> &evals) override;
     virtual bool empty() const override;
     virtual void clear() override;
+    std::string get_priority_evaluator_name() const { // should be override(?)
+        return evaluator->get_description();
+    }
 };
 
 template<class HeapNode>

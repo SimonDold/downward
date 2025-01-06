@@ -113,11 +113,19 @@ def spent_bit_name(position: int) -> str:
 def op_name(idx: int) -> str:
     return f"op_{idx}"
 
+def needed_bits(number: int) -> int:
+    return math.ceil(math.log(max(number-1,1),2))+1
+
+BIT_BOUNDERY = 30
+# the right hand side of the difference constraints requires numbers larger than the largest number expressed in the amount of bits the constraint is talking about
+
 def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) -> List[str]: 
     delta_eq_rreif = f"2 {neg(operator_cost_name(cost, '='))} 1 {operator_cost_name(cost, '>=')} 1 {operator_cost_name(cost, '<=')} >= 2 ;"
     delta_eq_lreif = f"1 {operator_cost_name(cost, '=')} 1 {neg(operator_cost_name(cost, '>='))} 1 {neg(operator_cost_name(cost, '<='))} >= 1 ;"
-    bits = primary_variable_count + math.ceil(math.log(max_cost,2)) # should we cap this to the number of bits FD could handle?
-    bits = 4
+    bits = primary_variable_count + needed_bits(max_cost)
+    # should we cap this to the number of bits FD could handle?
+    if bits > BIT_BOUNDERY: 
+        bits = BIT_BOUNDERY
     maxint = 2**(bits+1) - 1 
     delta_geq_rreif = ""
     delta_geq_lreif = ""
@@ -276,7 +284,7 @@ class SASTask:
         print("begin_metric", file=sas_stream)
         print(int(self.metric), file=sas_stream)
         print("end_metric", file=sas_stream)
-        layer_dict, primary_list = self.variables.output(sas_stream, opb_stream)
+        primary_list = self.variables.output(sas_stream, opb_stream)
         print(len(self.mutexes), file=sas_stream)
         for mutex in self.mutexes:
             mutex.output(sas_stream)
@@ -386,14 +394,12 @@ class SASVariables:
 
     def output(self, sas_stream, opb_stream=None):
         print(len(self.ranges), file=sas_stream)
-        layer_dict = dict()
         primary_list = []
         for var, (rang, axiom_layer, values) in enumerate(zip(
                 self.ranges, self.axiom_layers, self.value_names)):
             print("begin_variable", file=sas_stream)
             print("var%d" % var, file=sas_stream)
             print(axiom_layer, file=sas_stream)
-            layer_dict[var] = axiom_layer
             if axiom_layer == -1:
                 primary_list += [var]
             print(rang, file=sas_stream)
@@ -404,7 +410,7 @@ class SASVariables:
                 proof_log_object = self.proof_log_var_update(var, i, axiom_layer, proof_log_object)
             print(("* var%d domain constraints \n" %var) + self.proof_log_var_finalize(len(values), proof_log_object), file=opb_stream)
             print("end_variable", file=sas_stream)
-        return layer_dict, primary_list
+        return primary_list
 
     def get_encoding_size(self):
         # A variable with range k has encoding size k + 1 to also give the
@@ -630,8 +636,10 @@ class SASOperator:
     def proof_log_init_prevail(self) -> List[str]:
         return [] # prevail_conjuncts
 
-    def proof_log_update_prevail(self, var: str, val: str, prevail_conjuncts: List[str]) -> List[str]:
+    def proof_log_update_prevail(self, var: str, val: str, prevail_conjuncts: List[str], primary_list: List[int]) -> List[str]:
         prevail_conjuncts.append(maplet_name(var,val))
+        if var in primary_list or True:
+            prevail_conjuncts.append(prime_it(maplet_name(var,val))) # secondary variables from the prevai condition are allowed to change without the op touching it. TODOprooflogging is this a constraint describing the planning task? because we could derive it from the frame axiom and the 'normal' pre(vail)condition.
         return prevail_conjuncts
 
     def proof_log_init(self, op_id, primary_list: List[int]) -> Tuple[str, dict[int, str], List[str], List[str], List[str]]:
@@ -679,7 +687,7 @@ class SASOperator:
         print(len(self.prevail), file=sas_stream)
         proof_log_object_prevail = self.proof_log_init_prevail()
         for var, val in self.prevail:
-            proof_log_object_prevail = self.proof_log_update_prevail(var, val, proof_log_object_prevail)
+            proof_log_object_prevail = self.proof_log_update_prevail(var, val, proof_log_object_prevail, primary_list)
             print(var, val, file=sas_stream)
         print(len(self.pre_post), file=sas_stream)
 
@@ -692,7 +700,6 @@ class SASOperator:
                 print(cvar, cval, end=' ', file=sas_stream)
             proof_log_object = self.proof_log_update(i, var, pre, post, proof_log_object_inner, proof_log_object)
             print(var, pre, post, file=sas_stream)
-        #   
         print(self.proof_log_finalize(len(primary_list), max_cost, proof_log_object_prevail, proof_log_object), file=opb_stream)
         print(self.cost, file=sas_stream)
         print("end_operator", file=sas_stream)
