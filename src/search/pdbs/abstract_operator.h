@@ -49,7 +49,6 @@ public:
         int concrete_op_id,
         int cost,
         std::vector<FactPair> &&regression_preconditions,
-        std::vector<FactPair> &&specializition_pairs,
         int hash_effect);
 
     /*
