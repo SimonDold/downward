@@ -114,7 +114,7 @@ def op_name(idx: int) -> str:
     return f"op_{idx}"
 
 def needed_bits(number: int) -> int:
-    return math.ceil(math.log(number-1,2))+1
+    return math.ceil(math.log(max(number-1,1),2))+1
 
 BIT_BOUNDERY = 30
 # the right hand side of the difference constraints requires numbers larger than the largest number expressed in the amount of bits the constraint is talking about
