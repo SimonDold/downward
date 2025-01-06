@@ -69,12 +69,9 @@ void TieBreakingOpenList<Entry>::do_insertion(
     EvaluationContext &eval_context, const Entry &entry) {
     vector<int> key;
     key.reserve(evaluators.size());
-    // first evaluator is relevant for phi_eval
-
-    
-    for (const shared_ptr<Evaluator> &evaluator : evaluators) {
+    for (const shared_ptr<Evaluator> &evaluator : evaluators)
         key.push_back(eval_context.get_evaluator_value_or_infinity(evaluator.get()));
-    }
+
     buckets[key].push_back(entry);
     ++size;
 }

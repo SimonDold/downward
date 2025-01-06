@@ -100,7 +100,6 @@ class PatternDatabaseFactory {
         const MatchTree &match_tree,
         const shared_ptr<utils::RandomNumberGenerator> &rng,
         bool compute_wildcard_plan);
-    bool is_goal_var(int idx);
 public:
     PatternDatabaseFactory(
         const TaskProxy &task_proxy,
@@ -402,16 +401,6 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
         }
     }
     return true;
-}
-
-// TODOprooflog there should be a better way to implement this
-bool PatternDatabaseFactory::is_goal_var(int idx) {
-    for (const FactPair &abstract_goal : abstract_goals) {
-        if (idx == abstract_goal.var) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void PatternDatabaseFactory::compute_distances(

@@ -284,7 +284,7 @@ class SASTask:
         print("begin_metric", file=sas_stream)
         print(int(self.metric), file=sas_stream)
         print("end_metric", file=sas_stream)
-        layer_dict, primary_list = self.variables.output(sas_stream, opb_stream)
+        primary_list = self.variables.output(sas_stream, opb_stream)
         print(len(self.mutexes), file=sas_stream)
         for mutex in self.mutexes:
             mutex.output(sas_stream)
@@ -394,14 +394,12 @@ class SASVariables:
 
     def output(self, sas_stream, opb_stream=None):
         print(len(self.ranges), file=sas_stream)
-        layer_dict = dict()
         primary_list = []
         for var, (rang, axiom_layer, values) in enumerate(zip(
                 self.ranges, self.axiom_layers, self.value_names)):
             print("begin_variable", file=sas_stream)
             print("var%d" % var, file=sas_stream)
             print(axiom_layer, file=sas_stream)
-            layer_dict[var] = axiom_layer
             if axiom_layer == -1:
                 primary_list += [var]
             print(rang, file=sas_stream)
@@ -412,7 +410,7 @@ class SASVariables:
                 proof_log_object = self.proof_log_var_update(var, i, axiom_layer, proof_log_object)
             print(("* var%d domain constraints \n" %var) + self.proof_log_var_finalize(len(values), proof_log_object), file=opb_stream)
             print("end_variable", file=sas_stream)
-        return layer_dict, primary_list
+        return primary_list
 
     def get_encoding_size(self):
         # A variable with range k has encoding size k + 1 to also give the
@@ -702,7 +700,6 @@ class SASOperator:
                 print(cvar, cval, end=' ', file=sas_stream)
             proof_log_object = self.proof_log_update(i, var, pre, post, proof_log_object_inner, proof_log_object)
             print(var, pre, post, file=sas_stream)
-        #   
         print(self.proof_log_finalize(len(primary_list), max_cost, proof_log_object_prevail, proof_log_object), file=opb_stream)
         print(self.cost, file=sas_stream)
         print("end_operator", file=sas_stream)
