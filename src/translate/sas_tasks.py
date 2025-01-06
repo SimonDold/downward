@@ -113,11 +113,19 @@ def spent_bit_name(position: int) -> str:
 def op_name(idx: int) -> str:
     return f"op_{idx}"
 
+def needed_bits(number: int) -> int:
+    return math.ceil(math.log(number-1,2))+1
+
+BIT_BOUNDERY = 30
+# the right hand side of the difference constraints requires numbers larger than the largest number expressed in the amount of bits the constraint is talking about
+
 def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) -> List[str]: 
     delta_eq_rreif = f"2 {neg(operator_cost_name(cost, '='))} 1 {operator_cost_name(cost, '>=')} 1 {operator_cost_name(cost, '<=')} >= 2 ;"
     delta_eq_lreif = f"1 {operator_cost_name(cost, '=')} 1 {neg(operator_cost_name(cost, '>='))} 1 {neg(operator_cost_name(cost, '<='))} >= 1 ;"
-    bits = primary_variable_count + math.ceil(math.log(max_cost,2)) # should we cap this to the number of bits FD could handle?
-    bits = 4
+    bits = primary_variable_count + needed_bits(max_cost)
+    # should we cap this to the number of bits FD could handle?
+    if bits > BIT_BOUNDERY: 
+        bits = BIT_BOUNDERY
     maxint = 2**(bits+1) - 1 
     delta_geq_rreif = ""
     delta_geq_lreif = ""

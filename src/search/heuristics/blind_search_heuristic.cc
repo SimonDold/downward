@@ -43,9 +43,10 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
             assert( s.get_id_int() >= 0);
                // this belongs to blind heuristic
         utils::ProofLog::add_balance_leq_x_bireification(return_value);
-        int bits = proof_log_var_count + proof_log_max_cost_bits;
+        int bits = utils::ProofLog::get_proof_log_bits();
         ostringstream derivation_line;
         derivation_line << endl << "pol  @balance_leq_" << (return_value) << "_Rreif  @prime^balance_leq_" << (return_value) << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
+        assert((1 << bits)>=0); // no overflow
         utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
 
         

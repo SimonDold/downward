@@ -30,6 +30,7 @@ public:
     static void add_spent_geq_x_bireification(const int x);
     static void add_balance_leq_x_bireification(const int x);
     static void finalize_lemmas(int optimal_cost);
+    static int get_proof_log_bits();
     static std::string strips_name_to_veripb_name(const std::string& strips_name);
 };
 

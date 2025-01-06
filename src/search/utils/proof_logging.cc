@@ -134,8 +134,7 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
 }
 
 void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance){
-    int bits = proof_log_var_count + proof_log_max_cost_bits;
-    // here we will need more bits once we talk about infinity
+    int bits = ProofLog::get_proof_log_bits();
     int maxint = 1 << bits;
     ostringstream r_prime;
     ostringstream l_prime;
@@ -151,7 +150,7 @@ void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance)
 
     }
     if (balance) {
-        r_prime << 2 * maxint - (maxint + x) - 1 << " ~" << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << 2 * maxint - (maxint + x) - 1;
+        r_prime << maxint - x - 1 << " ~" << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << maxint - x - 1;
         l_prime << (maxint + x) << " " << (is_prime ? "prime^" : "") << "balance_leq_" << x << "  >= " << maxint + x;
     } else {
         r_prime << x << " ~" << (is_prime ? "prime^" : "") << "spent_geq_" << x << "  >= " << x;
@@ -159,7 +158,8 @@ void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance)
     }
     ProofLog::append_to_proof_log(r_prime.str(), ProofPart::INVARIANT);
     ProofLog::append_to_proof_log(l_prime.str(), ProofPart::INVARIANT);
-    
+    assert( maxint - x - 1 > -1 );
+
     // bireif of inverse statement  b_leq_2 iff ~b_geq_3    sp_geq_2 iff ~sp_leq_1
     ostringstream r;
     ostringstream l;
@@ -189,7 +189,7 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         append_to_proof_log("* ensure non empty REIF file", ProofPart::REIFICATION);
 
     append_to_proof_log("* finalize:\n", ProofPart::INVARIANT);
-    int bits = proof_log_var_count + proof_log_max_cost_bits;
+    int bits = get_proof_log_bits();
     ostringstream r_budget;
     ostringstream l_budget;
     r_budget << "* varcount: " << proof_log_var_count << endl << "* max cost bits: " << proof_log_max_cost_bits << endl; 
@@ -258,6 +258,14 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
         << "conclusion NONE" << endl
         << "end pseudo-Boolean proof" << endl;
     append_to_proof_log(lemmas.str(), ProofPart::DERIVATION);
+}
+
+int MAX_BIT_BOUNDARY = 30;
+
+int ProofLog::get_proof_log_bits() {
+    return std::min(proof_log_max_cost_bits+proof_log_var_count, MAX_BIT_BOUNDARY);
+    // here we will need more bits once we talk about infinity
+    // it would be nice to not do this but it would require arbitrary size integer operations
 }
 
 // WARNING: this function has to be syncronized with same named one in the python part.
