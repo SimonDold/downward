@@ -38,6 +38,9 @@ public:
         EvaluationContext &eval_context) const override;
     virtual bool is_reliable_dead_end(
         EvaluationContext &eval_context) const override;
+    std::string get_priority_evaluator_name() const { // should be override(?)
+        return open_lists[0]->get_priority_evaluator_name();
+    }
 };
 
 
