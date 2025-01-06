@@ -44,11 +44,17 @@ EagerSearch::EagerSearch(
 
 
 void EagerSearch::add_phi_to_invar(SearchNode node) {
-        for (int i=0; i<=1; ++i) {
+    string h_name = open_list->get_priority_evaluator_name();
+    int state_id = node.get_state().get_id_int(); // TODOprooflogging do not call this again in this function.    
+    for (int i=0; i<=1; ++i) {
             ostringstream r_line;
             ostringstream l_line;
-            r_line << " 1 " << (i ? "prime^" : "") << "phi_" + open_list->get_priority_evaluator_name() + "[" << node.get_state().get_id_int() << "] ";
-            l_line << " 1 ~" << (i ? "prime^" : "") << "phi_" + open_list->get_priority_evaluator_name() + "[" << node.get_state().get_id_int() << "] ";
+            r_line << " 1 " << (i ? "prime^" : "") 
+                    << "phi_" + open_list->get_priority_evaluator_name()
+                    + "[" << node.get_state().get_id_int() << "] ";
+            l_line << " 1 ~" << (i ? "prime^" : "") 
+                    << "phi_" + open_list->get_priority_evaluator_name()
+                    + "[" << node.get_state().get_id_int() << "] ";
             if (i){
                 utils::ProofLog::append_to_invariant_prime_right(r_line.str());
                 utils::ProofLog::append_to_invariant_prime_left(l_line.str());
@@ -58,6 +64,37 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
                 }
         }
         proof_log_node_reification(node, "inital");
+
+        ostringstream entry_lemma_comment;
+        entry_lemma_comment << "* h entry state lemma here?\n"
+                << "* state = " + to_string(node.get_state().get_id_int()) + "\n"
+                << "* g = " + to_string(node.get_real_g());
+        utils::ProofLog::append_to_proof_log( 
+                entry_lemma_comment.str()
+                , utils::ProofPart::DERIVATION);
+        ostringstream entry_lemma_spent, prime_entry_lemma_spent;
+        entry_lemma_spent
+            << "@entry_lemma_" << open_list->get_priority_evaluator_name()
+                << "[" << node.get_state().get_id_int() << "] "
+            << " rup "
+            << " 1 ~node[" << state_id << "," << "spent_geq_" << node.get_real_g() << "] "
+            << " 1 phi_" << h_name << "[" << state_id << "] "
+            << " >= 1 ; ";
+        //utils::ProofLog::append_to_proof_log( 
+        //        entry_lemma_spent.str()
+        //        , utils::ProofPart::DERIVATION);
+
+        prime_entry_lemma_spent
+            << "@prime^entry_lemma_" << open_list->get_priority_evaluator_name()
+                << "[" << node.get_state().get_id_int() << "] "
+            << " rup "
+            << " 1 ~prime^node[" << state_id << "," << "spent_geq_" << node.get_real_g() << "] "
+            << " 1 prime^phi_" << h_name << "[" << state_id << "] "
+            << " >= 1 ; ";
+        //utils::ProofLog::append_to_proof_log( 
+        //        prime_entry_lemma_spent.str()
+        //        , utils::ProofPart::DERIVATION);
+
 }
 
 void EagerSearch::initialize() {
