@@ -630,8 +630,10 @@ class SASOperator:
     def proof_log_init_prevail(self) -> List[str]:
         return [] # prevail_conjuncts
 
-    def proof_log_update_prevail(self, var: str, val: str, prevail_conjuncts: List[str]) -> List[str]:
+    def proof_log_update_prevail(self, var: str, val: str, prevail_conjuncts: List[str], primary_list: List[int]) -> List[str]:
         prevail_conjuncts.append(maplet_name(var,val))
+        if var in primary_list or True:
+            prevail_conjuncts.append(prime_it(maplet_name(var,val))) # secondary variables from the prevai condition are allowed to change without the op touching it. TODOprooflogging is this a constraint describing the planning task? because we could derive it from the frame axiom and the 'normal' pre(vail)condition.
         return prevail_conjuncts
 
     def proof_log_init(self, op_id, primary_list: List[int]) -> Tuple[str, dict[int, str], List[str], List[str], List[str]]:
@@ -679,7 +681,7 @@ class SASOperator:
         print(len(self.prevail), file=sas_stream)
         proof_log_object_prevail = self.proof_log_init_prevail()
         for var, val in self.prevail:
-            proof_log_object_prevail = self.proof_log_update_prevail(var, val, proof_log_object_prevail)
+            proof_log_object_prevail = self.proof_log_update_prevail(var, val, proof_log_object_prevail, primary_list)
             print(var, val, file=sas_stream)
         print(len(self.pre_post), file=sas_stream)
 
