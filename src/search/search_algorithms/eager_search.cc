@@ -42,6 +42,24 @@ EagerSearch::EagerSearch(
     }
 }
 
+
+void EagerSearch::add_phi_to_invar(SearchNode node) {
+        for (int i=0; i<=1; ++i) {
+            ostringstream r_line;
+            ostringstream l_line;
+            r_line << " 1 " << (i ? "prime^" : "") << "phi_" + open_list->get_priority_evaluator_name() + "[" << node.get_state().get_id_int() << "] ";
+            l_line << " 1 ~" << (i ? "prime^" : "") << "phi_" + open_list->get_priority_evaluator_name() + "[" << node.get_state().get_id_int() << "] ";
+            if (i){
+                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
+                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
+            } else {
+                utils::ProofLog::append_to_invariant_right(r_line.str());
+                utils::ProofLog::append_to_invariant_left(l_line.str());
+                }
+        }
+        proof_log_node_reification(node, "inital");
+}
+
 void EagerSearch::initialize() {
     log << "Conducting best first search"
         << (reopen_closed_nodes ? " with" : " without")
@@ -106,21 +124,7 @@ void EagerSearch::initialize() {
 
         open_list->insert(eval_context, initial_state.get_id());
 
-            // TODOprooflog remove code duplicate (in eagersearch::step)
-        for (int i=0; i<=1; ++i) {
-            ostringstream r_line;
-            ostringstream l_line;
-            r_line << " 1 " << (i ? "prime^" : "") << "phi[" << initial_state.get_id_int() << "] ";
-            l_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << initial_state.get_id_int() << "] ";
-            if (i){
-                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
-                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
-            } else {
-                utils::ProofLog::append_to_invariant_right(r_line.str());
-                utils::ProofLog::append_to_invariant_left(l_line.str());
-                }
-        }
-        proof_log_node_reification(node, "inital");
+        add_phi_to_invar(node);
     }
 
     print_initial_evaluator_values(eval_context);
@@ -189,7 +193,7 @@ SearchStatus EagerSearch::step() {
         }
 
         node->close();
-        proof_log_extend_invar(*node, statistics.get_expanded());
+        proof_log_extend_invar(*node, open_list->get_priority_evaluator_name());
         assert(!node->is_dead_end());
         update_f_value_statistics(eval_context);
         statistics.inc_expanded();
@@ -198,7 +202,7 @@ SearchStatus EagerSearch::step() {
 
     const State &s = node->get_state();
     if (check_goal_and_set_plan(s)) {
-        proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), *node);
+        proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), *node, open_list->get_priority_evaluator_name());
         utils::ProofLog::finalize_lemmas(node->get_g());
         return SOLVED;
     }
@@ -266,21 +270,9 @@ SearchStatus EagerSearch::step() {
             succ_node.open_new_node(*node, op, get_adjusted_cost(op));
 
             open_list->insert(succ_eval_context, succ_state.get_id());
-            // TODOprooflog remove code duplicate (in eagersearch::initialize)
-            for (int i=0; i<=1; ++i) {
-            ostringstream r_line;
-            ostringstream l_line;
-            r_line << " 1 " << (i ? "prime^" : "") << "phi[" << succ_state.get_id_int() << "] ";
-            l_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << succ_state.get_id_int() << "] ";
-            if (i){
-                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
-                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
-            } else {
-                utils::ProofLog::append_to_invariant_right(r_line.str());
-                utils::ProofLog::append_to_invariant_left(l_line.str());
-                }
-        }
-            proof_log_node_reification(succ_node, "new succ node");
+
+            add_phi_to_invar(succ_node);
+
             if (search_progress.check_progress(succ_eval_context)) {
                 statistics.print_checkpoint_line(succ_node.get_g());
                 reward_progress();

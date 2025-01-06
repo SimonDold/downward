@@ -32,6 +32,7 @@ class EagerSearch : public SearchAlgorithm {
     void update_f_value_statistics(EvaluationContext &eval_context);
     void reward_progress();
 
+    void add_phi_to_invar(SearchNode node);
 protected:
     virtual void initialize() override;
     virtual SearchStatus step() override;

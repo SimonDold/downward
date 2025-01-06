@@ -32,6 +32,7 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
     } else {
         return_value = min_operator_cost;
     }
+    certify_heuristic(return_value, ancestor_state);
         /*
         add reification of phi[state,g] but i dont have the g value :(
         atm i am cheating inside of TieBreakingOpenList<Entry>::do_insertion
@@ -49,37 +50,18 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
 
         
         for (int i=0; i<=1 ; ++i){
-            ostringstream r_node;
-            ostringstream l_node;
-            r_node  << endl << " * blind: Rreif of " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "] " << endl;
-            r_node << "2 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 " << (i ? "" : "prime^") << "state[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << return_value << "  >= 2";
-            l_node << "1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 ~" << (i ? "" : "prime^") << "state[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << return_value << "  >= 1";
-            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::INVARIANT);
-            utils::ProofLog::append_to_proof_log(l_node.str(), utils::ProofPart::INVARIANT);
 
+        // Bi-Reif phi(node,heuristic): 
             ostringstream r_line;
             ostringstream l_line;
-            r_line  << endl << " *blind: Rreif of " << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "] " << endl;
-            r_line << "1 ~" << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 1";
-            l_line << " *blind: Lreif of " << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "]" << endl;
-            l_line << "2 " << (i ? "" : "prime^") << "phi[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 2";
+            r_line  << endl << " *blind: Rreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "] " << endl;
+            r_line << "1 ~" << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 1";
+            l_line << " *blind: Lreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]" << endl;
+            l_line << "2 " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 2";
             utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
             utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
         }
 
-        ostringstream entry_lemma;
-        entry_lemma << endl << "* blind heuristic proofs:" << endl << "rup  1 ~node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 phi[" << s.get_id_int() << "]  >= 1 ;";
-        ostringstream entry_prime_lemma;
-        entry_prime_lemma << "rup  1 ~prime^node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 prime^phi[" << s.get_id_int() << "]  >= 1 ;";
-        ostringstream goal_lemma;
-        goal_lemma << "rup  1 ~goal  1 balance_leq_" << 0 << "  1 ~phi[" << s.get_id_int() << "]  >= 1 ;";
-        ostringstream transition_lemma;
-        transition_lemma << "rup  1 ~phi[" << s.get_id_int() << "]  1 ~transition  1 prime^phi[" << s.get_id_int() << "]  >= 1 ;";
-
-        utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION);
-        utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION);
-        utils::ProofLog::append_to_proof_log(goal_lemma.str(), utils::ProofPart::DERIVATION);
-        utils::ProofLog::append_to_proof_log(transition_lemma.str(), utils::ProofPart::DERIVATION);
     return return_value;
 }
 
