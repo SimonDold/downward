@@ -174,9 +174,9 @@ class ProofLogObject_multiply_out{
 ostringstream new_name_prefix;
 ostringstream new_name_infix;
 ostringstream new_name_postfix;
-    ostringstream new_name; // init_a,
-    Projection projection; // init_a init_b
-    ostringstream rup_line; // init_b, use
+    ostringstream new_name;
+    Projection projection;
+    ostringstream rup_line;
     bool need_lreif;
 
 public:
@@ -239,7 +239,6 @@ ostringstream rreif_specialized_op_aux;
 
 void init_b(int pattern_var_id) {
       // init B proof log object  
-        //ostringstream rup_line;
         rup_line << "@merge_" << new_name.str() << "  pol  @dom_" 
             << projection.get_pattern()[pattern_var_id] << "_max_one ";
       //\ init B proof object

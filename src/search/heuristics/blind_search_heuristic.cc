@@ -38,6 +38,7 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
         atm i am cheating inside of TieBreakingOpenList<Entry>::do_insertion
         */
 
+        // TODOprooflogging move to encapsulated method.
         State s = ancestor_state;
         s.unpack();
             assert( s.get_id_int() >= 0);
