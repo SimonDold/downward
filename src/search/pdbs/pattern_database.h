@@ -34,8 +34,12 @@ public:
         return num_abstract_states;
     }
 
-    int get_multiplier(int var) const {
-        return hash_multipliers[var];
+    int get_multiplier(int pattern_position) const {
+        return hash_multipliers[pattern_position];
+    }
+    
+    int get_domain_size(int pattern_position) const {
+        return domain_sizes[pattern_position];
     }
 
     void bireif_abstract_state(int state_index) const;

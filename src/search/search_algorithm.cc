@@ -220,30 +220,30 @@ void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment
 void SearchAlgorithm::proof_log_initialize_invar(){
 }
 
-void SearchAlgorithm::proof_log_extend_invar(SearchNode node, int idx){
+void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
     State s = node.get_state();
     s.unpack();
     assert( s.get_id_int() >= 0);
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " 1 ~phi[" << s.get_id_int() << "] " << " ";
+    r_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
     r_line << " 1 node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
-    l_line << " 1 phi[" << s.get_id_int() << "] " << " ";
+    l_line << " 1 phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
     l_line << " 1 ~node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
     // TODOprooflog remove code duplicate
     ostringstream r_prime_line;
     ostringstream l_prime_line;
-    r_prime_line << " 1 ~prime^phi[" << s.get_id_int() << "] " << " ";
+    r_prime_line << " 1 ~prime^phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
     r_prime_line << " 1 prime^node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
-    l_prime_line << " 1 prime^phi[" << s.get_id_int() << "] " << " ";
+    l_prime_line << " 1 prime^phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
     l_prime_line << " 1 ~prime^node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
     utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
     utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
 
-void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, SearchNode node){
+void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, SearchNode node, string phi_name){
     State s = node.get_state();
 
     int A = expanded;
@@ -255,8 +255,8 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, Sear
         ostringstream r_prime_line;
         ostringstream l_prime_line;
 
-        r_prime_line << " 1 " << (i ? "prime^" : "") << "phi[" << s.get_id_int() << "] ";
-        l_prime_line << " 1 ~" << (i ? "prime^" : "") << "phi[" << s.get_id_int() << "] ";
+        r_prime_line << " 1 " << (i ? "prime^" : "") << "phi_" + phi_name + "[" << s.get_id_int() << "] ";
+        l_prime_line << " 1 ~" << (i ? "prime^" : "") << "phi_" + phi_name + "[" << s.get_id_int() << "] ";
 
 
         r_prime_line << A+1 << " ~" << (i ? "prime^" : "") << "invar >= " << A+1 << endl;
