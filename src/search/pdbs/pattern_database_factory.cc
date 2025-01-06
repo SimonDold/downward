@@ -525,14 +525,14 @@ void PatternDatabaseFactory::compute_distances(
             rup_spai << "@spai_s[" + to_string(state_index)
                 + "],specialize[{";
                 
-            for (FactPair fp : op.get_abstract_preconditions()) {
+            for (FactPair fp : op.get_specialized_preconditions()) {
                 rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << ",";
             }
 
             rup_spai << "},a_" 
                 + projection.get_name() + "[op_" + to_string(op.get_concrete_op_id()) + "]  rup  "; 
             rup_spai << " 1 ~specialize[{";
-            for (FactPair fp : op.get_abstract_preconditions()) {
+            for (FactPair fp : op.get_specialized_preconditions()) {
                 rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << ","; 
             }
             rup_spai << "},a_" 

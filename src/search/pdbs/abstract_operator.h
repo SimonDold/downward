@@ -64,7 +64,7 @@ public:
       the abstract operator that were created by multiplying out the
       operator.
     */
-    const std::vector<FactPair> &get_abstract_preconditions() const {
+    const std::vector<FactPair> &get_specialized_preconditions() const {
       return specialization_pairs;
     }
 
