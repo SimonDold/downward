@@ -445,12 +445,12 @@ void PatternDatabaseFactory::compute_distances(
                 size_t ptr = 0;
                 bool is_goal_var;
                 while (ptr < projection.get_pattern().size()) {
+                    is_goal_var = false;
                     for (const FactPair &abstract_goal : abstract_goals) {
                         if (ptr == abstract_goal.var) {
                             is_goal_var = true;
                         }
                     }
-                    is_goal_var = false;
                     if (is_goal_var) {
                         ptr++;
                     } else if (projection.unrank(state_index, ptr) == projection.get_domain_size(ptr)-1) { 
@@ -498,7 +498,7 @@ void PatternDatabaseFactory::compute_distances(
             utils::ProofLog::append_to_proof_log("* rev-applicable abstract operators: " + to_string(applicable_operator_ids_size), utils::ProofPart::DERIVATION);
             if (applicable_operator_ids_size == 0) {
                 ostringstream rup_line;
-                rup_line << "rup  1 ~prime^" << match_tree.abstract_state(state_index) << "  1 ~transition  >= 1 ; ";
+                rup_line << "@no_abstract_op_rev_applicable  rup  1 ~prime^" << match_tree.abstract_state(state_index) << "  1 ~transition  1 " << match_tree.abstract_state(state_index) << "  >= 1 ; ";
                 utils::ProofLog::append_to_proof_log(rup_line.str(), utils::ProofPart::DERIVATION);
             }
             //\ log_rev_indu

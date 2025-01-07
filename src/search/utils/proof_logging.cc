@@ -158,7 +158,7 @@ void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance)
     }
     ProofLog::append_to_proof_log(r_prime.str(), ProofPart::INVARIANT);
     ProofLog::append_to_proof_log(l_prime.str(), ProofPart::INVARIANT);
-    assert( maxint - x - 1 > -1 );
+    assert( maxint + x > -1 );
 
     // bireif of inverse statement  b_leq_2 iff ~b_geq_3    sp_geq_2 iff ~sp_leq_1
     ostringstream r;
@@ -263,7 +263,9 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
 int MAX_BIT_BOUNDARY = 30;
 
 int ProofLog::get_proof_log_bits() {
-    return std::min(proof_log_max_cost_bits+proof_log_var_count, MAX_BIT_BOUNDARY);
+    return std::min(1+proof_log_max_cost_bits+proof_log_var_count, MAX_BIT_BOUNDARY);
+// TODOprooflogging expreimental added +1 ... there might be some weirdness when this is exactly 2**x (+-1)  ? :( ?
+
     // here we will need more bits once we talk about infinity
     // it would be nice to not do this but it would require arbitrary size integer operations
 }
