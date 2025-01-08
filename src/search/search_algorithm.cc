@@ -9,6 +9,7 @@
 #include "task_utils/task_properties.h"
 #include "tasks/root_task.h"
 #include "utils/countdown_timer.h"
+#include "utils/proof_logging.h"
 #include "utils/rng_options.h"
 #include "utils/system.h"
 #include "utils/timer.h"
@@ -16,6 +17,7 @@
 #include <cassert>
 #include <iostream>
 #include <limits>
+#include <sstream>
 
 using namespace std;
 using utils::ExitCode;
@@ -149,75 +151,29 @@ void proof_log_node_Rreif(SearchNode node, bool is_balance, bool is_prime){
     State s = node.get_state();
     s.unpack();
     assert( s.get_id_int() >= 0);
-    ostringstream r_prime_line;
-    r_prime_line << "2 ~" << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "] " ;
-    
-    r_prime_line << " 1 " << (is_prime ? "prime^" : "") << "state[" << s.get_id_int() << "] ";
-    
-    r_prime_line << " 1 " << (is_prime ? "prime^" : "")
-        << (is_balance ? "balance_leq_" : "spent_geq_")
-        << node.get_real_g() 
-        << "  >= 2";
-    utils::ProofLog::append_to_proof_log(r_prime_line.str(), utils::ProofPart::INVARIANT);
+    ostringstream  reif_var, conjunct_1, conjunct_2;
+    reif_var << "node[" << s.get_id_int() << "," << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "]" << (is_prime ? ":" : ".");
+    conjunct_1 << "state[" << s.get_id_int() << "]"                                 << (is_prime ? ":" : ".") ;
+    conjunct_2 << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_real_g() << (is_prime ? ":" : ".") ;
+    vector<string> conjuncts = {conjunct_1.str(), conjunct_2.str()};
+    utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "search_algo.cc/proof_log_Rreif");
+    utils::ProofLog::append_to_proof_log("* the constructor of a search node should reif it... ", utils::ProofPart::REIFICATION);
 }
-
-void proof_log_node_Lreif(SearchNode node, bool is_balance, bool is_prime){
-    State s = node.get_state();
-    s.unpack();
-            assert( s.get_id_int() >= 0);
-    vector<int> values = s.get_unpacked_values();
-    ostringstream l_prime_line;
-    l_prime_line << "1 " << (is_prime ? "prime^" : "") << "node[" << s.get_id_int() << "," << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "] " ;
-    l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << "state[" << s.get_id_int() << "] ";
-    
-    l_prime_line << " 1 ~" << (is_prime ? "prime^" : "") << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_real_g() 
-        << " >= 1";
-    utils::ProofLog::append_to_proof_log(l_prime_line.str(), utils::ProofPart::INVARIANT);
-
-}
-
-void proof_log_node_spend_Rreif(SearchNode node){
-    proof_log_node_Rreif(node, false, false);
-}
-void proof_log_node_spend_Lreif(SearchNode node){
-    proof_log_node_Lreif(node, false, false);
-    }
-void proof_log_node_spend_prime_Rreif(SearchNode node){
-    proof_log_node_Rreif(node, false, true);
-}
-void proof_log_node_spend_prime_Lreif(SearchNode node){
-    proof_log_node_Lreif(node, false, true);
-}
-void proof_log_node_balance_Rreif(SearchNode node){
-    proof_log_node_Rreif(node, true, false);
-}
-void proof_log_node_balance_Lreif(SearchNode node){
-    proof_log_node_Lreif(node, true, false);}
-void proof_log_node_balance_prime_Rreif(SearchNode node){
-    proof_log_node_Rreif(node, true, true);}
-void proof_log_node_balance_prime_Lreif(SearchNode node){
-    proof_log_node_Lreif(node, true, true);}
 
 void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment = ""){
+    //TODOprooflogging name is not fitting.
+    utils::ProofLog::append_to_proof_log("***proof_log_node_reification**** "+comment , utils::ProofPart::REIFICATION);
     State s = node.get_state();
     s.unpack();
     assert( s.get_id_int() >= 0);
-    ostringstream line;
-    line << endl << "*** " << comment << endl;
-    line << endl << "* Bi-reification of node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] and node[" << s.get_id_int() << ",balance_leq_" << node.get_g() << "] " << ":";
-    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::INVARIANT);
-    proof_log_node_spend_Rreif(node);
-    proof_log_node_spend_Lreif(node);
-    proof_log_node_spend_prime_Rreif(node);
-    proof_log_node_spend_prime_Lreif(node);
-    proof_log_node_balance_Rreif(node);
-    proof_log_node_balance_Lreif(node);
-    proof_log_node_balance_prime_Rreif(node);
-    proof_log_node_balance_prime_Lreif(node);
     utils::ProofLog::add_balance_leq_x_bireification(node.get_g());
 }
 
 void SearchAlgorithm::proof_log_initialize_invar(){
+    utils::ProofLog::append_to_invariant_right("@invar._Rreif red ");
+    utils::ProofLog::append_to_invariant_left( "@invar._Lreif red ");
+    utils::ProofLog::append_to_invariant_prime_right("@invar:_Rreif red ");
+    utils::ProofLog::append_to_invariant_prime_left( "@invar:_Lreif red ");
 }
 
 void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
@@ -226,19 +182,19 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
     assert( s.get_id_int() >= 0);
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
-    r_line << " 1 node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
-    l_line << " 1 phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
-    l_line << " 1 ~node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
+    r_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]. " << " ";
+    r_line << " 1 node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "]. " << " ";
+    l_line << " 1 phi_" + phi_name + "[" << s.get_id_int() << "]. " << " ";
+    l_line << " 1 ~node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "]. " << " ";
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
     // TODOprooflog remove code duplicate
     ostringstream r_prime_line;
     ostringstream l_prime_line;
-    r_prime_line << " 1 ~prime^phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
-    r_prime_line << " 1 prime^node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
-    l_prime_line << " 1 prime^phi_" + phi_name + "[" << s.get_id_int() << "] " << " ";
-    l_prime_line << " 1 ~prime^node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "] " << " ";
+    r_prime_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]: " << " ";
+    r_prime_line << " 1 node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "]: " << " ";
+    l_prime_line << " 1 phi_" + phi_name + "[" << s.get_id_int() << "]: " << " ";
+    l_prime_line << " 1 ~node[" << s.get_id_int() << ",spent_geq_" << node.get_g() << "]: " << " ";
     utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
     utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
@@ -255,16 +211,14 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, Sear
         ostringstream r_prime_line;
         ostringstream l_prime_line;
 
-        r_prime_line << " 1 " << (i ? "prime^" : "") << "phi_" + phi_name + "[" << s.get_id_int() << "] ";
-        l_prime_line << " 1 ~" << (i ? "prime^" : "") << "phi_" + phi_name + "[" << s.get_id_int() << "] ";
+        r_prime_line << " 1 " << "phi_" + phi_name + "[" << s.get_id_int() << "]" << (i ? ":" : ".") << " ";
+        l_prime_line << " 1 ~"<< "phi_" + phi_name + "[" << s.get_id_int() << "]" << (i ? ":" : ".") << " ";
 
-
-        r_prime_line << A+1 << " ~" << (i ? "prime^" : "") << "invar >= " << A+1 << endl;
-        r_prime_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
-        r_prime_line << "* A = " << A << endl << "* M = " << M << endl;
-        r_prime_line << "* A2 = " << A2 << endl << "* M2 = " << M2 << endl;
-        l_prime_line << " " << A+M2+1 << " " << (i ? "prime^" : "") << "invar >= " << A+M2+1 << endl;
+        r_prime_line <<           A+1 << " ~" << "invar" << (i ? ":" : ".") << " >= " <<    A+1 << " , invar" << (i ? ":" : ".") << " -> 0" << endl;
+        l_prime_line << " " << A+M2+1 << " "  << "invar" << (i ? ":" : ".") << " >= " << A+M2+1 << " , invar" << (i ? ":" : ".") << " -> 1" << endl;
         l_prime_line << "* expanded = " << expanded << endl << "* evaluated = " << evaluated << endl;
+        l_prime_line << "* A = " << A << endl << "* M = " << M << endl;
+        l_prime_line << "* A2 = " << A2 << endl << "* M2 = " << M2 << endl;
         if (i) {
             utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
             utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
@@ -272,6 +226,20 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, Sear
             utils::ProofLog::append_to_invariant_right(r_prime_line.str());
             utils::ProofLog::append_to_invariant_left(l_prime_line.str());
         }
+    }
+}
+
+void SearchAlgorithm::proof_log_reif_state(State s){ //TODOprooflogging This should happen in the state constructor... but it is complicated with the packed and partially packt constructors
+    s.unpack();
+    assert(s.get_id_int() >= 0);
+    vector<int> values = s.get_unpacked_values();
+    vector<string> conjuncts(values.size());
+    for (bool p : {false, true}) {
+        string prime = (p ? "." : ":"); 
+        for (int i = 0; i < values.size(); ++i){
+            conjuncts[i] = "var_" + to_string(i) + "_" + to_string(values[i]) + prime;
+        }
+        utils::ProofLog::bireif_conjunction("state["+to_string(s.get_id_int())+"]"+prime, conjuncts, "bireif state");
     }
 }
 

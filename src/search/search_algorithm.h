@@ -68,6 +68,7 @@ protected:
     void proof_log_finalize_invar(int expanded, int evaulated, SearchNode node, std::string phi_name);
     void proof_log_node_action_invariant(OperatorID op_id, SearchNode node);
     void proof_log_node_transition_invariant(SearchNode node);
+    void proof_log_reif_state(State s);
 public:
     SearchAlgorithm(
         OperatorCost cost_type, int bound, double max_time,

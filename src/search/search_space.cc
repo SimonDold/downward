@@ -5,14 +5,33 @@
 
 #include "task_utils/task_properties.h"
 #include "utils/logging.h"
+#include "utils/proof_logging.h"
 
 #include <cassert>
 
+#include <sstream>
+
 using namespace std;
+
+void proof_log_node_Rreif(int state_id, int g_value, bool is_prime){
+
+    utils::ProofLog::add_spent_geq_x_bireification(g_value);
+
+
+    ostringstream  reif_var, conjunct_1, conjunct_2;
+    reif_var << "node[" << state_id << "," << "spent_geq_" << g_value << "]" << (is_prime ? ":" : ".");
+    conjunct_1 << "state[" << state_id << "]"                                 << (is_prime ? ":" : ".") ;
+    conjunct_2 << "spent_geq_" << g_value << (is_prime ? ":" : ".") ;
+    vector<string> conjuncts = {conjunct_1.str(), conjunct_2.str()};
+    utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "searchNode/constructor ");
+}
 
 SearchNode::SearchNode(const State &state, SearchNodeInfo &info)
     : state(state), info(info) {
     assert(state.get_id() != StateID::no_state);
+    utils::ProofLog::append_to_proof_log("* construct Search Node", utils::ProofPart::REIFICATION);
+    proof_log_node_Rreif(state.get_id_int(), this->get_real_g(), false);
+    proof_log_node_Rreif(state.get_id_int(), this->get_real_g(), true );
 }
 
 const State &SearchNode::get_state() const {

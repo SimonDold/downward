@@ -7,10 +7,12 @@
 #include "task_utils/task_properties.h"
 #include "tasks/cost_adapted_task.h"
 #include "tasks/root_task.h"
+#include "utils/proof_logging.h"
 
 #include <cassert>
 #include <cstdlib>
 #include <limits>
+#include <sstream>
 
 using namespace std;
 Heuristic::Heuristic(
@@ -69,24 +71,6 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
         state.unpack();
         vector<int> values = state.get_unpacked_values();
 
-
-        for (int i=0; i<=1; ++i) {
-
-            // Bi-reify state[x]
-            ostringstream r_state_line;
-            ostringstream l_state_line;
-    
-            for (unsigned int j = 0; j < values.size(); ++j) {
-                r_state_line << " 1 " << (i ? "prime^" : "") << "var_" << j << "_"<< values[j] << " ";
-                l_state_line << " 1 ~" << (i ? "prime^" : "") << "var_" << j << "_"<< values[j] << " ";
-            }
-
-            r_state_line << values.size() << " ~" << (i ? "prime^" : "") << "state[" << state.get_id_int() << "]  >= " << values.size();
-            l_state_line << "1 " << (i ? "prime^" : "") << "state[" << state.get_id_int() << "]  >= 1" ;
-            utils::ProofLog::append_to_proof_log(r_state_line.str(), utils::ProofPart::INVARIANT);
-            utils::ProofLog::append_to_proof_log(l_state_line.str(), utils::ProofPart::INVARIANT);
-        }
-
     if (!calculate_preferred && cache_evaluator_values &&
         heuristic_cache[state].h != NO_VALUE && !heuristic_cache[state].dirty) {
         heuristic = heuristic_cache[state].h;
@@ -136,7 +120,7 @@ void Heuristic::certify_heuristic(int return_value, State s) const {
         "*CH1 just evaluated h(s) with \n** h=" + get_description() + " "
         + "\n**CH1 s = " + to_string(s.get_id_int()) + " "
         + "\n**CH1 h(s) = " + to_string(return_value)
-        , utils::ProofPart::INVARIANT);
+        , utils::ProofPart::REIFICATION);
         
         
         s.unpack();
@@ -148,23 +132,26 @@ void Heuristic::certify_heuristic(int return_value, State s) const {
         for (int i=0; i<=1 ; ++i){
         // Bi-Reif node: 
             ostringstream r_node;
-            ostringstream l_node;
-            r_node  << endl << " * pdb NODE: Rreif of " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "] " << endl;
-            r_node << "2 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 " << (i ? "" : "prime^") << "state[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << return_value << "  >= 2";
-            l_node << "1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 ~" << (i ? "" : "prime^") << "state[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << return_value << "  >= 1";
-            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::INVARIANT);
-            utils::ProofLog::append_to_proof_log(l_node.str(), utils::ProofPart::INVARIANT);
+            r_node  << endl << " * heuristic NODE: Rreif of " << (i ? "." : ":") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "] " << endl;
+            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::REIFICATION);
+            utils::ProofLog::bireif_balance_leq(return_value);
+            ostringstream reif_var, conj1, conj2;
+            reif_var << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "." : ":");
+            conj1<< "state[" << s.get_id_int() << "]" << (i ? "." : ":") ;
+            conj2<< "balance_leq_" << return_value    << (i ? "." : ":") ;
+            vector<string> conjuncts = {conj1.str(), conj2.str()};
+            utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "heurisitc.cc163");
         }
     // heuristic lemmas
     ostringstream entry_lemma;
-    entry_lemma << endl << "* " + get_description() + " heuristic proofs:  AFTER_CH_1 btw " << endl
-        << " rup  1 ~node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    entry_lemma << endl << "* {" + get_description() + "} heuristic proofs:  AFTER_CH_1 btw " << endl
+        << " rup  1 ~node[" << s.get_id_int() << ",balance_leq_" << return_value << "].  1 phi_" + get_description() + "[" << s.get_id_int() << "].  >= 1 ;";
     ostringstream entry_prime_lemma;
-    entry_prime_lemma << " rup  1 ~prime^node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 prime^phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    entry_prime_lemma << " rup  1 ~node[" << s.get_id_int() << ",balance_leq_" << return_value << "]:  1 phi_" + get_description() + "[" << s.get_id_int() << "]:  >= 1 ;";
     ostringstream goal_lemma;
-    goal_lemma << " rup  1 ~goal  1 balance_leq_" << 0 << "  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    goal_lemma << " rup  1 ~goal.  1 balance_leq_" << 0 << ".  1 ~phi_" + get_description() + "[" << s.get_id_int() << "].  >= 1 ;";
     ostringstream transition_lemma;
-    transition_lemma << " rup  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]  1 ~transition  1 prime^phi_" + get_description() + "[" << s.get_id_int() << "]  >= 1 ;";
+    transition_lemma << " rup  1 ~phi_" + get_description() + "[" << s.get_id_int() << "].  1 ~transition  1 phi_" + get_description() + "[" << s.get_id_int() << "]:  >= 1 ;";
 
     utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION);
     utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION);

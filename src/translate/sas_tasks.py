@@ -65,13 +65,14 @@ def strips_name_to_veripb_name(strips_name: str) -> str:
         return veripb_name
 
 def maplet_name(variable: int, value: int) -> str:
-    return f"var_{variable}_{value}"
+    return f"var_{variable}_{value}."
 
 def axiom_name(axiom_id: int) -> str:
-    return f"axiom_{axiom_id}"
+    return f"axiom_{axiom_id}."
 
 def prime_it(name: str) -> str:
-    return "prime^" + name
+    assert(name[-1] == ".")
+    return name[0:-1] + ":"
 
 def var_changes_name(variable: int) -> str:
     return f"change_var_{variable}"
@@ -108,7 +109,7 @@ def operator_cost_name(cost: int, comperator: str) -> str:
         return "ERROR"
 
 def spent_bit_name(position: int) -> str:
-    return f"e_{position}"
+    return f"e_{position}."
 
 def op_name(idx: int) -> str:
     return f"op_{idx}"
@@ -471,7 +472,7 @@ class SASInit:
         return conjuncts
     
     def proof_log_finalize(self, conjuncts: List[str]) -> str:
-        state_name = "s_init"
+        state_name = "s_init."
         left_reification, right_reification = bi_reification_conjunction(state_name, conjuncts)
         state_reification = "\n* init state reification:\n" + right_reification + "\n" + left_reification
         return state_reification
@@ -507,7 +508,7 @@ class SASGoal:
         return conjuncts
     
     def proof_log_finalize(self, conjuncts: List[str]) -> str:
-        partial_state_name = "goal"
+        partial_state_name = "goal."
         left_reification, right_reification = bi_reification_conjunction(partial_state_name, conjuncts)
         partial_state_reification = "\n* goal condition reification:\n" + right_reification + "\n" + left_reification
         return partial_state_reification

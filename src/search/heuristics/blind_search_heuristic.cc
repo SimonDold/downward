@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <limits>
+#include <sstream>
 #include <utility>
 
 using namespace std;
@@ -22,6 +23,7 @@ BlindSearchHeuristic::BlindSearchHeuristic(
     if (log.is_at_least_normal()) {
         log << "Initializing blind search heuristic..." << endl;
     }
+    utils::ProofLog::bireif_balance_leq(0);
 }
 
 int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
@@ -46,7 +48,7 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
         utils::ProofLog::add_balance_leq_x_bireification(return_value);
         int bits = utils::ProofLog::get_proof_log_bits();
         ostringstream derivation_line;
-        derivation_line << endl << "pol  @balance_leq_" << (return_value) << "_Rreif  @prime^balance_leq_" << (return_value) << "_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
+        derivation_line << endl << "pol  @balance_leq_" << (return_value) << "._Rreif  @balance_leq_" << (return_value) << ":_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
         assert((1 << bits)>=0); // no overflow
         utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
 
@@ -54,14 +56,13 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
         for (int i=0; i<=1 ; ++i){
 
         // Bi-Reif phi(node,heuristic): 
-            ostringstream r_line;
-            ostringstream l_line;
-            r_line  << endl << " *blind: Rreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "] " << endl;
-            r_line << "1 ~" << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 " << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 1";
-            l_line << " *blind: Lreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]" << endl;
-            l_line << "2 " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]  1 ~" << (i ? "" : "prime^") << "balance_leq_" << 0 << "  >= 2";
-            utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
-            utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+
+            ostringstream reif_var, conj1, conj2;
+            reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "." : ":");
+            conj1 << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "." : ":");
+            conj2 << "balance_leq_" << 0 << (i ? "." : ":");
+            utils::ProofLog::bireif_disjunction(reif_var.str(), vector<std::string>({conj1.str(), conj2.str()}), "blind.cc");
+
         }
 
     return return_value;
