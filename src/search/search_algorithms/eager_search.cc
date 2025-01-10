@@ -49,7 +49,7 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
     for (int i=0; i<=1; ++i) {
             ostringstream r_line;
             ostringstream l_line;
-            r_line << " 1 phi_" + open_list->get_priority_evaluator_name()
+            r_line << " 1  phi_" + open_list->get_priority_evaluator_name()
                     + "[" << node.get_state().get_id_int() << "]" << (i ? ":" : ".") 
                     << " ";
             l_line << " 1 ~phi_" + open_list->get_priority_evaluator_name()
@@ -233,8 +233,8 @@ SearchStatus EagerSearch::step() {
 
     const State &s = node->get_state();
     if (check_goal_and_set_plan(s)) {
-        proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), *node, open_list->get_priority_evaluator_name());
-        utils::ProofLog::finalize_lemmas(node->get_g());
+        proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), statistics.get_dead_end_states(), *node, open_list->get_priority_evaluator_name());
+        utils::ProofLog::finalize_lemmas(node->get_real_g());
         return SOLVED;
     }
 

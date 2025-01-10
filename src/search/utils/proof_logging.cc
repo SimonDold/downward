@@ -67,6 +67,11 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
     file.close();
 }
 
+void ProofLog::append_comment_to_proof_log(const std::string& comment) {
+    append_to_proof_log("*"+comment, ProofPart::REIFICATION);
+    append_to_proof_log("*"+comment, ProofPart::DERIVATION);
+}
+
 void ProofLog::append_to_proof_file(const string &line, const string &file_name)
 {
     ofstream file(
@@ -249,14 +254,57 @@ void ProofLog::bireif_disjunction(string reif_var, vector<string> disjuncts, str
     bireif_flat_formula(reif_var, disjuncts, true, comment);
 }
 
+void append_file_to_proof_log(string file_2, ProofPart proof_part){
+    string file_1;
+    switch (proof_part)
+    {
+    case ProofPart::REIFICATION:
+        {
+            file_1= "reifications.prooflog";
+            break;
+        }
+    case ProofPart::DERIVATION:
+        {
+            file_1 = "derivations.prooflog";
+            break;
+        }
+    case ProofPart::INVARIANT:
+        {
+            file_1 = "invariant.prooflog"; 
+            /*
+                it is not truly THE invariant but all needed (and some not needed) reifications that build the invariant.
+                The invariant is in the file invarinat_right.prooflog and invariant_left.prooflog
+            */
+            break;
+        }
+    default:
+        cerr << "Error: Not clear where to add." << endl;
+        break;
+    }
+
+    std::ifstream in(file_2);
+    std::ofstream out(file_1, std::ios_base::out | std::ios_base::app);
+
+    for (std::string str; std::getline(in, str); )
+    {
+        out << "\n\n***** APPEND FILE TO PROOF LOG\n\n" << str << endl << endl;
+    }
+}
+
+void ProofLog::append_files_to_proof_log(std::vector<std::string> files, ProofPart proof_part){
+    for (string file : files) {
+        append_file_to_proof_log(file, proof_part);
+    }
+}
+
 void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance){
     string e = (is_prime ? "e:" : "e.");
     ostringstream reif_var;
     reif_var << (balance ? "balance_geq_" : "spent_geq_") << x << (is_prime ? ":" : ".");
     int bits = ProofLog::get_proof_log_bits();
     int maxint = (1 << bits) -1;
+    assert(x<maxint);
     bireif_vector_sum(reif_var.str(), (balance ? vector<string>{"b", "-"+e} : vector<string>{e}), x, "add_spent_geq_x_bireif_aux");
-    assert( maxint + x > -1 );
 
     // bireif of inverse statement  b_leq_2 iff ~b_geq_3    sp_geq_2 iff ~sp_leq_1
     ostringstream reif_var2, conjunct;
@@ -338,11 +386,11 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
 
     ostringstream lemmas;
     lemmas << endl << endl <<"* entry lemma balance" << endl
-        << "rup  1 ~s_init.  1 balance_leq_" << optimal_cost << ".  1 invar.  >= 1 ;" << endl
+        << "@lem3  rup  1 ~s_init.  1 balance_leq_" << optimal_cost << ".  1 invar.  >= 1 ;" << endl
         << "* goal lemma balance" << endl
-        << "rup  1 ~goal.  1 balance_leq_" << 0 << ".  1 ~invar.  >= 1 ;" << endl
-        << "* transition lemma spent" << endl
-        << "rup  1 ~invar.  1 ~transition  1 invar:  >= 1 ; " <<endl
+        << "@lem4  rup  1 ~goal.  1 balance_leq_" << 0 << ".  1 ~invar.  >= 1 ;" << endl
+        << "* transition lemma balance" << endl
+        << "@lem7  rup  1 ~invar.  1 ~transition  1 invar:  >= 1 ; " <<endl
         << endl << endl <<"* entry lemma spent" << endl 
         << "rup  1 ~s_init.  1 spent_geq_1.  1 invar.  >= 1 ;" << endl
         << "* goal lemma spent" << endl
@@ -363,7 +411,13 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
 
 int MAX_BIT_BOUNDARY = 30;
 
+int ProofLog::get_proof_log_maxint() {
+    return (1 << get_proof_log_bits())-1;
+}
+
+
 int ProofLog::get_proof_log_bits() {
+    // TODOprooflogging make this pivate, others should ask for maxint directly.
     return std::min(1+proof_log_max_cost_bits+proof_log_var_count, MAX_BIT_BOUNDARY);
 // TODOprooflogging expreimental added +1 ... there might be some weirdness when this is exactly 2**x (+-1)  ? :( ?
 

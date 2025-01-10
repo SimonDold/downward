@@ -209,7 +209,7 @@ ostringstream rreif_specialized_op_aux;
             new_name_infix << "var_" << specialization_pairs[specialization_pairs.size()-1].var << "_" << specialization_pairs[specialization_pairs.size()-1].value << ",";
             new_name_postfix << "},a_" + projection.get_name() + "[op_" + to_string(concrete_op_id) + "]";
             old_name         << "},a_" + projection.get_name() + "[op_" + to_string(concrete_op_id) + "]";
-            rreif_specialized_op_aux << " 1 var_" << specialization_pairs[specialization_pairs.size()-1].var << "_" << specialization_pairs[specialization_pairs.size()-1].value << " ";
+            rreif_specialized_op_aux << " 1 var_" << specialization_pairs[specialization_pairs.size()-1].var << "_" << specialization_pairs[specialization_pairs.size()-1].value << ". ";
         } else {
             new_name_prefix 
                 << "specialize[{";
@@ -416,11 +416,15 @@ void PatternDatabaseFactory::compute_distances(
             ProofLogObject_compute_distance(Projection projection,
                 const MatchTree &match_tree)
             : 
-            projection(projection),
-            match_tree(match_tree)
+            match_tree(match_tree),
+            projection(projection)
             {};
 
             void init() {
+                    utils::ProofLog::append_to_proof_file("red  ", "prime_pdb_invar_Rreif.prooflog");
+                    utils::ProofLog::append_to_proof_file("red  ", "prime_pdb_invar_Lreif.prooflog");
+                    utils::ProofLog::append_to_proof_file("red  ",       "pdb_invar_Rreif.prooflog");
+                    utils::ProofLog::append_to_proof_file("red  ",       "pdb_invar_Lreif.prooflog");
 
                 // init proof object
                 reachable_states = 0;
@@ -430,7 +434,7 @@ void PatternDatabaseFactory::compute_distances(
 
                 utils::ProofLog::add_balance_leq_x_bireification(0);
                 goal_extension_lemma << "@goal_list  pol  ";
-                rup_goal_extension_lemma << "rup  1 ~goal ";
+                rup_goal_extension_lemma << "rup  1 ~goal. ";
                 // \ init proof log object
             };
 
@@ -440,8 +444,8 @@ void PatternDatabaseFactory::compute_distances(
                 ) {
 
                 // update A proof log object
-                goal_extension_lemma << "@" << match_tree.abstract_state(state_index) << "_Lreif ";
-                rup_goal_extension_lemma << " 1 " << match_tree.abstract_state(state_index) << " ";
+                goal_extension_lemma << "@" << match_tree.abstract_state(state_index) << "._Lreif ";
+                rup_goal_extension_lemma << " 1 " << match_tree.abstract_state(state_index) << ". ";
                 size_t ptr = 0;
                 bool is_goal_var;
                 while (ptr < projection.get_pattern().size()) {
@@ -477,14 +481,16 @@ void PatternDatabaseFactory::compute_distances(
 
             void update(
                 int state_index, 
-                int distances_state_index) 
+                int distance) 
             {
                 for (int i=0; i<=1; ++i) {
                     ostringstream safe_backwards_inductive_situation_set_Rreif_2;
                     ostringstream safe_backwards_inductive_situation_set_Lreif_2;
-                    match_tree.bireif_abstract_state_with_balance_geq(state_index, distances_state_index+1);
-                    safe_backwards_inductive_situation_set_Rreif_2 << " 1   " << (i ? "prime^" : "") << match_tree.abstract_state_with_balance_geq(state_index, distances_state_index+1) << " ";
-                    safe_backwards_inductive_situation_set_Lreif_2 << " 1   ~" << (i ? "prime^" : "") << match_tree.abstract_state_with_balance_geq(state_index, distances_state_index+1) << " ";
+                    match_tree.bireif_abstract_state_with_balance_geq(state_index, distance+1);
+                    ostringstream reif_var;
+                    reif_var << match_tree.abstract_state_with_balance_geq(state_index, distance+1) << (i ? ":" : ".");
+                    safe_backwards_inductive_situation_set_Rreif_2 << " 1    " << reif_var.str() << " ";
+                    safe_backwards_inductive_situation_set_Lreif_2 << " 1   ~" << reif_var.str() << " ";
                     utils::ProofLog::append_to_proof_file(safe_backwards_inductive_situation_set_Rreif_2.str(), (i ? "prime_pdb_invar_Rreif.prooflog" : "pdb_invar_Rreif.prooflog"));
                     utils::ProofLog::append_to_proof_file(safe_backwards_inductive_situation_set_Lreif_2.str(), (i ? "prime_pdb_invar_Lreif.prooflog" : "pdb_invar_Lreif.prooflog"));
                 }
@@ -496,11 +502,6 @@ void PatternDatabaseFactory::compute_distances(
             // log_rev_indu
             utils::ProofLog::append_to_proof_log("* state_idx: " + to_string(state_index), utils::ProofPart::DERIVATION);
             utils::ProofLog::append_to_proof_log("* rev-applicable abstract operators: " + to_string(applicable_operator_ids_size), utils::ProofPart::DERIVATION);
-            if (applicable_operator_ids_size == 0) {
-                ostringstream rup_line;
-                rup_line << "@no_abstract_op_rev_applicable  rup  1 ~prime^" << match_tree.abstract_state(state_index) << "  1 ~transition  1 " << match_tree.abstract_state(state_index) << "  >= 1 ; ";
-                utils::ProofLog::append_to_proof_log(rup_line.str(), utils::ProofPart::DERIVATION);
-            }
             //\ log_rev_indu
         }
 
@@ -529,7 +530,7 @@ void PatternDatabaseFactory::compute_distances(
             }
 
             rup_spai << "},a_" 
-                + projection.get_name() + "[op_" + to_string(op.get_concrete_op_id()) + "]  rup  "; 
+                + projection.get_name() + "[op_" + to_string(op.get_concrete_op_id()) + "]_lem32  rup  "; 
             rup_spai << " 1 ~specialize[{";
             for (FactPair fp : op.get_specialized_preconditions()) {
                 rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << ","; 
@@ -537,8 +538,8 @@ void PatternDatabaseFactory::compute_distances(
             rup_spai << "},a_" 
                 + projection.get_name() + "[op_" + to_string(op.get_concrete_op_id()) + "] ";
             rup_spai
-                << "  1 ~prime^" << match_tree.abstract_state_with_balance_geq(state_index, distances[state_index]+1)
-                << "  1 rev_indu  >= 1    ; ";
+                << "  1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances[state_index]+1) << ": "
+                << " 1 rev_indu.  >= 1    ; ";
             utils::ProofLog::append_to_proof_log(rup_spai.str(), utils::ProofPart::DERIVATION);
             //\ log_single_rev_transition
         }
@@ -560,7 +561,11 @@ void PatternDatabaseFactory::compute_distances(
                         utils::ProofLog::add_balance_leq_x_bireification(alternative_distance);
                         
                         ostringstream rup_line_s_a;
-                        rup_line_s_a << "rup  1 ~prime^" << match_tree.abstract_state_with_balance_geq(predecessor, distances[predecessor]+1) << "  1 rev_indu  1 ~op_" << op.get_concrete_op_id() << "  >= 1           ;";
+                        rup_line_s_a << "rup "
+                            << " 1 ~" << match_tree.abstract_state_with_balance_geq(predecessor, distances[predecessor]+1) << ": "
+                            << " 1 rev_indu. "
+                            << " 1 ~op_" << op.get_concrete_op_id()
+                            << "  >= 1 ;";
                         utils::ProofLog::append_to_proof_log(rup_line_s_a.str(), utils::ProofPart::DERIVATION);
                     }
                 }
@@ -574,27 +579,41 @@ void PatternDatabaseFactory::compute_distances(
             // update C proof object
             if (current_concrete_op_id != -1) {
                 // do resolution
-                utils::ProofLog::append_to_proof_log("  rup  1 ~transition  1 ~prime^" + match_tree.abstract_state_with_balance_geq(state_index, distances_state_index+1) + "  1 rev_indu  >= 1 ; ", utils::ProofPart::DERIVATION);
+                ostringstream x;
+                x << "@lem33_for_hash_" << state_index << "  rup  1 ~transition "
+                    << " 1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances_state_index+1) << ":"
+                    << "  1 rev_indu.  >= 1 ; ";
+                utils::ProofLog::append_to_proof_log(x.str(), utils::ProofPart::DERIVATION);
+            } else {
+            
+                ostringstream x;
+                x << "@lem33_for_hash_" << state_index << "anyway" << "  rup  1 ~transition "
+                    << " 1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances_state_index+1) << ":"
+                    << "  1 rev_indu.  >= 1 ; ";
+                utils::ProofLog::append_to_proof_log(x.str(), utils::ProofPart::DERIVATION);
             }
             //\ update C roof object
         }
 
         void finalize() {
           // consume proof object
-            utils::ProofLog::append_to_proof_log("@indulemma  rup  2 ~transition  2 ~prime^rev_indu  2 rev_indu  >= 1 ; ", utils::ProofPart::DERIVATION);
             for (int i=0; i<=1; ++i) {
                 ostringstream phi_pdb_R;
                 ostringstream phi_pdb_L;
                 phi_pdb_R
-                    << "1 ~" << (i ? "prime^" : "") << "rev_indu "
-                    << " >= " << 1 << " ;" << endl;
+                    << "1 ~" << "rev_indu" << (i ? ":" : ".") << " "
+                    << " >= " << 1 << " ; " << "rev_indu" << (i ? ":" : ".") << " -> 0 " << endl;
                 phi_pdb_L
-                    << reachable_states << " " << (i ? "prime^" : "") << "rev_indu "
-                    << " >= " << reachable_states << " ;" << endl;
+                    << reachable_states << " " << " rev_indu" << (i ? ":" : ".")
+                    << " >= " << reachable_states << " ; " << "rev_indu" << (i ? ":" : ".") << " -> 1 " << endl;
                 utils::ProofLog::append_to_proof_file(phi_pdb_R.str(), (i ? "prime_pdb_invar_Rreif.prooflog" : "pdb_invar_Rreif.prooflog"));
                 utils::ProofLog::append_to_proof_file(phi_pdb_L.str(), (i ? "prime_pdb_invar_Lreif.prooflog" : "pdb_invar_Lreif.prooflog"));
             }
+            utils::ProofLog::append_files_to_proof_log(vector<string>({"prime_pdb_invar_Rreif.prooflog", "pdb_invar_Rreif.prooflog", "prime_pdb_invar_Lreif.prooflog", "pdb_invar_Lreif.prooflog"}), utils::ProofPart::REIFICATION);
           // consume proof object
+            ostringstream indulemma;
+            indulemma << "@indulemma_lem34  rup  2 ~transition  2 ~rev_indu:  2 rev_indu.  >= 1 ; ";
+            utils::ProofLog::append_to_proof_log(indulemma.str(), utils::ProofPart::DERIVATION);
         }
     };
 
@@ -614,6 +633,7 @@ void PatternDatabaseFactory::compute_distances(
             distances.push_back(0);
         } else {
             distances.push_back(numeric_limits<int>::max());
+            // This is a magic number to indicate a dead end(?) at other places -1 is used
         }
         match_tree.bireif_state(state_index);
     }

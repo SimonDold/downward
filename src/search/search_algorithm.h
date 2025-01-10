@@ -65,7 +65,7 @@ protected:
     void proof_log_node_reification(SearchNode node, std::string comment);
     void proof_log_initialize_invar();
     void proof_log_extend_invar(SearchNode node, std::string phi_name);
-    void proof_log_finalize_invar(int expanded, int evaulated, SearchNode node, std::string phi_name);
+    void proof_log_finalize_invar(int expanded, int evaulated, int dead_end_states, SearchNode node, std::string phi_name);
     void proof_log_node_action_invariant(OperatorID op_id, SearchNode node);
     void proof_log_node_transition_invariant(SearchNode node);
     void proof_log_reif_state(State s);

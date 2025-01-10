@@ -7,6 +7,7 @@
 
 #include <limits>
 #include <memory>
+//#include <sstream>
 
 using namespace std;
 
@@ -24,6 +25,7 @@ PDBHeuristic::PDBHeuristic(
     const string &description, utils::Verbosity verbosity)
     : Heuristic(transform, cache_estimates, description, verbosity),
       pdb(get_pdb_from_generator(task, pattern)) {
+          utils::ProofLog::append_comment_to_proof_log("INITIALIZED PDB HEURISTIC");
 }
 
 void PDBHeuristic::certify_heuristic_pdb(int return_value, State s) {
@@ -36,14 +38,12 @@ void PDBHeuristic::certify_heuristic_pdb(int return_value, State s) {
         for (int i=0; i<=1 ; ++i){
 
         // Bi-Reif phi(node,heuristic): 
-            ostringstream r_line;
-            ostringstream l_line;
-            r_line  << endl << " *pdb PHI: Rreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "] " << endl;
-            r_line << "1 ~" << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 ~" << (i ? "" : "prime^") << "rev_indu  >= 1";
-            l_line << " *pdb PHI: Lreif of " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]" << endl;
-            l_line << "1 " << (i ? "" : "prime^") << "phi_" + get_description() + "[" << s.get_id_int() << "]  1 " << (i ? "" : "prime^") << "rev_indu  >= 1";
-            utils::ProofLog::append_to_proof_log(r_line.str(), utils::ProofPart::INVARIANT);
-            utils::ProofLog::append_to_proof_log(l_line.str(), utils::ProofPart::INVARIANT);
+            ostringstream reif_var, conj;
+            reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "." : ":");
+
+            conj << "rev_indu" << (i ? "." : ":");
+            utils::ProofLog::bireif_conjunction(reif_var.str(), vector<std::string>({"~"+conj.str()}), "");
+
         }
 }
 
