@@ -239,8 +239,6 @@ public:
 
     virtual shared_ptr<MergeAndShrinkHeuristic>
     create_component(const plugins::Options &opts) const override {
-        plugins::Options options_copy(opts);
-
         return plugins::make_shared_from_arg_tuples<MergeAndShrinkHeuristic>(
             get_merge_and_shrink_algorithm_arguments_from_options(opts),
             get_heuristic_arguments_from_options(opts)
