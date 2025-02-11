@@ -82,8 +82,7 @@ class FeatureWithDefault : public Feature {
 protected:
     using Feature::Feature;
     virtual std::shared_ptr<Constructed>
-    create_component(
-            const Options &options) const {
+    create_component(const Options &options) const {
         return std::make_shared<Constructed>(options);
     }
 };
@@ -93,8 +92,7 @@ class FeatureWithoutDefault : public Feature {
 protected:
     using Feature::Feature;
     virtual std::shared_ptr<Constructed>
-    create_component(
-        const Options &) const = 0;
+    create_component(const Options &) const = 0;
 };
 
 template<typename Constructed>
