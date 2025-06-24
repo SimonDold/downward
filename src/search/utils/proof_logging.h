@@ -39,6 +39,15 @@ public:
     static int get_proof_log_bits();
     static int get_proof_log_maxint();
     static std::string strips_name_to_veripb_name(const std::string& strips_name);
+    static void merge_proof_log_files();
+    static bool is_meta_file(std::string meta_file_name);
+    static void merge_proof_log_files(std::string meta_file_name);
+    static std::vector<std::string> get_subfiles(std::string meta_file_name);
+    static void make_proof_file(std::string name);
+    static void create_plan_pbp();
+    static void finalize_plan_pbp();
+    static void append_to_plan_pbp(std::string file_name);
+    static int runCommand(const std::string& command);
 };
 
 }

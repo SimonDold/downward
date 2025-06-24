@@ -14,6 +14,7 @@ class PDBHeuristic : public Heuristic {
     void certify_heuristic_pdb(int return_value, State s);
 protected:
     virtual int compute_heuristic(const State &ancestor_state) override;
+    virtual void update_proof_master_file() override;
 public:
     /*
       Important: It is assumed that the pattern (passed via

@@ -167,3 +167,7 @@ def run_validate(args):
         returncodes.exit_with_driver_critical_error(err)
     else:
         return (0, True)
+
+def run_verify(args):
+    print("#########   TODO implement veriPB call ###### ")
+    return (0, True)

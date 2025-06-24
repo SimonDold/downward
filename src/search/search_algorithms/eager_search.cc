@@ -40,8 +40,8 @@ EagerSearch::EagerSearch(
         cerr << "lazy_evaluator must cache its estimates" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
+    utils::ProofLog::append_to_proof_file("*META\ninvariant.prooflog\nreifications.prooflog\ninvariant_right.prooflog\ninvariant_left.prooflog\ninvariant_prime_right.prooflog\ninvariant_prime_left.prooflog\nderivations.prooflog", get_description() +".prooflog");
 }
-
 
 void EagerSearch::add_phi_to_invar(SearchNode node) {
     string h_name = open_list->get_priority_evaluator_name();

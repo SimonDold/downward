@@ -330,6 +330,11 @@ void ProofLog::add_balance_leq_x_bireification(const int x){
     add_spent_geq_x_bireification_aux(x, true, true);
 }
 
+
+int get_ith_bit_of_x(int i, int x) {
+     return (x & (1 << i)) != 0;
+}
+
 void ProofLog::finalize_lemmas(int optimal_cost) {
 
     // TODOprooflogging remove this:
@@ -340,14 +345,18 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     ostringstream r_budget;
     ostringstream l_budget;
     r_budget << "* varcount: " << proof_log_var_count << endl << "* max cost bits: " << proof_log_max_cost_bits << endl; 
-    r_budget << "@budget_Rreif  ";
-    l_budget << "@budget_Lreif  ";
+    r_budget << "@budget_Rreif  red ";
+    l_budget << "@budget_Lreif  red ";
     for (int i = bits - 1; i >= 0; --i) {
         r_budget << " " << (1 << i) << " b_" << i << " ";
         l_budget << " " << (1 << i) << " ~b_" << i << " ";
     }
-    r_budget << " >= " << optimal_cost;
-    l_budget << " >= " << (1 << bits)-optimal_cost-1;
+    r_budget << " >= " << optimal_cost << " ; ";
+    l_budget << " >= " << (1 << bits)-optimal_cost-1 << " ; ";
+    for (int i = bits - 1; i >= 0; --i) {
+        r_budget << " " << " b_" << i << " -> " << get_ith_bit_of_x(i, optimal_cost);
+        l_budget << " " << " b_" << i << " -> " << get_ith_bit_of_x(i, optimal_cost);
+    }
     append_to_proof_log(r_budget.str(), ProofPart::INVARIANT);
     append_to_proof_log(l_budget.str(), ProofPart::INVARIANT);
 
@@ -423,6 +432,141 @@ int ProofLog::get_proof_log_bits() {
 
     // here we will need more bits once we talk about infinity
     // it would be nice to not do this but it would require arbitrary size integer operations
+}
+
+bool checkFirstLine(const std::string& filename, const std::string& searchString) {
+    cout << "checkFirstLine" << filename << " " << searchString << endl;
+    std::ifstream file(filename);
+    
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file: " + filename);
+    }
+    
+    std::string firstLine;
+    if (!std::getline(file, firstLine)) {
+        throw std::runtime_error("File is empty");
+    }
+    
+    return firstLine.find(searchString) != std::string::npos;
+}
+
+bool ProofLog::is_meta_file(string meta_file_name) {
+	return checkFirstLine(meta_file_name, "*META");
+}
+
+vector<string> ProofLog::get_subfiles(string meta_file_name) {
+	cout << "### get_subfiles of " << meta_file_name << "  ### " << endl;
+	std::vector<std::string> subfiles;
+    std::ifstream file(meta_file_name);
+    
+    if (!file.is_open()) {
+        throw std::runtime_error("Unable to open file: " + meta_file_name);
+    }
+    
+    bool first = true;
+    std::string line;
+    while (std::getline(file, line)) {
+        if (first) {
+	   first = false;
+	} else {
+           subfiles.push_back(line);
+	}
+    }
+    
+    return subfiles;
+}
+
+void ProofLog::merge_proof_log_files(string meta_file_name) {
+	std::vector<std::string> subfiles;
+        if (is_meta_file(meta_file_name)) {
+            vector<string> sub_files = get_subfiles(meta_file_name);
+            for (string sub_file : sub_files) {
+                merge_proof_log_files(sub_file);
+            }
+        } else {
+	    append_to_plan_pbp(meta_file_name);
+        }
+}
+
+void ProofLog::create_plan_pbp(){
+    string file_name = "plan.pbp";
+    ofstream file(
+        file_name
+        , ios_base::trunc);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << "pseudo-Boolean proof version 2.0\n\n*from create_plan_pbp()\n";
+    file.close();
+}
+
+void ProofLog::finalize_plan_pbp(){
+    string file_name = "plan.pbp";
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file.close();
+}
+
+int ProofLog::runCommand(const std::string& command) {
+    try {
+        // Convert string to const char* for system()
+        const char* cmd = command.c_str();
+        
+        // Execute the command
+        int result = std::system(cmd);
+        
+        // Check if command processor exists
+        if (result == -1) {
+            throw std::runtime_error("Command processor not found");
+        }
+        
+        return result;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << '\n';
+        return -1;
+    }
+}
+
+void ProofLog::append_to_plan_pbp(std::string sourceFile) {
+    string destinationFile = "plan.pbp";
+if (0==destinationFile.compare(sourceFile)) {
+	cout << "append plan.pbp to plan.pbp????" << endl;
+		return;
+	}
+	std::ifstream source(sourceFile);
+    std::ofstream dest(destinationFile, std::ios::app);
+    
+    if (!source.is_open()) {
+        throw std::runtime_error("Unable to open source file: " + sourceFile);
+    }
+    
+    if (!dest.is_open()) {
+        throw std::runtime_error("Unable to open destination file: " + destinationFile);
+    }
+    
+    std::string line;
+    while (std::getline(source, line)) {
+        dest << line << '\n';
+    }
+}
+
+void ProofLog::make_proof_file(string name){
+    string file_name = name+".prooflog";
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    //file << "* " + name + ".prooflog";
+    file.close();
 }
 
 // WARNING: this function has to be syncronized with same named one in the python part.

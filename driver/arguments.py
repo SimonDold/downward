@@ -101,9 +101,9 @@ Examples:
 {_format_examples(EXAMPLES)}
 """
 
-COMPONENTS_PLUS_OVERALL = ["translate", "search", "validate", "overall"]
+COMPONENTS_PLUS_OVERALL = ["translate", "search", "validate", "verify", "overall"]
 DEFAULT_SAS_FILE = Path("output.sas")
-DEFAULT_OPB_FILE = Path("output.opb")
+DEFAULT_OPB_FILE = Path("plan.opb")
 
 
 """
@@ -245,6 +245,9 @@ def _set_components_and_inputs(parser, args):
     # components must be active.
     if args.validate or (args.debug and len(args.components) == 2):
         args.components.append("validate")
+
+    if args.verify or args.run_all:
+        args.components.append("verify")
 
     args.translate_inputs = []
     args.proof_inputs = []
@@ -423,6 +426,9 @@ def parse_args():
     driver_other.add_argument(
         "--validate", action="store_true",
         help='validate plans (implied by --debug); needs "validate" (VAL) on PATH')
+    driver_other.add_argument(
+        "--verify", action="store_true",
+        help='verify proof log (implied by --debug); needs "veriPB" somehow(?)')
     driver_other.add_argument(
         "--log-level", choices=["debug", "info", "warning"],
         default="info",

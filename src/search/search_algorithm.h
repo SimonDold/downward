@@ -69,6 +69,7 @@ protected:
     void proof_log_node_action_invariant(OperatorID op_id, SearchNode node);
     void proof_log_node_transition_invariant(SearchNode node);
     void proof_log_reif_state(State s);
+    void make_proof_file();
 public:
     SearchAlgorithm(
         OperatorCost cost_type, int bound, double max_time,

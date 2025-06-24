@@ -28,6 +28,10 @@ PDBHeuristic::PDBHeuristic(
           utils::ProofLog::append_comment_to_proof_log("INITIALIZED PDB HEURISTIC");
 }
 
+void PDBHeuristic::update_proof_master_file() {
+    // default do nothing
+    cout << "update_proof_master_file for pdb" << endl;
+}
 void PDBHeuristic::certify_heuristic_pdb(int return_value, State s) {
 
         s.unpack();

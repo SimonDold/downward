@@ -18,6 +18,11 @@ Evaluator::Evaluator(
       use_for_boosting(use_for_boosting),
       use_for_counting_evaluations(use_for_counting_evaluations),
       log(utils::get_log_for_verbosity(verbosity)) {
+    update_proof_master_file();
+}
+
+void Evaluator::update_proof_master_file() {
+    cout << " default do nothing " << get_description() << endl;
 }
 
 bool Evaluator::dead_ends_are_reliable() const {

@@ -43,6 +43,8 @@ def main():
                 args.sas_file.unlink()
         elif component == "validate":
             (exitcode, continue_execution) = run_components.run_validate(args)
+        elif component == "verify":
+            (exitcode, continue_execution) = run_components.run_verify(args)
         else:
             assert False, f"Error: unhandled component: {component}"
         print(f"{component} exit code: {exitcode}")

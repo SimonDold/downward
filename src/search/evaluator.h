@@ -22,6 +22,7 @@ class Evaluator {
     const bool use_for_counting_evaluations;
 protected:
     mutable utils::LogProxy log;
+    virtual void update_proof_master_file();
 public:
     Evaluator(
         bool use_for_reporting_minima, bool use_for_boosting,

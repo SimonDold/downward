@@ -63,6 +63,7 @@ SearchAlgorithm::SearchAlgorithm(
         utils::exit_with(ExitCode::SEARCH_INPUT_ERROR);
     }
     task_properties::print_variable_statistics(task_proxy);
+    utils::ProofLog::make_proof_file(get_description());
 }
 
 SearchAlgorithm::SearchAlgorithm(const plugins::Options &opts) // TODO options object is needed for iterated search, the prototype for issue559 resolves this

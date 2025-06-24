@@ -4,6 +4,7 @@
 #include "tasks/root_task.h"
 #include "task_utils/task_properties.h"
 #include "utils/logging.h"
+#include "utils/proof_logging.h"
 #include "utils/system.h"
 #include "utils/timer.h"
 
@@ -48,6 +49,11 @@ int main(int argc, const char **argv) {
         ExitCode exitcode = search_algorithm->found_solution()
             ? ExitCode::SUCCESS
             : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
+	utils::ProofLog::create_plan_pbp();
+        utils::ProofLog::merge_proof_log_files(search_algorithm->get_description() + ".prooflog");
+	utils::ProofLog::finalize_plan_pbp();
+	// TODO check proof log
+	utils::ProofLog::runCommand("veripb --progressBar plan.opb plan.pbp");
         exit_with(exitcode);
     } catch (const utils::ExitException &e) {
         /* To ensure that all destructors are called before the program exits,
