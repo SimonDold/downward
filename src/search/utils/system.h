@@ -50,7 +50,10 @@ enum class ExitCode {
     // 30-39: unrecoverable errors
     SEARCH_CRITICAL_ERROR = 32,
     SEARCH_INPUT_ERROR = 33,
-    SEARCH_UNSUPPORTED = 34
+    SEARCH_UNSUPPORTED = 34,
+
+    // 40-49: prooflogging errors
+    PROOFLOG_NOT_ACCEPTED = 44
 };
 
 class ExitException : public std::exception {

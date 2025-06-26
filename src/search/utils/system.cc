@@ -23,6 +23,8 @@ const char *get_exit_code_message_reentrant(ExitCode exitcode) {
         return "Memory limit has been reached.";
     case ExitCode::SEARCH_OUT_OF_TIME:
         return "Time limit has been reached.";
+    case ExitCode::PROOFLOG_NOT_ACCEPTED:
+        return "ProofLog is not accepted.";
     default:
         return nullptr;
     }

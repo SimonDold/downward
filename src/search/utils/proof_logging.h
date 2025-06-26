@@ -47,7 +47,7 @@ public:
     static void create_plan_pbp();
     static void finalize_plan_pbp();
     static void append_to_plan_pbp(std::string file_name);
-    static int runCommand(const std::string& command);
+    static int runCommand(const std::string& command, const std::string& key);
 };
 
 }

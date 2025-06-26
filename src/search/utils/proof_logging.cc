@@ -6,6 +6,8 @@
 #include <regex>
 #include <string>
 
+#include <cstdio>
+
 using namespace std;
 
 
@@ -513,20 +515,44 @@ void ProofLog::finalize_plan_pbp(){
     file.close();
 }
 
-int ProofLog::runCommand(const std::string& command) {
+int ProofLog::runCommand(const std::string& command, const std::string& searchString) {
+    cout << "run command: " << command << endl;
     try {
-        // Convert string to const char* for system()
-        const char* cmd = command.c_str();
+        // Create pipe between system command and this process
+        string cmd = command + " 2>&1";  // Capture both stdout and stderr
+        FILE* pf = popen(cmd.c_str(), "r");
         
-        // Execute the command
-        int result = std::system(cmd);
-        
-        // Check if command processor exists
-        if (result == -1) {
-            throw std::runtime_error("Command processor not found");
+        if (!pf) {
+            throw std::runtime_error("Failed to open pipe to command");
+        }
+
+        // Extract output of command
+        std::ostringstream oss;
+        char buffer[128];
+        while (fgets(buffer, 128, pf)) {
+            std::string line(buffer);
+            
+            // Display output immediately
+            cout << line;
+            
+            // Add to stored output for checking
+            oss << line;
         }
         
-        return result;
+	// Close pipe
+        pclose(pf);
+
+        // Get command output as string
+        std::string output = oss.str();
+        
+        // Check if output contains the search string
+        if (output.find(searchString) == std::string::npos) {
+            throw std::runtime_error("Search string not found in command output");
+        }
+
+        // Return success (0)
+        return 0;
+        
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';
         return -1;
