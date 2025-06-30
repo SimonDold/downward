@@ -53,7 +53,8 @@ int main(int argc, const char **argv) {
         utils::ProofLog::merge_proof_log_files(search_algorithm->get_description() + ".prooflog");
 	utils::ProofLog::finalize_plan_pbp();
 	// TODO check proof log
-	int res = utils::ProofLog::runCommand("veripb --progressBar plan.opb plan.pbp", "VERIFIED NO CONCLUSION");
+	//int res = utils::ProofLog::runCommand("veripb --progressBar plan.opb plan.pbp", "VERIFIED NO CONCLUSION");
+	int res = utils::ProofLog::runCommand("veripb plan.opb plan.pbp", "VERIFIED NO CONCLUSION");
 	cout << "res: " << res << endl;
 	if (res == -1 && exitcode == ExitCode::SUCCESS) {
 	    exitcode = ExitCode::PROOFLOG_NOT_ACCEPTED;
