@@ -18,10 +18,19 @@ enum class ProofPart {
 
 int ceil_log_2(int x);
 
+
 class ProofLog{
 
 public:
+    static std::string NOW(){return "NOW";};
+    static std::string FTR(){return "FTR";};
+
     explicit ProofLog() = delete;
+
+    static void clear_opb();
+    static void append_to_opb(const std::string& s);
+    static void append_to_opb(const std::ostringstream& s){append_to_opb(s.str());};
+
     static void append_to_proof_log(const std::string& line, ProofPart proof_part);
     static void append_comment_to_proof_log(const std::string& comment);
     static void append_to_proof_file(const std::string& line, const std::string& file);

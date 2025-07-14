@@ -29,6 +29,37 @@ int ceil_log_2(int val) { // https://stackoverflow.com/a/994647/27389055
     return ret;
 }
 
+void ProofLog::clear_opb()
+{
+    string file_name = "opb.opb";
+    
+    // open the file without append mode to clear it
+    ofstream file(file_name);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for clearing." << endl;
+        return;
+    }
+    file << "";
+    file.close();
+}
+
+// does no line break as default
+void ProofLog::append_to_opb(const string &s)
+{
+    string file_name = "opb.opb";
+
+    ofstream file(
+        file_name
+        , ios_base::app);
+    if (!file.is_open()) {
+        cerr << "Error opening " << file_name << " for appending." << endl;
+        return;
+    }
+    file << s;
+    file.close();
+}
+
+// does line break on its own
 void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
 {
     string file_name;

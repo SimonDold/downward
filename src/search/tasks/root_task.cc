@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <ostream>
 #include <set>
+#include <sstream>
 #include <unordered_set>
 #include <vector>
 
@@ -158,6 +160,10 @@ static vector<FactPair> read_facts(istream &in) {
         FactPair condition = FactPair::no_fact;
         in >> condition.var >> condition.value;
         conditions.push_back(condition);
+	std::cout << i << ": " << condition.var << ", " << condition.value << std::endl;
+	std::ostringstream s;
+	s << i << ": " << condition.var << ", " << condition.value << ";";
+	utils::ProofLog::append_to_opb(s);
     }
     return conditions;
 }
@@ -174,8 +180,44 @@ ExplicitVariable::ExplicitVariable(istream &in) {
     in >> domain_size;
     in >> ws;
     fact_names.resize(domain_size);
-    for (int i = 0; i < domain_size; ++i)
+
+    ostringstream max_one_now, max_one_ftr, min_one_now, min_one_ftr;
+    // TODO prooflog : is it guaranteed that the variables are named 'var0', 'var1' ... 'varN' ?
+    // If no, then i would like to have the id as a parameter for the constructor and use this instead of name.
+    max_one_now << "@dom_"<< name <<"_max_one_" << utils::ProofLog::NOW() << " ";
+    max_one_ftr << "@dom_"<< name <<"_max_one_" << utils::ProofLog::FTR() << " ";
+    min_one_now << "@dom_"<< name <<"_min_one_" << utils::ProofLog::NOW() << " ";
+    min_one_ftr << "@dom_"<< name <<"_min_one_" << utils::ProofLog::FTR() << " ";
+
+    for (int i = 0; i < domain_size; ++i) {
         getline(in, fact_names[i]);
+        ostringstream positive_frame_axiom, negative_frame_axiom;
+	positive_frame_axiom << "@positive_frame_axiom_" << name << "_" << i << "  1 ~frame_" << name << "_" << i << "  1 ~" << name << "_" << i << "_" << utils::ProofLog::NOW() << "  1  " << name << "_" << i << "_" << utils::ProofLog::FTR() << "  >= 1 ;" << endl;
+	negative_frame_axiom << "@negative_frame_axiom_" << name << "_" << i << "  1 ~frame_" << name << "_" << i << "  1  " << name << "_" << i << "_" << utils::ProofLog::NOW() << "  1 ~" << name << "_" << i << "_" << utils::ProofLog::FTR() << "  >= 1 ;" << endl;
+        utils::ProofLog::append_to_opb(positive_frame_axiom);
+        utils::ProofLog::append_to_opb(negative_frame_axiom);
+        max_one_now << " 1 ~" << name << "_" << i << "_" << utils::ProofLog::NOW() << " ";
+        max_one_ftr << " 1 ~" << name << "_" << i << "_" << utils::ProofLog::FTR() << " ";
+        min_one_now << " 1  " << name << "_" << i << "_" << utils::ProofLog::NOW() << " ";
+        min_one_ftr << " 1  " << name << "_" << i << "_" << utils::ProofLog::FTR() << " ";
+    }
+    max_one_now << " >= " << domain_size-1 << " ;" << endl;
+    max_one_ftr << " >= " << domain_size-1 << " ;" << endl;
+    min_one_now << " >= " <<             1 << " ;" << endl;
+    min_one_ftr << " >= " <<             1 << " ;" << endl;
+
+    utils::ProofLog::append_to_opb(max_one_now);
+    utils::ProofLog::append_to_opb(max_one_ftr);
+    utils::ProofLog::append_to_opb(min_one_now);
+    utils::ProofLog::append_to_opb(min_one_ftr);
+
+    std::ostringstream s;
+    s << "* name: " << name
+	<< " axiom_layer: " << axiom_layer
+	<< "domain_size: " << domain_size
+	<< std::endl;
+    utils::ProofLog::append_to_opb(s);
+
     check_magic(in, "end_variable");
 }
 
@@ -225,9 +267,13 @@ ExplicitOperator::ExplicitOperator(istream &in, bool is_an_axiom, bool use_metri
 }
 
 static void read_and_verify_version(istream &in) {
+    utils::ProofLog::clear_opb();
     int version;
     check_magic(in, "begin_version");
     in >> version;
+    std::ostringstream s;
+    s << "* translated from sas version: " << version << std::endl;
+    utils::ProofLog::append_to_opb(s);
     check_magic(in, "end_version");
     if (version != PRE_FILE_VERSION) {
         cerr << "Expected translator output file version " << PRE_FILE_VERSION
@@ -245,6 +291,11 @@ static bool read_metric(istream &in) {
     proof_log_max_cost_bits = utils::ceil_log_2(max(max_abs_cost, 1));
 
     bool use_metric = (max_abs_cost > 0);
+
+    std::ostringstream s;
+    s << "* max absolute cost: " << max_abs_cost << std::endl;
+    utils::ProofLog::append_to_opb(s);
+
     check_magic(in, "end_metric");
     return use_metric;
 }
@@ -336,12 +387,16 @@ static vector<ExplicitOperator> read_actions(
 
 RootTask::RootTask(istream &in) {
     read_and_verify_version(in);
+    utils::ProofLog::append_to_opb("\n**** verified version\n**** reading metric\n");
     bool use_metric = read_metric(in);
+    utils::ProofLog::append_to_opb("\n**** read metric\n**** reading varibales\n");
     variables = read_variables(in);
     int num_variables = variables.size();
 
+    utils::ProofLog::append_to_opb("\n**** read variables\n**** reading mutexes\n");
     mutexes = read_mutexes(in, variables);
 
+    utils::ProofLog::append_to_opb("\n**** read mutexes\n**** reading initial state\n");
     initial_state_values.resize(num_variables);
     check_magic(in, "begin_state");
     for (int i = 0; i < num_variables; ++i) {
@@ -349,14 +404,19 @@ RootTask::RootTask(istream &in) {
     }
     check_magic(in, "end_state");
 
+    utils::ProofLog::append_to_opb("\n**** read initial state\n**** reading axiom deafault values\n");
     for (int i = 0; i < num_variables; ++i) {
         variables[i].axiom_default_value = initial_state_values[i];
     }
 
+    utils::ProofLog::append_to_opb("\n**** read axiom deafault values\n**** reading goal\n");
     goals = read_goal(in);
     check_facts(goals, variables);
+    utils::ProofLog::append_to_opb("\n**** read goal\n**** reading operators\n");
     operators = read_actions(in, false, use_metric, variables);
+    utils::ProofLog::append_to_opb("\n**** read operators\n**** reading axioms\n");
     axioms = read_actions(in, true, use_metric, variables);
+    utils::ProofLog::append_to_opb("\n**** read operators\n**** DONE\n");
     /* TODO: We should be stricter here and verify that we
        have reached the end of "in". */
 
