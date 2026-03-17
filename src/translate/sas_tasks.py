@@ -53,26 +53,26 @@ def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) 
 
 # WARNING: this function has to be syncronized with same named one in the C++ part.
 def strips_name_to_veripb_name(strips_name: str) -> str:
-        allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\^\\-]'
+        allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\^\\-\\~_]'
         pattern = re.compile(allowed_chars)
         veripb_name = ""
         for char in strips_name:
             if not pattern.match(char):
-                #veripb_name += f"[ASCII{ord(char)}]"
-                veripb_name += "_"
+                veripb_name += f"[ASCII{ord(char)}]"
+                #veripb_name += "_"
             else:
                 veripb_name += char
         return veripb_name
 
 def maplet_name(variable: int, value: int) -> str:
-    return f"var_{variable}_{value}."
+    return f"var_{variable}_{value}_t0"
 
 def axiom_name(axiom_id: int) -> str:
-    return f"axiom_{axiom_id}."
+    return f"axiom_{axiom_id}_t0"
 
 def prime_it(name: str) -> str:
-    assert(name[-1] == ".")
-    return name[0:-1] + ":"
+    assert(name[-3:] == "_t0")
+    return name[0:-3] + "_t1"
 
 def var_changes_name(variable: int) -> str:
     return f"change_var_{variable}"
@@ -81,8 +81,8 @@ def frame_var(variable: int) -> str:
     return f"frame_var_{variable}"
 
 def frame_axiom(variable: int, value: int) -> Tuple[str, str]:
-    frame_axiom_pos = f" 1 {neg(frame_var(variable))}  1 {neg(maplet_name(variable, value))}  1 {prime_it(maplet_name(variable, value))}  >= 1"
-    frame_axiom_neg = f" 1 {neg(frame_var(variable))}  1 {maplet_name(variable, value)}  1 {neg(prime_it(maplet_name(variable, value)))}  >= 1"
+    frame_axiom_pos = f" 1 {neg(frame_var(variable))}  1 {neg(maplet_name(variable, value))}  1 {prime_it(maplet_name(variable, value))}  >= 1 ;"
+    frame_axiom_neg = f" 1 {neg(frame_var(variable))}  1 {maplet_name(variable, value)}  1 {neg(prime_it(maplet_name(variable, value)))}  >= 1 ;"
     return frame_axiom_pos, frame_axiom_neg
 
 def operator_implies_frame_axioms(operator_name: str, primary_list: List[int]) -> dict[int, str]:
@@ -109,7 +109,7 @@ def operator_cost_name(cost: int, comperator: str) -> str:
         return "ERROR"
 
 def spent_bit_name(position: int) -> str:
-    return f"e_{position}."
+    return f"e_{position}_t0"
 
 def op_name(idx: int) -> str:
     return f"op_{idx}"
@@ -139,10 +139,10 @@ def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) ->
         neg_normal += f" {2**bit} {neg(spent_bit_name(bit))} "
         pos_prime += f" {2**bit} {prime_it(spent_bit_name(bit))} "
         neg_prime += f" {2**bit} {neg(prime_it(spent_bit_name(bit)))} "
-    delta_geq_rreif = f" {2 * maxint - cost} {neg(operator_cost_name(cost, '>='))} " + pos_prime + neg_normal + f" >= {2 * maxint - cost}"
-    delta_geq_lreif = f" {cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {cost + 1}"
-    delta_leq_rreif = f" {2 * maxint - (maxint - cost)} {neg(operator_cost_name(cost, '<='))} " + neg_prime + pos_normal + f" >= {2 * maxint - (maxint - cost)}"
-    delta_leq_lreif = f" {maxint - cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint - cost + 1}"
+    delta_geq_rreif = f" {2 * maxint - cost} {neg(operator_cost_name(cost, '>='))} " + pos_prime + neg_normal + f" >= {2 * maxint - cost} ;"
+    delta_geq_lreif = f" {cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {cost + 1} ;"
+    delta_leq_rreif = f" {2 * maxint - (maxint - cost)} {neg(operator_cost_name(cost, '<='))} " + neg_prime + pos_normal + f" >= {2 * maxint - (maxint - cost)} ;"
+    delta_leq_lreif = f" {maxint - cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint - cost + 1} ;"
     return [delta_eq_rreif, delta_eq_lreif, delta_geq_rreif, delta_geq_lreif, delta_leq_rreif, delta_leq_lreif]
 
 
@@ -472,7 +472,7 @@ class SASInit:
         return conjuncts
     
     def proof_log_finalize(self, conjuncts: List[str]) -> str:
-        state_name = "s_init."
+        state_name = "s_init_t0"
         left_reification, right_reification = bi_reification_conjunction(state_name, conjuncts)
         state_reification = "\n* init state reification:\n" + right_reification + "\n" + left_reification
         return state_reification
@@ -508,7 +508,7 @@ class SASGoal:
         return conjuncts
     
     def proof_log_finalize(self, conjuncts: List[str]) -> str:
-        partial_state_name = "goal."
+        partial_state_name = "goal_t0"
         left_reification, right_reification = bi_reification_conjunction(partial_state_name, conjuncts)
         partial_state_reification = "\n* goal condition reification:\n" + right_reification + "\n" + left_reification
         return partial_state_reification

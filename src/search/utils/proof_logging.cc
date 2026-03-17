@@ -101,8 +101,8 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
 }
 
 void ProofLog::append_comment_to_proof_log(const std::string& comment) {
-    append_to_proof_log("*"+comment, ProofPart::REIFICATION);
-    append_to_proof_log("*"+comment, ProofPart::DERIVATION);
+    append_to_proof_log("%"+comment, ProofPart::REIFICATION);
+    append_to_proof_log("%"+comment, ProofPart::DERIVATION);
 }
 
 void ProofLog::append_to_proof_file(const string &line, const string &file_name)
@@ -173,7 +173,7 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
 }
 
 void set_vector_sum(vector<string> vectors, int x, string comment="set_vector_sum") {
-    ProofLog::append_to_proof_log("*"+comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("%"+comment, ProofPart::REIFICATION);
 
     assert(x >= 0);
     int bits = ProofLog::get_proof_log_bits();
@@ -202,7 +202,7 @@ void set_vector_sum(vector<string> vectors, int x, string comment="set_vector_su
         r_reif << " >= " << x << " " ;
         l_reif << " >= " << M-A+1 << " " ;
         
-        ProofLog::append_to_proof_log("* A:" + to_string(A) + "M:" + to_string(M), ProofPart::REIFICATION);
+        ProofLog::append_to_proof_log("% A:" + to_string(A) + "M:" + to_string(M), ProofPart::REIFICATION);
 
         ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION);
         ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION);
@@ -210,7 +210,7 @@ void set_vector_sum(vector<string> vectors, int x, string comment="set_vector_su
 }
 
 void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, string comment="bireif_vector_sum") {
-    ProofLog::append_to_proof_log("*"+comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("%"+comment, ProofPart::REIFICATION);
 
         int bits = ProofLog::get_proof_log_bits();
         int maxint = (1 << bits) - 1;
@@ -234,17 +234,17 @@ void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, strin
                 r_reif << " " << (1 << i) << " " << (negative ? "~" : " ") << vec_name << "_" << i << postfix << " ";  
                 l_reif << " " << (1 << i) << " " << (negative ? " " : "~") << vec_name << "_" << i << postfix << " ";  
             }
-            ProofLog::append_to_proof_log("* renaming: " + vector + "->" + vec_name + " and postfix: '" + postfix + "' ", ProofPart::REIFICATION);
+            ProofLog::append_to_proof_log("% renaming: " + vector + "->" + vec_name + " and postfix: '" + postfix + "' ", ProofPart::REIFICATION);
         }
         int A = bound;
         int M = (vectors.size()*maxint);
         //r_reif << " >= " << x << " " ;
         //l_reif << " >= " << M-A+1 << " " ;
         
-        ProofLog::append_to_proof_log("* A:" + to_string(A) + "M:" + to_string(M), ProofPart::REIFICATION);
+        ProofLog::append_to_proof_log("% A:" + to_string(A) + "M:" + to_string(M), ProofPart::REIFICATION);
 
-        r_reif <<   A   << " ~" << reif_var << " >= " <<   A   << " ; " << reif_var << " -> 0 ";
-        l_reif << M-A+1 << "  " << reif_var << " >= " << M-A+1 << " ; " << reif_var << " -> 1 ";
+        r_reif <<   A   << " ~" << reif_var << " >= " <<   A   << " : " << reif_var << " -> 0 ;";
+        l_reif << M-A+1 << "  " << reif_var << " >= " << M-A+1 << " : " << reif_var << " -> 1 ;";
 
         ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION);
         ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION);
@@ -259,32 +259,43 @@ string negate(string var) {
 }
 
 
+string ProofLog::put_prime(bool is_prime){
+    return (is_prime ? "_t1" : "_t0");
+}
+
+
+string ProofLog::veripbfy(int x) {
+    if (x < 0) {
+        return "neg" + std::to_string(-x);
+    }
+    return std::to_string(x);
+}
 
 
 
 void bireif_flat_formula(string reif_var, vector<string> elements, bool is_disjunction, string comment="bireif_formla") {
-    ProofLog::append_to_proof_log("*"+comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("%"+comment, ProofPart::REIFICATION);
     ostringstream r_reif, l_reif;
     assert(reif_var.size() > 0);
     r_reif << "@" << reif_var << "_Rreif " << " red ";
     l_reif << "@" << reif_var << "_Lreif " << " red ";
     for (string element : elements) {
-        r_reif << " 1 " << format(       element )         << " ";
-        l_reif << " 1 " << format(negate(element)) << " ";
+        r_reif << " 1 " << format(       utils::ProofLog::strips_name_to_veripb_name(element) )         << " ";
+        l_reif << " 1 " << format(negate(utils::ProofLog::strips_name_to_veripb_name(element))) << " ";
     }
     int A = elements.size();
-    r_reif << " " << (is_disjunction ? 1 : A) << " ~" << reif_var << " >= " << (is_disjunction ? 1 : A) << " ; " << reif_var << " -> 0 ";
-    l_reif << " " << (is_disjunction ? A : 1) << "  " << reif_var << " >= " << (is_disjunction ? A : 1) << " ; " << reif_var << " -> 1 ";
+    r_reif << " " << (is_disjunction ? 1 : A) << " ~" << reif_var << " >= " << (is_disjunction ? 1 : A) << " : " << reif_var << " -> 0 ;";
+    l_reif << " " << (is_disjunction ? A : 1) << "  " << reif_var << " >= " << (is_disjunction ? A : 1) << " : " << reif_var << " -> 1 ;";
     ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION);
     ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION);
 }
 
 void ProofLog::bireif_conjunction(string reif_var, vector<string> conjuncts, string comment="bireif_conjunction") {
-    bireif_flat_formula(reif_var, conjuncts, false, comment);
+    bireif_flat_formula(utils::ProofLog::strips_name_to_veripb_name(reif_var), conjuncts, false, comment);
 }
 
 void ProofLog::bireif_disjunction(string reif_var, vector<string> disjuncts, string comment="bireif_disjunction") {
-    bireif_flat_formula(reif_var, disjuncts, true, comment);
+    bireif_flat_formula(utils::ProofLog::strips_name_to_veripb_name(reif_var), disjuncts, true, comment);
 }
 
 void append_file_to_proof_log(string file_2, ProofPart proof_part){
@@ -320,7 +331,7 @@ void append_file_to_proof_log(string file_2, ProofPart proof_part){
 
     for (std::string str; std::getline(in, str); )
     {
-        out << "\n\n***** APPEND FILE TO PROOF LOG\n\n" << str << endl << endl;
+        out << "\n\n%%%%% APPEND FILE TO PROOF LOG\n\n" << str << endl << endl;
     }
 }
 
@@ -331,9 +342,9 @@ void ProofLog::append_files_to_proof_log(std::vector<std::string> files, ProofPa
 }
 
 void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance){
-    string e = (is_prime ? "e:" : "e.");
+    string e = (is_prime ? "e_t1" : "e_t0");
     ostringstream reif_var;
-    reif_var << (balance ? "balance_geq_" : "spent_geq_") << x << (is_prime ? ":" : ".");
+    reif_var << (balance ? "balance_geq_" : "spent_geq_") << utils::ProofLog::veripbfy(x) << utils::ProofLog::put_prime(is_prime);
     int bits = ProofLog::get_proof_log_bits();
     int maxint = (1 << bits) -1;
     assert(x<maxint);
@@ -341,8 +352,8 @@ void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance)
 
     // bireif of inverse statement  b_leq_2 iff ~b_geq_3    sp_geq_2 iff ~sp_leq_1
     ostringstream reif_var2, conjunct;
-    reif_var2 << (balance ? "balance_leq_" : "spend_leq_") << x - 1 << (is_prime ? ":" : ".");
-    conjunct << "~" << (balance ? "balance_geq_" : "spend_geq_") << x << (is_prime ? ":" : ".");
+    reif_var2 << (balance ? "balance_leq_" : "spend_leq_") << utils::ProofLog::veripbfy(x - 1) << utils::ProofLog::put_prime(is_prime);
+    conjunct << "~" << (balance ? "balance_geq_" : "spend_geq_") << utils::ProofLog::veripbfy(x) << utils::ProofLog::put_prime(is_prime);
     ProofLog::bireif_conjunction(reif_var2.str(), vector<string>({conjunct.str()}));
 
 }
@@ -371,25 +382,27 @@ int get_ith_bit_of_x(int i, int x) {
 void ProofLog::finalize_lemmas(int optimal_cost) {
 
     // TODOprooflogging remove this:
-        append_to_proof_log("* ensure non empty REIF file", ProofPart::REIFICATION);
+        append_to_proof_log("% ensure non empty REIF file", ProofPart::REIFICATION);
 
-    append_to_proof_log("* finalize:\n", ProofPart::INVARIANT);
+    append_to_proof_log("% finalize:\n", ProofPart::INVARIANT);
     int bits = get_proof_log_bits();
     ostringstream r_budget;
     ostringstream l_budget;
-    r_budget << "* varcount: " << proof_log_var_count << endl << "* max cost bits: " << proof_log_max_cost_bits << endl; 
+    r_budget << "% varcount: " << proof_log_var_count << endl << "% max cost bits: " << proof_log_max_cost_bits << endl; 
     r_budget << "@budget_Rreif  red ";
     l_budget << "@budget_Lreif  red ";
     for (int i = bits - 1; i >= 0; --i) {
         r_budget << " " << (1 << i) << " b_" << i << " ";
         l_budget << " " << (1 << i) << " ~b_" << i << " ";
     }
-    r_budget << " >= " << optimal_cost << " ; ";
-    l_budget << " >= " << (1 << bits)-optimal_cost-1 << " ; ";
+    r_budget << " >= " << optimal_cost << " : ";
+    l_budget << " >= " << (1 << bits)-optimal_cost-1 << " : ";
     for (int i = bits - 1; i >= 0; --i) {
         r_budget << " " << " b_" << i << " -> " << get_ith_bit_of_x(i, optimal_cost);
         l_budget << " " << " b_" << i << " -> " << get_ith_bit_of_x(i, optimal_cost);
     }
+    r_budget << " ;";
+    l_budget << " ;";
     append_to_proof_log(r_budget.str(), ProofPart::INVARIANT);
     append_to_proof_log(l_budget.str(), ProofPart::INVARIANT);
 
@@ -407,47 +420,47 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
 
 
     ostringstream spent_all;
-    spent_all << "pol  @budget_Lreif  @balance_leq_0._Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost << "._Rreif + @balance_geq_1._Rreif +"
-        << endl << "* sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
-        << "rup 1 ~spent_geq_" << optimal_cost << ".  1 balance_leq_0.  >= 1 ; -1";
+    spent_all << "pol  @budget_Lreif  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost << "_t0_Rreif + @balance_geq_1_t0_Rreif + ;"
+        << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
+        << "rup 1 ~spent_geq_" << optimal_cost << "_t0  1 balance_leq_0_t0  >= 1 : -1 ;";
     append_to_proof_log(spent_all.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream spent_even_more;
-    spent_even_more << "pol  @budget_Lreif  @balance_leq_-1._Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost+1 << "._Rreif + @balance_geq_0._Rreif +"
-        << endl << "* sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
-        << "rup 1 ~spent_geq_" << optimal_cost+1 << ".  1 balance_leq_-1.  >= 1 ; -1";
+    spent_even_more << "pol  @budget_Lreif  @balance_leq_neg1_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost+1 << "_t0_Rreif + @balance_geq_0_t0_Rreif + ;"
+        << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
+        << "rup 1 ~spent_geq_" << optimal_cost+1 << "_t0  1 balance_leq_neg1_t0  >= 1 : -1 ;";
     append_to_proof_log(spent_even_more.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream sanity;
-    sanity << "* help for sanity check" << endl;
-    sanity << "pol  @balance_leq_-1._Rreif " << (1 << get_proof_log_bits()) << " *  @balance_leq_0._Lreif " << (1 << get_proof_log_bits()) << " *  + @balance_geq_0._Lreif @balance_geq_1._Rreif + +" << endl;
-    sanity << "rup  1 ~balance_leq_-1.  1 balance_leq_0.  >= 1 ; -1" << endl;
-    sanity << "pol  @spent_geq_" << optimal_cost << "._Lreif  @spent_geq_" << optimal_cost+1 << "._Rreif  + " << endl;
-    sanity << "rup  1 spent_geq_" << optimal_cost << ".  1 ~spent_geq_" << optimal_cost+1 << ". >= 1 ; -1" << endl;
+    sanity << "% help for sanity check" << endl;
+    sanity << "pol  @balance_leq_neg1_t0_Rreif " << (1 << get_proof_log_bits()) << " *  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " *  + @balance_geq_0_t0_Lreif @balance_geq_1_t0_Rreif + + ;" << endl;
+    sanity << "rup  1 ~balance_leq_neg1_t0  1 balance_leq_0_t0  >= 1 : -1 ;" << endl;
+    sanity << "pol  @spent_geq_" << optimal_cost << "_t0_Lreif  @spent_geq_" << optimal_cost+1 << "_t0_Rreif  + ;" << endl;
+    sanity << "rup  1 spent_geq_" << optimal_cost << "_t0  1 ~spent_geq_" << optimal_cost+1 << "_t0 >= 1 : -1 ;" << endl;
     append_to_proof_log(sanity.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream lemmas;
-    lemmas << endl << endl <<"* entry lemma balance" << endl
-        << "@lem3  rup  1 ~s_init.  1 balance_leq_" << optimal_cost << ".  1 invar.  >= 1 ;" << endl
-        << "* goal lemma balance" << endl
-        << "@lem4  rup  1 ~goal.  1 balance_leq_" << 0 << ".  1 ~invar.  >= 1 ;" << endl
-        << "* transition lemma balance" << endl
-        << "@lem7  rup  1 ~invar.  1 ~transition  1 invar:  >= 1 ; " <<endl
-        << endl << endl <<"* entry lemma spent" << endl 
-        << "rup  1 ~s_init.  1 spent_geq_1.  1 invar.  >= 1 ;" << endl
-        << "* goal lemma spent" << endl
-        << "rup  1 ~goal.  1 spent_geq_" << optimal_cost << ".  1 ~invar.  >= 1 ;" << endl
-        << "* transition lemma spent" << endl
-        << "rup  1 ~invar.  1 ~transition  1 invar:  >= 1 ; " <<endl
-        << "* sanity check: goal lemma spent" << endl
-        << "notrup  >= 1 ;" << endl
-        << "notrup  1 ~goal.  1 spent_geq_" << optimal_cost+1 << ".  1 ~invar.  >= 1 ;" << endl
-        << "* sanity check: goal lemma balance" << endl
-        << "notrup  >= 1 ;" << endl
-        << "notrup  1 ~goal.  1 balance_leq_-1.  1 ~invar.  >= 1 ;" << endl
-        << "output NONE" << endl
-        << "conclusion NONE" << endl
-        << "end pseudo-Boolean proof" << endl;
+    lemmas << endl << endl <<"% entry lemma balance" << endl
+        << "@lem3  rup  1 ~s_init_t0  1 balance_leq_" << optimal_cost << "_t0  1 invar_t0  >= 1 ;" << endl
+        << "% goal lemma balance" << endl
+        << "@lem4  rup  1 ~goal_t0  1 balance_leq_" << 0 << "_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "% transition lemma balance" << endl
+        << "@lem7  rup  1 ~invar_t0  1 ~transition  1 invar_t1  >= 1 ; " <<endl
+        << endl << endl <<"% entry lemma spent" << endl 
+        << "rup  1 ~s_init_t0  1 spent_geq_1_t0  1 invar_t0  >= 1 ;" << endl
+        << "% goal lemma spent" << endl
+        << "rup  1 ~goal_t0  1 spent_geq_" << optimal_cost << "_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "% transition lemma spent" << endl
+        << "rup  1 ~invar_t0  1 ~transition  1 invar_t1  >= 1 ; " <<endl
+        << "% sanity check: goal lemma spent" << endl
+        << "%notrup  >= 1 ;" << endl
+        << "%notrup  1 ~goal_t0  1 spent_geq_" << optimal_cost+1 << "_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "% sanity check: goal lemma balance" << endl
+        << "%notrup  >= 1 ;" << endl
+        << "%notrup  1 ~goal_t0  1 balance_leq_neg1_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "output NONE ;" << endl
+        << "conclusion NONE ;" << endl
+        << "end pseudo-Boolean proof ;" << endl;
     append_to_proof_log(lemmas.str(), ProofPart::DERIVATION);
 }
 
@@ -484,7 +497,7 @@ bool checkFirstLine(const std::string& filename, const std::string& searchString
 }
 
 bool ProofLog::is_meta_file(string meta_file_name) {
-	return checkFirstLine(meta_file_name, "*META");
+	return checkFirstLine(meta_file_name, "%META");
 }
 
 vector<string> ProofLog::get_subfiles(string meta_file_name) {
@@ -530,7 +543,7 @@ void ProofLog::create_plan_pbp(){
         cerr << "Error opening " << file_name << " for appending." << endl;
         return;
     }
-    file << "pseudo-Boolean proof version 2.0\n\n*from create_plan_pbp()\n";
+    file << "pseudo-Boolean proof version 3.0\n\n%from create_plan_pbp()\n";
     file.close();
 }
 
@@ -628,12 +641,12 @@ void ProofLog::make_proof_file(string name){
 
 // WARNING: this function has to be syncronized with same named one in the python part.
 string ProofLog::strips_name_to_veripb_name(const string& strips_name) {
-    regex pattern("[a-zA-Z0-9\\[\\]\\{\\^\\-]");
+    regex pattern("[a-zA-Z0-9\\[\\]\\{\\^\\-\\~_]");
     string veripb_name;
     for (char c : strips_name) {
         if (! regex_search(string(1, c), pattern)) {
-            //veripb_name += "[ASCII" + to_string(static_cast<int>(c)) + "]";
-            veripb_name += "_";
+            veripb_name += "[ASCII" + to_string(static_cast<int>(c)) + "]";
+            //veripb_name += "_";
         } else {
             veripb_name += c;
         }

@@ -92,9 +92,9 @@ void proof_log_transition_implies_min_cost_delta(){
 
 void proof_log_reify_min_cost_delta(int min_cost){
     ostringstream line;
-    line << endl <<"* Bi-Reification of delta_cost_geq_MIN:" << endl
-        << "@delta_cost_geq_MIN_Rreif  red  1 ~delta_cost_geq_MIN  1 delta_cost_geq_" << min_cost << "  >= 1 ; delta_cost_geq_MIN -> 0" << endl
-        << "@delta_cost_geq_MIN_Lreif  red  1 delta_cost_geq_MIN  1 ~delta_cost_geq_" << min_cost << "  >= 1 ; delta_cost_geq_MIN -> 1" << endl;
+    line << endl <<"% Bi-Reification of delta_cost_geq_MIN:" << endl
+        << "@delta_cost_geq_MIN_Rreif  red  1 ~delta_cost_geq_MIN  1 delta_cost_geq_" << min_cost << "  >= 1 : delta_cost_geq_MIN -> 0 ;" << endl
+        << "@delta_cost_geq_MIN_Lreif  red  1 delta_cost_geq_MIN  1 ~delta_cost_geq_" << min_cost << "  >= 1 : delta_cost_geq_MIN -> 1 ;" << endl;
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION);
 }
 

@@ -48,6 +48,8 @@ public:
     static int get_proof_log_bits();
     static int get_proof_log_maxint();
     static std::string strips_name_to_veripb_name(const std::string& strips_name);
+    static std::string put_prime(bool is_prime);
+    static std::string veripbfy(int x);
     static void merge_proof_log_files();
     static bool is_meta_file(std::string meta_file_name);
     static void merge_proof_log_files(std::string meta_file_name);

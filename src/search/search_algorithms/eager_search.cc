@@ -40,7 +40,7 @@ EagerSearch::EagerSearch(
         cerr << "lazy_evaluator must cache its estimates" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
-    utils::ProofLog::append_to_proof_file("*META\ninvariant.prooflog\nreifications.prooflog\ninvariant_right.prooflog\ninvariant_left.prooflog\ninvariant_prime_right.prooflog\ninvariant_prime_left.prooflog\nderivations.prooflog", get_description() +".prooflog");
+    utils::ProofLog::append_to_proof_file("%META\ninvariant.prooflog\nreifications.prooflog\ninvariant_right.prooflog\ninvariant_left.prooflog\ninvariant_prime_right.prooflog\ninvariant_prime_left.prooflog\nderivations.prooflog", get_description() +".prooflog");
 }
 
 void EagerSearch::add_phi_to_invar(SearchNode node) {
@@ -50,10 +50,10 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
             ostringstream r_line;
             ostringstream l_line;
             r_line << " 1  phi_" + open_list->get_priority_evaluator_name()
-                    + "[" << node.get_state().get_id_int() << "]" << (i ? ":" : ".") 
+                    + "[" << node.get_state().get_id_int() << "]" << (i ? "_t1" : "_t0") 
                     << " ";
             l_line << " 1 ~phi_" + open_list->get_priority_evaluator_name()
-                    + "[" << node.get_state().get_id_int() << "]" << (i ? ":" : ".") 
+                    + "[" << node.get_state().get_id_int() << "]" << (i ? "_t1" : "_t0") 
                     << " ";
             if (i){
                 utils::ProofLog::append_to_invariant_prime_right(r_line.str());
@@ -65,27 +65,27 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
         }
 
         ostringstream entry_lemma_comment;
-        entry_lemma_comment << "* h entry state lemma here?\n"
-                << "* state = " + to_string(node.get_state().get_id_int()) + "\n"
-                << "* g = " + to_string(node.get_real_g());
+        entry_lemma_comment << "% h entry state lemma here?\n"
+                << "% state = " + to_string(node.get_state().get_id_int()) + "\n"
+                << "% g = " + to_string(node.get_real_g());
         utils::ProofLog::append_to_proof_log( 
                 entry_lemma_comment.str()
                 , utils::ProofPart::DERIVATION);
         ostringstream entry_lemma_spent, prime_entry_lemma_spent;
         entry_lemma_spent
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[" << node.get_state().get_id_int() << "]. "
+                << "[" << node.get_state().get_id_int() << "]_t0 "
             << " rup "
-            << " 1 ~node[" << state_id << "," << "spent_geq_" << node.get_real_g() << "]. "
-            << " 1 phi_" << h_name << "[" << state_id << "]. "
+            << " 1 ~node[" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
+            << " 1 phi_" << h_name << "[" << state_id << "]_t0 "
             << " >= 1 ; ";
 
         prime_entry_lemma_spent
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[" << node.get_state().get_id_int() << "]: "
+                << "[" << node.get_state().get_id_int() << "]_t1 "
             << " rup "
-            << " 1 ~node[" << state_id << "," << "spent_geq_" << node.get_real_g() << "]: "
-            << " 1 phi_" << h_name << "[" << state_id << "]: "
+            << " 1 ~node[" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
+            << " 1 phi_" << h_name << "[" << state_id << "]_t1 "
             << " >= 1 ; ";
 
 }

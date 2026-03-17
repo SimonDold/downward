@@ -13,15 +13,19 @@
 
 using namespace std;
 
+string put_prime(bool is_prime){
+    return (is_prime ? "_t1" : "_t0");
+}
+
 void proof_log_node_Rreif(int state_id, int g_value, bool is_prime){
 
     utils::ProofLog::add_spent_geq_x_bireification(g_value);
 
 
     ostringstream  reif_var, conjunct_1, conjunct_2;
-    reif_var << "node[" << state_id << "," << "spent_geq_" << g_value << "]" << (is_prime ? ":" : ".");
-    conjunct_1 << "state[" << state_id << "]"                                 << (is_prime ? ":" : ".") ;
-    conjunct_2 << "spent_geq_" << g_value << (is_prime ? ":" : ".") ;
+    reif_var << "node[" << state_id << "," << "spent_geq_" << utils::ProofLog::veripbfy(g_value) << "]" << put_prime(is_prime);
+    conjunct_1 << "state[" << state_id << "]"                                 << put_prime(is_prime) ;
+    conjunct_2 << "spent_geq_" << utils::ProofLog::veripbfy(g_value) << put_prime(is_prime) ;
     vector<string> conjuncts = {conjunct_1.str(), conjunct_2.str()};
     utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "searchNode/constructor ");
 }
@@ -29,7 +33,7 @@ void proof_log_node_Rreif(int state_id, int g_value, bool is_prime){
 SearchNode::SearchNode(const State &state, SearchNodeInfo &info)
     : state(state), info(info) {
     assert(state.get_id() != StateID::no_state);
-    utils::ProofLog::append_to_proof_log("* construct Search Node", utils::ProofPart::REIFICATION);
+    utils::ProofLog::append_to_proof_log("% construct Search Node", utils::ProofPart::REIFICATION);
     proof_log_node_Rreif(state.get_id_int(), this->get_real_g(), false);
     proof_log_node_Rreif(state.get_id_int(), this->get_real_g(), true );
 }
