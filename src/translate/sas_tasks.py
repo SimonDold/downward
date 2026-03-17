@@ -53,7 +53,7 @@ def bi_reification_conjunction(reification_variable: str, conjuncts: list[str]) 
 
 # WARNING: this function has to be syncronized with same named one in the C++ part.
 def strips_name_to_veripb_name(strips_name: str) -> str:
-        allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\^\\-\\~_]'
+        allowed_chars = '[a-zA-Z0-9\\[\\]\\{\\}\\^\\-\\~_]'
         pattern = re.compile(allowed_chars)
         veripb_name = ""
         for char in strips_name:

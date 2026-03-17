@@ -43,9 +43,9 @@ void PDBHeuristic::certify_heuristic_pdb(int return_value, State s) {
 
         // Bi-Reif phi(node,heuristic): 
             ostringstream reif_var, conj;
-            reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "." : ":");
+            reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
 
-            conj << "rev_indu" << (i ? "." : ":");
+            conj << "rev_indu" << (i ? "_t0" : "_t1");
             utils::ProofLog::bireif_conjunction(reif_var.str(), vector<std::string>({"~"+conj.str()}), "");
 
         }

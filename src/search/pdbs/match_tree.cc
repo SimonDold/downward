@@ -175,9 +175,9 @@ void MatchTree::bireif_abstract_state_with_balance_geq(int state_index, int bala
     for (int i=0; i<=1; ++i) {
         utils::ProofLog::bireif_balance_leq(balance-1);
         ostringstream reif_var, conj1, conj2;
-        reif_var << abstract_state_with_balance_geq(state_index, balance)  << (i ? ":" : ".");
-        conj1 << "a_" << projection.get_name() << "[s[" << state_index << "]]" << (i ? ":" : ".");
-        conj2 << "balance_geq_" << balance << (i ? ":" : ".");
+        reif_var << abstract_state_with_balance_geq(state_index, balance)  << (i ? "_t1" : "_t0");
+        conj1 << "a_" << projection.get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");
+        conj2 << "balance_geq_" << balance << (i ? "_t1" : "_t0");
         utils::ProofLog::bireif_conjunction(reif_var.str(), {conj1.str(),conj2.str()}, "matchtree189");
     }
 }
@@ -188,7 +188,7 @@ string MatchTree::abstract_state(int state_index) const {
 
 string MatchTree::abstract_state_with_balance_geq(int state_index, int balance) const {
     ostringstream name;
-    name << "node["<< abstract_state(state_index) <<",balance_geq_" << balance << "]";
+    name << "node["<< abstract_state(state_index) <<"[ASCII44]balance_geq_" << balance << "]";
     return name.str();
 }
 

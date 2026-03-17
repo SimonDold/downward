@@ -80,11 +80,11 @@ void Projection::bireif_abstract_state(int state_index) const{
     for (int i=0; i<=1; ++i) {
 
         ostringstream reif_var;
-        reif_var << abstract_state(state_index) << (i ? ":" : ".");
+        reif_var << abstract_state(state_index) << (i ? "_t1" : "_t0");
         vector<string> conjuncts(pattern.size());
         for (int var_position = 0; var_position < pattern.size(); ++var_position) {
             ostringstream conjunct;
-            conjunct << "var_" << pattern[var_position] << "_" << unrank(state_index, var_position) << (i ? ":" : ".");
+            conjunct << "var_" << pattern[var_position] << "_" << unrank(state_index, var_position) << (i ? "_t1" : "_t0");
             conjuncts[var_position] = conjunct.str();
         }
         utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "");
@@ -93,13 +93,13 @@ void Projection::bireif_abstract_state(int state_index) const{
 
 void Projection::bireif_abstract_state_with_balance(int state_index, int balance) const {
     ostringstream name;
-    name << "node[a_" << get_name() << "[s[" << state_index << "]],balance_geq_" << balance << "]";
+    name << "node[a_" << get_name() << "[s[" << state_index << "]][ASCII44]balance_geq_" << balance << "]";
     for (int i=0; i<=1; ++i) {
         utils::ProofLog::bireif_balance_leq(balance-1);
         ostringstream reif_var, conjunct_1, conjunct_2;
-        reif_var << name.str() << (i ? ":" : ".");
-        conjunct_1 << "a_" << get_name() << "[s[" << state_index << "]]" << (i ? ":" : ".");
-        conjunct_2 << "balance_geq_" << balance << (i ? ":" : ".");
+        reif_var << name.str() << (i ? "_t1" : "_t0");
+        conjunct_1 << "a_" << get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");
+        conjunct_2 << "balance_geq_" << balance << (i ? "_t1" : "_t0");
         utils::ProofLog::bireif_conjunction(reif_var.str(), {conjunct_1.str(), conjunct_2.str()}, "");
 
     }

@@ -641,7 +641,7 @@ void ProofLog::make_proof_file(string name){
 
 // WARNING: this function has to be syncronized with same named one in the python part.
 string ProofLog::strips_name_to_veripb_name(const string& strips_name) {
-    regex pattern("[a-zA-Z0-9\\[\\]\\{\\^\\-\\~_]");
+    regex pattern("[a-zA-Z0-9\\[\\]\\{\\}\\^\\-\\~_]");
     string veripb_name;
     for (char c : strips_name) {
         if (! regex_search(string(1, c), pattern)) {
