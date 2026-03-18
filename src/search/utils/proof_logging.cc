@@ -77,7 +77,7 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
         }
     case ProofPart::INVARIANT:
         {
-            file_name = "invariant.prooflog"; 
+            file_name = "budget.prooflog"; 
             /*
                 it is not truly THE invariant but all needed (and some not needed) reifications that build the invariant.
                 The invariant is in the file invarinat_right.prooflog and invariant_left.prooflog
@@ -314,7 +314,7 @@ void append_file_to_proof_log(string file_2, ProofPart proof_part){
         }
     case ProofPart::INVARIANT:
         {
-            file_1 = "invariant.prooflog"; 
+            file_1 = "budget.prooflog"; 
             /*
                 it is not truly THE invariant but all needed (and some not needed) reifications that build the invariant.
                 The invariant is in the file invarinat_right.prooflog and invariant_left.prooflog
@@ -331,7 +331,7 @@ void append_file_to_proof_log(string file_2, ProofPart proof_part){
 
     for (std::string str; std::getline(in, str); )
     {
-        out << "\n\n%%%%% APPEND FILE TO PROOF LOG\n\n" << str << endl << endl;
+        out << "\n\n%%%%% APPEND FILE '" << file_2 << "' TO PROOF LOG\n\n" << str << endl << endl;
     }
 }
 
@@ -480,8 +480,7 @@ int ProofLog::get_proof_log_bits() {
     // it would be nice to not do this but it would require arbitrary size integer operations
 }
 
-bool checkFirstLine(const std::string& filename, const std::string& searchString) {
-    cout << "checkFirstLine" << filename << " " << searchString << endl;
+bool check_first_line(const std::string& filename, const std::string& searchString) {
     std::ifstream file(filename);
     
     if (!file.is_open()) {
@@ -497,7 +496,7 @@ bool checkFirstLine(const std::string& filename, const std::string& searchString
 }
 
 bool ProofLog::is_meta_file(string meta_file_name) {
-	return checkFirstLine(meta_file_name, "%META");
+	return check_first_line(meta_file_name, "%META");
 }
 
 vector<string> ProofLog::get_subfiles(string meta_file_name) {
@@ -605,11 +604,8 @@ int ProofLog::runCommand(const std::string& command, const std::string& searchSt
 
 void ProofLog::append_to_plan_pbp(std::string sourceFile) {
     string destinationFile = "plan.pbp";
-if (0==destinationFile.compare(sourceFile)) {
-	cout << "append plan.pbp to plan.pbp????" << endl;
-		return;
-	}
-	std::ifstream source(sourceFile);
+    assert(0!=destinationFile.compare(sourceFile));
+    std::ifstream source(sourceFile);
     std::ofstream dest(destinationFile, std::ios::app);
     
     if (!source.is_open()) {
