@@ -60,7 +60,7 @@ void ProofLog::append_to_opb(const string &s)
 }
 
 // does line break on its own
-void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
+void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part, const string &comment)
 {
     string file_name;
     switch (proof_part)
@@ -75,7 +75,7 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
             file_name = "derivations.prooflog";
             break;
         }
-    case ProofPart::INVARIANT:
+    case ProofPart::BUDGET:
         {
             file_name = "budget.prooflog"; 
             /*
@@ -97,6 +97,9 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part)
         return;
     }
     file << line << endl;
+    if (!comment.empty()){
+        file << "% " <<comment << endl;
+    }
     file.close();
 }
 
@@ -312,7 +315,7 @@ void append_file_to_proof_log(string file_2, ProofPart proof_part){
             file_1 = "derivations.prooflog";
             break;
         }
-    case ProofPart::INVARIANT:
+    case ProofPart::BUDGET:
         {
             file_1 = "budget.prooflog"; 
             /*
@@ -384,7 +387,7 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     // TODOprooflogging remove this:
         append_to_proof_log("% ensure non empty REIF file", ProofPart::REIFICATION);
 
-    append_to_proof_log("% finalize:\n", ProofPart::INVARIANT);
+    append_to_proof_log("% finalize:\n", ProofPart::BUDGET);
     int bits = get_proof_log_bits();
     ostringstream r_budget;
     ostringstream l_budget;
@@ -403,8 +406,8 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     }
     r_budget << " ;";
     l_budget << " ;";
-    append_to_proof_log(r_budget.str(), ProofPart::INVARIANT);
-    append_to_proof_log(l_budget.str(), ProofPart::INVARIANT);
+    append_to_proof_log(r_budget.str(), ProofPart::BUDGET);
+    append_to_proof_log(l_budget.str(), ProofPart::BUDGET);
 
     // ensure to define spent_geq_optimal_cost and balance_leq_0
     add_spent_geq_x_bireification_aux(optimal_cost, false, false);

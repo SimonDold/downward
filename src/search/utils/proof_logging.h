@@ -13,7 +13,7 @@ namespace utils {
 enum class ProofPart {
     REIFICATION,
     DERIVATION,
-    INVARIANT
+    BUDGET
 };
 
 int ceil_log_2(int x);
@@ -31,7 +31,7 @@ public:
     static void append_to_opb(const std::string& s);
     static void append_to_opb(const std::ostringstream& s){append_to_opb(s.str());};
 
-    static void append_to_proof_log(const std::string& line, ProofPart proof_part);
+    static void append_to_proof_log(const std::string& line, ProofPart proof_part, const std::string& comment="");
     static void append_comment_to_proof_log(const std::string& comment);
     static void append_to_proof_file(const std::string& line, const std::string& file);
     static void append_to_invariant_right(const std::string& summand);
