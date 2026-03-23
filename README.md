@@ -1,3 +1,11 @@
+BRANCH proof_logging:
+
+test run with:
+
+cd ~/developing-FD/downward && rm -f plan.pbp && rm -f plan.opb && rm -f *.prooflog && rm -f opb-from-arguments && rm -f sas-from-arguments && ./build.py debug && printf "\n\nRUN FAST DOWNWARD\n\n" && ./fast-downward.py --build debug --keep-sas-file --sas-file sas-from-arguments --proof --opb-file plan.opb ~/DOWNWARD_BENCHMARKS/_ADDONS/1_TEST/blocks/probBLOCKS-2-1.pddl  --search "astar(pdb(manual_pattern([0,1])),verbosity=debug)" && printf "\n\n DONE \n\n"
+
+
+
 <img src="misc/images/fast-downward.svg" width="800" alt="Fast Downward">
 
 Fast Downward is a domain-independent classical planning system.
