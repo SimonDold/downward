@@ -144,8 +144,10 @@ void MatchTree::get_applicable_operator_ids_recursive(
                         node->applicable_operator_ids.begin(),
                         node->applicable_operator_ids.end());
 
-    if (node->is_leaf_node())
+    if (node->is_leaf_node()) {
+        cout << "### ## is leaf node: " << node->var_id << endl;
         return;
+    }
 
     int val = projection.unrank(state_index, node->var_id);
 
@@ -163,8 +165,11 @@ void MatchTree::get_applicable_operator_ids_recursive(
 
 void MatchTree::get_applicable_operator_ids(
     int state_index, vector<int> &operator_ids) const {
+    // cout << "TODO: figure out how orthogonal operators are 'skipped' " 
+    cout << "###168### operators_id size before: " << operator_ids.size() << endl;
     if (root)
         get_applicable_operator_ids_recursive(root, state_index, operator_ids);
+    cout << "###168### operators_id size after: " << operator_ids.size() << endl;
 }
 
 void MatchTree::bireif_state(int state_index) const{

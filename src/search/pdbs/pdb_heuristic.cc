@@ -15,8 +15,11 @@ namespace pdbs {
 static shared_ptr<PatternDatabase> get_pdb_from_generator(
     const shared_ptr<AbstractTask> &task,
     const shared_ptr<PatternGenerator> &pattern_generator) {
-    PatternInformation pattern_info = pattern_generator->generate(task);
-    return pattern_info.get_pdb();
+    PatternInformation pattern_info = pattern_generator->generate(task); // 
+    cout << "ABOUT TO GET PDB" << endl;
+    auto _return = pattern_info.get_pdb();
+    cout << "GOT PDB" << endl;
+    return _return;
 }
 
 PDBHeuristic::PDBHeuristic(

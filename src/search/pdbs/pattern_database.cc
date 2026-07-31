@@ -27,6 +27,31 @@ Projection::Projection(
         hash_multipliers.push_back(num_abstract_states);
         VariableProxy var = task_proxy.get_variables()[pattern_var_id];
         int domain_size = var.get_domain_size();
+        
+        ostringstream r_reif;
+        r_reif << "% PROOF LEQ GEQ FRAME VERISON for " << pattern_var_id;
+// % PROOF LEQ GEQ FRAME VERISON for 0
+// @leq_var_0_0_Rreif   red   1 ~leq_var_0_0   1 ~var_0_0_t0  1 var_0_0_t1 >= 1 : leq_var_0_0 -> 0 ;
+// @leq_var_0_1_Rreif   red   1 ~leq_var_0_1   1 ~var_0_1_t0  1 var_0_1_t1 >= 1 : leq_var_0_1 -> 0 ;
+// @leq_var_0_2_Rreif   red   1 ~leq_var_0_2   1 ~var_0_2_t0  1 var_0_2_t1 >= 1 : leq_var_0_2 -> 0 ;
+// @leq_var_0_0_Lreif   red   2  leq_var_0_0   1  var_0_0_t0  1 ~var_0_0_t1 >= 2 : leq_var_0_0 -> 1 ;
+// @leq_var_0_1_Lreif   red   2  leq_var_0_1   1  var_0_1_t0  1 ~var_0_1_t1 >= 2 : leq_var_0_1 -> 1 ;
+// @leq_var_0_2_Lreif   red   2  leq_var_0_2   1  var_0_2_t0  1 ~var_0_2_t1 >= 2 : leq_var_0_2 -> 1 ;
+//
+// @geq_var_0_0_Rreif   red   1 ~geq_var_0_0   1  var_0_0_t0  1 ~var_0_0_t1 >= 1 : geq_var_0_0 -> 0 ;
+// @geq_var_0_1_Rreif   red   1 ~geq_var_0_1   1  var_0_1_t0  1 ~var_0_1_t1 >= 1 : geq_var_0_1 -> 0 ;
+// @geq_var_0_2_Rreif   red   1 ~geq_var_0_2   1  var_0_2_t0  1 ~var_0_2_t1 >= 1 : geq_var_0_2 -> 0 ;
+// @geq_var_0_0_Lreif   red   2  geq_var_0_0   1 ~var_0_0_t0  1  var_0_0_t1 >= 2 : geq_var_0_0 -> 1 ;
+// @geq_var_0_1_Lreif   red   2  geq_var_0_1   1 ~var_0_1_t0  1  var_0_1_t1 >= 2 : geq_var_0_1 -> 1 ;
+// @geq_var_0_2_Lreif   red   2  geq_var_0_2   1 ~var_0_2_t0  1  var_0_2_t1 >= 2 : geq_var_0_2 -> 1 ;
+//
+// @eq_var_0_0_Rreif   red   2 ~eq_var_0_0   1  geq_var_0_0  1  leq_var_0_0 >= 2 : eq_var_0_0 -> 0 ;
+// @eq_var_0_1_Rreif   red   2 ~eq_var_0_1   1  geq_var_0_1  1  leq_var_0_1 >= 2 : eq_var_0_1 -> 0 ;
+// @eq_var_0_2_Rreif   red   2 ~eq_var_0_2   1  geq_var_0_2  1  leq_var_0_2 >= 2 : eq_var_0_2 -> 0 ;
+// @eq_var_0_0_Lreif   red   1  eq_var_0_0   1 ~geq_var_0_0  1 ~leq_var_0_0 >= 1 : eq_var_0_0 -> 1 ;
+// @eq_var_0_1_Lreif   red   1  eq_var_0_1   1 ~geq_var_0_1  1 ~leq_var_0_1 >= 1 : eq_var_0_1 -> 1 ;
+// @eq_var_0_2_Lreif   red   1  eq_var_0_2   1 ~geq_var_0_2  1 ~leq_var_0_2 >= 1 : eq_var_0_2 -> 1 ;
+        utils::ProofLog::append_to_proof_log(r_reif.str() , utils::ProofPart::REIFICATION);
         domain_sizes.push_back(domain_size);
         if (utils::is_product_within_limit(
                 num_abstract_states,

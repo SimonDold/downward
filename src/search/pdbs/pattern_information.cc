@@ -25,7 +25,7 @@ bool PatternInformation::information_is_valid() const {
 
 void PatternInformation::create_pdb_if_missing() {
     if (!pdb) {
-        pdb = compute_pdb(task_proxy, pattern);
+        pdb = compute_pdb(task_proxy, pattern); // 
     }
 }
 
@@ -39,7 +39,10 @@ const Pattern &PatternInformation::get_pattern() const {
 }
 
 shared_ptr<PatternDatabase> PatternInformation::get_pdb() {
-    create_pdb_if_missing();
+
+    cout << "ABOUT TO maybe CREATE PDB" << endl;
+    create_pdb_if_missing(); // 
+    cout << "DONE maybe CREATE PDB" << endl;
     return pdb;
 }
 }

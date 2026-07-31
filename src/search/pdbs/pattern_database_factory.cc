@@ -111,9 +111,12 @@ public:
     ~PatternDatabaseFactory() = default;
 
     shared_ptr<PatternDatabase> extract_pdb() {
-        return make_shared<PatternDatabase>(
+        cout << "ABOUT TO EXTRACT PDB" << endl;
+        auto _return = make_shared<PatternDatabase>(
             move(projection),
             move(distances));
+        cout << "DONE TO EXTRACT PDB" << endl;
+        return _return;
     }
 
     vector<vector<OperatorID>> &&extract_wildcard_plan() {
@@ -259,18 +262,40 @@ void consume(VariableProxy var) {
       //\ consume prrof log object
 };
 
+void log_strong_lem32(int concrete_op_id) {
+    ostringstream strong_lem32;
+    strong_lem32 << "@strong_lem32_[op_" << concrete_op_id << "]";
+    strong_lem32 << "   rup   ";
+    strong_lem32 << "1 ~op_" << concrete_op_id;
+    strong_lem32 << "   1 rev_indu_t0  >= 1; % ???";
+
+    utils::ProofLog::append_to_proof_log(strong_lem32.str(), utils::ProofPart::DERIVATION);
+}
+
 };
+
+    cout << "@@@@@@ @@ @ @ @ @ concrete_op_id:" << concrete_op_id << endl;
+
     ProofLogObject_multiply_out proof_log_object(
      projection);
      proof_log_object.init_a(specialization_pairs, concrete_op_id);
         
     if (pos == static_cast<int>(effects_without_pre.size())) {
+        cout << "%%%%%% % % % CASE 1" << endl;
         // All effects without precondition have been checked: insert op.
         if (!eff_pairs.empty()) {
+            cout << "%%%%%% % % % CASE 1.1" << endl;
             operators.push_back(
                 build_abstract_operator(
                     prev_pairs, pre_pairs, eff_pairs,
                     concrete_op_id, cost));
+        } else {
+            // operator related to concrete_op_id is orthogonal to the pattern.
+            cout << "TODO: log lem32" << endl;
+            // this ^ needs state_idx 
+            proof_log_object.log_strong_lem32(concrete_op_id);
+            utils::ProofLog::append_to_proof_log("%log STRAONG (no node) lem32 for orthogonal op 554466", utils::ProofPart::DERIVATION);
+            //utils::ProofLog::append_to_proof_log(to_string(concrete_op_id), utils::ProofPart::DERIVATION);
         }
     } else {
         // For each possible value for the current variable, build an
@@ -300,6 +325,7 @@ void consume(VariableProxy var) {
             }
             specialization_pairs.pop_back();
         }
+        cout << "---------consume" << endl;
         proof_log_object.consume(var);
     }
 }
@@ -368,7 +394,7 @@ void PatternDatabaseFactory::compute_abstract_operators(
             op_cost = operator_costs[op.get_id()];
         }
         build_abstract_operators_for_op(
-            op, op_cost, abstract_ops);
+            op, op_cost, abstract_ops); // 
     }
 }
 
@@ -511,7 +537,8 @@ void PatternDatabaseFactory::compute_distances(
             const AbstractOperator &op,
             int op_id,
             int predecessor,
-            vector<int> distances
+            vector<int> distances,
+            string comment = ""
             ) {
             if (op.get_concrete_op_id() != current_concrete_op_id) {
                 current_concrete_op_id = op.get_concrete_op_id();
@@ -540,8 +567,9 @@ void PatternDatabaseFactory::compute_distances(
                 + projection.get_name() + "[op_" + to_string(op.get_concrete_op_id()) + "] ";
             rup_spai
                 << "  1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances[state_index]+1) << "_t1 "
-                << " 1 rev_indu_t0  >= 1    ; ";
+                << " 1 rev_indu_t0  >= 1    ; " << " % " << comment;
             utils::ProofLog::append_to_proof_log(rup_spai.str(), utils::ProofPart::DERIVATION);
+            cout << "PLOG: " << rup_spai.str() << "comment:" << comment << endl;
             //\ log_single_rev_transition
         }
 
@@ -672,6 +700,9 @@ void PatternDatabaseFactory::compute_distances(
         proof_log_object.log_rev_indu(state_index, applicable_operator_ids.size());
 
         for (int op_id : applicable_operator_ids) {
+            cout << "####applicable_ops##### op_id: " << op_id << endl;
+        }
+        for (int op_id : applicable_operator_ids) {
             const AbstractOperator &op = abstract_ops[op_id];
             int predecessor = state_index + op.get_hash_effect();
 
@@ -679,12 +710,19 @@ void PatternDatabaseFactory::compute_distances(
 
             int alternative_cost = distances[state_index] + op.get_cost();
             if (alternative_cost < distances[predecessor]) {
+                cout << "* * * * * CASE 1 op_id" << op_id << endl;
                 proof_log_object.update_b(distances, predecessor, alternative_cost, op);
                 distances[predecessor] = alternative_cost;
                 pq.push(alternative_cost, predecessor);
                 if (compute_plan) {
                     generating_op_ids[predecessor] = op_id;
                 }
+            } else {
+                cout << "* * * * * CASE 2 op_id" << op_id << endl;
+                cout << "TODO log spai_lem32" << endl
+                     << "state_idx: " << to_string(state_index)
+                     << "op_id: " << op_id << endl;
+                proof_log_object.log_single_rev_transition(state_index, op, op_id, predecessor, distances, "711711");
             }
         }
         proof_log_object.log_single_rev_state(state_index, distances[state_index]);
