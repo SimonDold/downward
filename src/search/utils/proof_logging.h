@@ -38,7 +38,7 @@ public:
     static void append_to_invariant_left(const std::string& summand);
     static void append_to_invariant_prime_right(const std::string& summand);
     static void append_to_invariant_prime_left(const std::string& summand);
-    static void add_spent_geq_x_bireification(const int x, std::string comment="add_spent_geq_x_bireification");
+    static void add_spent_geq_x_bireification(const int x, std::string comment);
     static void add_balance_leq_x_bireification(const int x, std::string comment);
     static void bireif_balance_leq(int return_value, std::string comment="bireif_balance_leq");
     static void bireif_conjunction(std::string reif_var, std::vector<std::string> conjuncts, std::string comment);

@@ -153,7 +153,7 @@ void proof_log_node_Rreif(SearchNode node, bool is_balance, bool is_prime){
     s.unpack();
     assert( s.get_id_int() >= 0);
     ostringstream  reif_var, conjunct_1, conjunct_2;
-    reif_var << "node[" << s.get_id_int() << "[ASCII44]" << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "]" << utils::ProofLog::put_prime(is_prime);
+    reif_var << "node[s" << s.get_id_int() << "[ASCII44]" << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "]" << utils::ProofLog::put_prime(is_prime);
     conjunct_1 << "state[" << s.get_id_int() << "]"                                 << utils::ProofLog::put_prime(is_prime) ;
     conjunct_2 << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_real_g() << utils::ProofLog::put_prime(is_prime) ;
     vector<string> conjuncts = {conjunct_1.str(), conjunct_2.str()};
@@ -183,15 +183,15 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
     assert( s.get_id_int() >= 0);
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]_t0 " << " " << " 1  node[" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
-    l_line << " 1  phi_" + phi_name + "[" << s.get_id_int() << "]_t0 " << " " << " 1 ~node[" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
+    r_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]_t0 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
+    l_line << " 1  phi_" + phi_name + "[" << s.get_id_int() << "]_t0 " << " " << " 1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
     // TODOprooflog remove code duplicate
     ostringstream r_prime_line;
     ostringstream l_prime_line;
-    r_prime_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]_t1 " << " " << " 1  node[" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
-    l_prime_line << " 1  phi_" + phi_name + "[" << s.get_id_int() << "]_t1 " << " " << " 1 ~node[" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
+    r_prime_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]_t1 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
+    l_prime_line << " 1  phi_" + phi_name + "[" << s.get_id_int() << "]_t1 " << " " << " 1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
     utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
     utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
@@ -246,14 +246,14 @@ void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNo
     s.unpack();
             assert( s.get_id_int() >= 0);
     ostringstream line;
-    line << endl << "@lem5  rup  1 ~node[" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~op_" << operators[op_id].get_id() << "  1 invar_t1 >= 1;";
+    line << endl << "@lem5  rup  1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~op_" << operators[op_id].get_id() << "  1 invar_t1 >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 
 void SearchAlgorithm::proof_log_node_transition_invariant(SearchNode node) {
     State s = node.get_state();
     ostringstream line;
-    line << "@lem6  rup  1 ~node[" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~transition  1 invar_t1 >= 1;";
+    line << "@lem6  rup  1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~transition  1 invar_t1 >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
 }
 

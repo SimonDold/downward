@@ -119,28 +119,25 @@ void Heuristic::certify_heuristic(int return_value, State s, string comment) con
         s.unpack();
         assert(s.get_id_int() >= 0);
         comment = comment  + " h(s"+to_string(s.get_id_int())+")="+to_string(return_value);
-        utils::ProofLog::add_balance_leq_x_bireification(return_value, comment);
+        utils::ProofLog::bireif_balance_leq(return_value-1, comment); 
+        utils::ProofLog::bireif_balance_leq(return_value, comment); 
 
 
         for (int i=0; i<=1 ; ++i){
-        // Bi-Reif node: 
-            ostringstream r_node;
-            r_node  << endl << " % heuristic NODE: Rreif of " << (i ? "_t0" : "_t1") << "node[" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "] " << endl;
-            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::REIFICATION, comment);
-            utils::ProofLog::bireif_balance_leq(return_value, comment);
+        // Bi-Reif node:
             ostringstream reif_var, conj1, conj2;
-            reif_var << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t0" : "_t1");
-            conj1<< "state[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1") ;
-            conj2<< "balance_leq_" << return_value    << (i ? "_t0" : "_t1") ;
+            reif_var << "node[s" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t1" : "_t0");
+            conj1<< "state[" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") ;
+            conj2<< "balance_leq_" << return_value    << (i ? "_t1" : "_t0") ;
             vector<string> conjuncts = {conj1.str(), conj2.str()};
             utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, comment);
         }
     // heuristic lemmas
     ostringstream entry_lemma;
     entry_lemma << endl << "% {" + get_description() + "} heuristic proofs:  AFTER_CH_1 btw " << endl
-        << " rup  1 ~node[" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t0  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t0  >= 1 ;";
+        << " rup  1 ~node[s" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t0  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t0  >= 1 ;";
     ostringstream entry_prime_lemma;
-    entry_prime_lemma << " rup  1 ~node[" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t1  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t1  >= 1 ;";
+    entry_prime_lemma << " rup  1 ~node[s" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t1  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t1  >= 1 ;";
     ostringstream goal_lemma;
     goal_lemma << " rup  1 ~goal_t0  1 balance_leq_" << 0 << "_t0  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]_t0  >= 1 ;";
     ostringstream transition_lemma;

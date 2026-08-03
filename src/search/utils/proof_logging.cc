@@ -304,7 +304,7 @@ void ProofLog::append_files_to_proof_log(std::vector<std::string> files, ProofPa
     }
 }
 
-void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance, string comment="add_spent_geq_x_bireification_aux"){
+void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance, string comment){
     string e = (is_prime ? "e_t1" : "e_t0");
     ostringstream reif_var;
     reif_var << (balance ? "balance_geq_" : "spent_geq_") << utils::ProofLog::veripbfy(x) << utils::ProofLog::put_prime(is_prime);
@@ -370,15 +370,15 @@ void ProofLog::finalize_lemmas(int optimal_cost, string comment) {
     append_to_proof_log(l_budget.str(), ProofPart::BUDGET, comment);
 
     // ensure to define spent_geq_optimal_cost and balance_leq_0
-    add_spent_geq_x_bireification_aux(optimal_cost, false, false);
-    add_spent_geq_x_bireification_aux(optimal_cost, true, false);
-    add_spent_geq_x_bireification_aux(0, false, true);
-    add_spent_geq_x_bireification_aux(0, true, true);
+    add_spent_geq_x_bireification_aux(optimal_cost, false, false, comment);
+    add_spent_geq_x_bireification_aux(optimal_cost, true, false, comment);
+    add_spent_geq_x_bireification_aux(0, false, true, comment);
+    add_spent_geq_x_bireification_aux(0, true, true, comment);
     // define spent_geq_optimal_cost+1 and balance_leq_-1
-    add_spent_geq_x_bireification_aux(optimal_cost+1, false, false);
-    add_spent_geq_x_bireification_aux(optimal_cost+1, true, false);
-    add_spent_geq_x_bireification_aux(-1, false, true);
-    add_spent_geq_x_bireification_aux(-1, true, true);
+    add_spent_geq_x_bireification_aux(optimal_cost+1, false, false, comment);
+    add_spent_geq_x_bireification_aux(optimal_cost+1, true, false, comment);
+    add_spent_geq_x_bireification_aux(-1, false, true, comment);
+    add_spent_geq_x_bireification_aux(-1, true, true, comment);
 
 
 

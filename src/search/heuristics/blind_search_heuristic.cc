@@ -41,7 +41,7 @@ void BlindSearchHeuristic::certify_heuristic_blind(int return_value, State  ance
         // Bi-Reif phi(node,heuristic):
         ostringstream reif_var, conj1, conj2;
         reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
-        conj1 << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t0" : "_t1");
+        conj1 << "node[s" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t0" : "_t1");
         conj2 << "balance_leq_" << 0 << (i ? "_t0" : "_t1");
         utils::ProofLog::bireif_disjunction(reif_var.str(), vector<std::string>({conj1.str(), conj2.str()}), comment);
 

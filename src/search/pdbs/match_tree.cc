@@ -189,7 +189,7 @@ string MatchTree::abstract_state(int state_index) const {
 
 string MatchTree::abstract_state_with_balance_geq(int state_index, int balance) const {
     ostringstream name;
-    name << "node["<< abstract_state(state_index) <<"[ASCII44]balance_geq_" << balance << "]";
+    name << "node[s"<< abstract_state(state_index) <<"[ASCII44]balance_geq_" << balance << "]";
     return name.str();
 }
 

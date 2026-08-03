@@ -76,7 +76,7 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
                 << "[" << state_id << "]_t0 "
             << " rup "
-            << " 1 ~node[" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
+            << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
             << " 1 phi_" << h_name << "[" << state_id << "]_t0 "
             << " >= 1 ; ";
 
@@ -84,7 +84,7 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
                 << "[" << state_id << "]_t1 "
             << " rup "
-            << " 1 ~node[" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
+            << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
             << " 1 phi_" << h_name << "[" << state_id << "]_t1 "
             << " >= 1 ; ";
 
