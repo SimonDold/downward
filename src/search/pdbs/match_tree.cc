@@ -145,7 +145,6 @@ void MatchTree::get_applicable_operator_ids_recursive(
                         node->applicable_operator_ids.end());
 
     if (node->is_leaf_node()) {
-        cout << "### ## is leaf node: " << node->var_id << endl;
         return;
     }
 
@@ -165,25 +164,22 @@ void MatchTree::get_applicable_operator_ids_recursive(
 
 void MatchTree::get_applicable_operator_ids(
     int state_index, vector<int> &operator_ids) const {
-    // cout << "TODO: figure out how orthogonal operators are 'skipped' " 
-    cout << "###168### operators_id size before: " << operator_ids.size() << endl;
     if (root)
         get_applicable_operator_ids_recursive(root, state_index, operator_ids);
-    cout << "###168### operators_id size after: " << operator_ids.size() << endl;
 }
 
-void MatchTree::bireif_state(int state_index) const{
-    projection.bireif_abstract_state(state_index);
+void MatchTree::bireif_state(int state_index, string comment) const{
+    projection.bireif_abstract_state(state_index, comment);
 }
 
-void MatchTree::bireif_abstract_state_with_balance_geq(int state_index, int balance) const {
+void MatchTree::bireif_abstract_state_with_balance_geq(int state_index, int balance, string comment) const {
     for (int i=0; i<=1; ++i) {
         utils::ProofLog::bireif_balance_leq(balance-1);
         ostringstream reif_var, conj1, conj2;
         reif_var << abstract_state_with_balance_geq(state_index, balance)  << (i ? "_t1" : "_t0");
         conj1 << "a_" << projection.get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");
         conj2 << "balance_geq_" << balance << (i ? "_t1" : "_t0");
-        utils::ProofLog::bireif_conjunction(reif_var.str(), {conj1.str(),conj2.str()}, "matchtree189");
+        utils::ProofLog::bireif_conjunction(reif_var.str(), {conj1.str(),conj2.str()}, comment);
     }
 }
 

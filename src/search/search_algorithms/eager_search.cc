@@ -45,15 +45,15 @@ EagerSearch::EagerSearch(
 
 void EagerSearch::add_phi_to_invar(SearchNode node) {
     string h_name = open_list->get_priority_evaluator_name();
-    int state_id = node.get_state().get_id_int(); // TODOprooflogging do not call this again in this function.    
+    int state_id = node.get_state().get_id_int();
     for (int i=0; i<=1; ++i) {
             ostringstream r_line;
             ostringstream l_line;
             r_line << " 1  phi_" + open_list->get_priority_evaluator_name()
-                    + "[" << node.get_state().get_id_int() << "]" << (i ? "_t1" : "_t0") 
+                    + "[" << state_id << "]" << (i ? "_t1" : "_t0")
                     << " ";
             l_line << " 1 ~phi_" + open_list->get_priority_evaluator_name()
-                    + "[" << node.get_state().get_id_int() << "]" << (i ? "_t1" : "_t0") 
+                    + "[" << state_id << "]" << (i ? "_t1" : "_t0")
                     << " ";
             if (i){
                 utils::ProofLog::append_to_invariant_prime_right(r_line.str());
@@ -66,7 +66,7 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
 
         ostringstream entry_lemma_comment;
         entry_lemma_comment << "% h entry state lemma here?\n"
-                << "% state = " + to_string(node.get_state().get_id_int()) + "\n"
+                << "% state = " + to_string(state_id) + "\n"
                 << "% g = " + to_string(node.get_real_g());
         utils::ProofLog::append_to_proof_log( 
                 entry_lemma_comment.str()
@@ -74,7 +74,7 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
         ostringstream entry_lemma_spent, prime_entry_lemma_spent;
         entry_lemma_spent
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[" << node.get_state().get_id_int() << "]_t0 "
+                << "[" << state_id << "]_t0 "
             << " rup "
             << " 1 ~node[" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
             << " 1 phi_" << h_name << "[" << state_id << "]_t0 "
@@ -82,7 +82,7 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
 
         prime_entry_lemma_spent
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[" << node.get_state().get_id_int() << "]_t1 "
+                << "[" << state_id << "]_t1 "
             << " rup "
             << " 1 ~node[" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
             << " 1 phi_" << h_name << "[" << state_id << "]_t1 "
@@ -95,8 +95,8 @@ void EagerSearch::initialize() {
         << (reopen_closed_nodes ? " with" : " without")
         << " reopening closed nodes, (real) bound = " << bound
         << endl;
-    proof_log_initialize_invar();
-    utils::ProofLog::add_spent_geq_x_bireification(0);
+    proof_log_initialize_invar("EagerSearch::initialize");
+    utils::ProofLog::add_spent_geq_x_bireification(0, "EagerSearch::initialize");
 
     assert(open_list);
 
@@ -131,7 +131,7 @@ void EagerSearch::initialize() {
     path_dependent_evaluators.assign(evals.begin(), evals.end());
 
     State initial_state = state_registry.get_initial_state();
-    proof_log_reif_state(initial_state);
+    proof_log_reif_state(initial_state, "EagerSearch::initialize");
     for (Evaluator *evaluator : path_dependent_evaluators) {
         evaluator->notify_initial_state(initial_state);
     }
@@ -234,7 +234,7 @@ SearchStatus EagerSearch::step() {
     const State &s = node->get_state();
     if (check_goal_and_set_plan(s)) {
         proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), statistics.get_dead_end_states(), *node, open_list->get_priority_evaluator_name());
-        utils::ProofLog::finalize_lemmas(node->get_real_g());
+        utils::ProofLog::finalize_lemmas(node->get_real_g(), "EagerSearch::step()");
         return SOLVED;
     }
 

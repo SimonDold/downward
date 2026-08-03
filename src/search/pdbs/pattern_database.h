@@ -42,8 +42,8 @@ public:
         return domain_sizes[pattern_position];
     }
 
-    void bireif_abstract_state(int state_index) const;
-    void bireif_abstract_state_with_balance(int abstract_state_index, int balance) const;
+    void bireif_abstract_state(int state_index, std::string comment) const;
+    void bireif_abstract_state_with_balance(int abstract_state_index, int balance, std::string comment) const;
     std::string get_name() const;
     std::string abstract_state(int state_index) const;
 };

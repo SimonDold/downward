@@ -23,8 +23,33 @@ BlindSearchHeuristic::BlindSearchHeuristic(
     if (log.is_at_least_normal()) {
         log << "Initializing blind search heuristic..." << endl;
     }
-    utils::ProofLog::bireif_balance_leq(0);
 }
+
+
+void BlindSearchHeuristic::certify_heuristic_blind(int return_value, State  ancestor_state, string comment) {
+    State s = ancestor_state;
+    s.unpack();
+    assert( s.get_id_int() >= 0);
+    comment = comment + " h(s"+to_string(s.get_id_int())+")="+to_string(return_value);
+    int bits = utils::ProofLog::get_proof_log_bits();
+    ostringstream derivation_line;
+    derivation_line << endl << "pol  @balance_leq_" << (return_value) << "_t0_Rreif  @balance_leq_" << (return_value) << "_t1_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
+    assert((1 << bits)>=0); // no overflow
+    utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION, comment);
+
+    for (int i=0; i<=1 ; ++i){
+        // Bi-Reif phi(node,heuristic):
+        ostringstream reif_var, conj1, conj2;
+        reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
+        conj1 << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t0" : "_t1");
+        conj2 << "balance_leq_" << 0 << (i ? "_t0" : "_t1");
+        utils::ProofLog::bireif_disjunction(reif_var.str(), vector<std::string>({conj1.str(), conj2.str()}), comment);
+
+    }
+
+}
+
+
 
 int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
     State state = convert_ancestor_state(ancestor_state);
@@ -34,39 +59,20 @@ int BlindSearchHeuristic::compute_heuristic(const State &ancestor_state) {
     } else {
         return_value = min_operator_cost;
     }
-    certify_heuristic(return_value, ancestor_state);
+    certify_heuristic(return_value, ancestor_state, "BlindSearchHeuristic::compute_heuristic - certify_heuristic");
+    certify_heuristic_blind(return_value, ancestor_state, "BlindSearchHeuristic::compute_heuristic - certify_heuristic_blind");
         /*
         add reification of phi[state,g] but i dont have the g value :(
         atm i am cheating inside of TieBreakingOpenList<Entry>::do_insertion
         */
 
         // TODOprooflogging move to encapsulated method.
-        State s = ancestor_state;
-        s.unpack();
-            assert( s.get_id_int() >= 0);
-               // this belongs to blind heuristic
-        utils::ProofLog::add_balance_leq_x_bireification(return_value);
-        int bits = utils::ProofLog::get_proof_log_bits();
-        ostringstream derivation_line;
-        derivation_line << endl << "pol  @balance_leq_" << (return_value) << "_t0_Rreif  @balance_leq_" << (return_value) << "_t1_Lreif  +  @delta_cost_geq_MIN_Rreif  +  " << (1 << bits) << " d ;";
-        assert((1 << bits)>=0); // no overflow
-        utils::ProofLog::append_to_proof_log(derivation_line.str(), utils::ProofPart::DERIVATION);
-
-        
-        for (int i=0; i<=1 ; ++i){
-
-        // Bi-Reif phi(node,heuristic): 
-
-            ostringstream reif_var, conj1, conj2;
-            reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
-            conj1 << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t0" : "_t1");
-            conj2 << "balance_leq_" << 0 << (i ? "_t0" : "_t1");
-            utils::ProofLog::bireif_disjunction(reif_var.str(), vector<std::string>({conj1.str(), conj2.str()}), "blind.cc");
-
-        }
-
     return return_value;
 }
+
+
+
+
 
 class BlindSearchHeuristicFeature
     : public plugins::TypedFeature<Evaluator, BlindSearchHeuristic> {

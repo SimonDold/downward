@@ -160,7 +160,6 @@ static vector<FactPair> read_facts(istream &in) {
         FactPair condition = FactPair::no_fact;
         in >> condition.var >> condition.value;
         conditions.push_back(condition);
-	std::cout << i << ": " << condition.var << ", " << condition.value << std::endl;
 	std::ostringstream s;
 	s << i << ": " << condition.var << ", " << condition.value << ";";
 	utils::ProofLog::append_to_opb(s);
@@ -176,7 +175,7 @@ ExplicitVariable::ExplicitVariable(istream &in) {
     if (axiom_layer == -1) {
         ++proof_log_var_count;
     }
-    
+
     in >> domain_size;
     in >> ws;
     fact_names.resize(domain_size);

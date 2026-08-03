@@ -114,33 +114,26 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
 }
 
 
-void Heuristic::certify_heuristic(int return_value, State s) const {
+void Heuristic::certify_heuristic(int return_value, State s, string comment) const {
 
-        utils::ProofLog::append_to_proof_log(
-        "%CH1 just evaluated h(s) with \n%% h=" + get_description() + " "
-        + "\n%%CH1 s = " + to_string(s.get_id_int()) + " "
-        + "\n%%CH1 h(s) = " + to_string(return_value)
-        , utils::ProofPart::REIFICATION);
-        
-        
         s.unpack();
-            assert( s.get_id_int() >= 0);
-            
-        utils::ProofLog::add_balance_leq_x_bireification(return_value);
+        assert(s.get_id_int() >= 0);
+        comment = comment  + " h(s"+to_string(s.get_id_int())+")="+to_string(return_value);
+        utils::ProofLog::add_balance_leq_x_bireification(return_value, comment);
 
 
         for (int i=0; i<=1 ; ++i){
         // Bi-Reif node: 
             ostringstream r_node;
             r_node  << endl << " % heuristic NODE: Rreif of " << (i ? "_t0" : "_t1") << "node[" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "] " << endl;
-            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::REIFICATION);
-            utils::ProofLog::bireif_balance_leq(return_value);
+            utils::ProofLog::append_to_proof_log(r_node.str(), utils::ProofPart::REIFICATION, comment);
+            utils::ProofLog::bireif_balance_leq(return_value, comment);
             ostringstream reif_var, conj1, conj2;
             reif_var << "node[" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t0" : "_t1");
             conj1<< "state[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1") ;
             conj2<< "balance_leq_" << return_value    << (i ? "_t0" : "_t1") ;
             vector<string> conjuncts = {conj1.str(), conj2.str()};
-            utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "heurisitc.cc163");
+            utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, comment);
         }
     // heuristic lemmas
     ostringstream entry_lemma;
@@ -153,11 +146,10 @@ void Heuristic::certify_heuristic(int return_value, State s) const {
     ostringstream transition_lemma;
     transition_lemma << " rup  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]_t0  1 ~transition  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t1  >= 1 ;";
 
-    utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION);
-    utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION);
-    utils::ProofLog::append_to_proof_log(goal_lemma.str(), utils::ProofPart::DERIVATION);
-    utils::ProofLog::append_to_proof_log(transition_lemma.str(), utils::ProofPart::DERIVATION);
-    
+    utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION, comment);
+    utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION, comment);
+    utils::ProofLog::append_to_proof_log(goal_lemma.str(), utils::ProofPart::DERIVATION, comment);
+    utils::ProofLog::append_to_proof_log(transition_lemma.str(), utils::ProofPart::DERIVATION, comment);
 }
 
 bool Heuristic::does_cache_estimates() const {

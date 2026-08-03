@@ -167,14 +167,14 @@ void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment
     State s = node.get_state();
     s.unpack();
     assert( s.get_id_int() >= 0);
-    utils::ProofLog::add_balance_leq_x_bireification(node.get_g());
+    utils::ProofLog::add_balance_leq_x_bireification(node.get_g(), comment);
 }
 
-void SearchAlgorithm::proof_log_initialize_invar(){
-    utils::ProofLog::append_to_invariant_right("@invar_t0_Rreif red ");
-    utils::ProofLog::append_to_invariant_left( "@invar_t0_Lreif red ");
-    utils::ProofLog::append_to_invariant_prime_right("@invar_t1_Rreif red ");
-    utils::ProofLog::append_to_invariant_prime_left( "@invar_t1_Lreif red ");
+void SearchAlgorithm::proof_log_initialize_invar(string comment){
+    utils::ProofLog::append_to_invariant_right("% v " + comment + "\n" + "@invar_t0_Rreif red ");
+    utils::ProofLog::append_to_invariant_left( "% v " + comment + "\n" + "@invar_t0_Lreif red ");
+    utils::ProofLog::append_to_invariant_prime_right("% v " + comment + "\n" + "@invar_t1_Rreif red ");
+    utils::ProofLog::append_to_invariant_prime_left( "% v " + comment + "\n" + "@invar_t1_Lreif red ");
 }
 
 void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
@@ -226,17 +226,17 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, int 
     }
 }
 
-void SearchAlgorithm::proof_log_reif_state(State s){ //TODOprooflogging This should happen in the state constructor... but it is complicated with the packed and partially packt constructors
+void SearchAlgorithm::proof_log_reif_state(State s, string comment){ //TODOprooflogging This should happen in the state constructor... but it is complicated with the packed and partially packt constructors
     s.unpack();
     assert(s.get_id_int() >= 0);
     vector<int> values = s.get_unpacked_values();
     vector<string> conjuncts(values.size());
     for (bool p : {false, true}) {
-        string prime = utils::ProofLog::put_prime(p); 
+        string prime = utils::ProofLog::put_prime(p);
         for (int i = 0; i < values.size(); ++i){
             conjuncts[i] = "var_" + to_string(i) + "_" + to_string(values[i]) + prime;
         }
-        utils::ProofLog::bireif_conjunction("state["+to_string(s.get_id_int())+"]"+prime, conjuncts, "bireif state");
+        utils::ProofLog::bireif_conjunction("state["+to_string(s.get_id_int())+"]"+prime, conjuncts, comment);
     }
 }
 

@@ -1,5 +1,7 @@
 #include "proof_logging.h"
 
+#include "logging.h"
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -98,7 +100,7 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part, con
     }
     file << line << endl;
     if (!comment.empty()){
-        file << "% " <<comment << endl;
+        file << "% ^ " <<comment << endl;
     }
     file.close();
 }
@@ -108,7 +110,7 @@ void ProofLog::append_comment_to_proof_log(const std::string& comment) {
     append_to_proof_log("%"+comment, ProofPart::DERIVATION);
 }
 
-void ProofLog::append_to_proof_file(const string &line, const string &file_name)
+void ProofLog::append_to_proof_file(const string &line, const string &file_name, string)
 {
     ofstream file(
         file_name
@@ -175,45 +177,8 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
     file.close();
 }
 
-void set_vector_sum(vector<string> vectors, int x, string comment="set_vector_sum") {
-    ProofLog::append_to_proof_log("%"+comment, ProofPart::REIFICATION);
-
-    assert(x >= 0);
-    int bits = ProofLog::get_proof_log_bits();
-    int maxint = (1 << bits) - 1;
-        ostringstream r_reif, r_witness;
-        ostringstream l_reif, l_witness;
-            r_reif << " red ";
-            l_reif << "            red ";
-        for (string vector : vectors){
-            bool negative = vector[0] == '-';
-            string vec_name = (negative ? vector.substr(1,vector.length()) : vector);
-            if (negative){
-                x += maxint;
-            }
-            assert(vec_name.size()>0);
-            for (int i = 0; i < bits; ++i) {
-                r_reif << " " << (1 << i) << " " << (negative ? "~" : " ") << vec_name << "_" << i << " ";
-                r_witness << " " << vec_name << "_" << i << " -> " << (negative ? "0" : "1") << " "; 
-                l_reif << " " << (1 << i) << " " << (negative ? " " : "~") << vec_name << "_" << i << " ";  
-                l_witness << " " << vec_name << "_" << i << " -> " << (negative ? "1" : "0") << " ";
-            }
-        }
-        assert(x >= 0);
-        int A = x;
-        int M = (vectors.size()*maxint);
-        r_reif << " >= " << x << " " ;
-        l_reif << " >= " << M-A+1 << " " ;
-        
-        ProofLog::append_to_proof_log("% A:" + to_string(A) + "M:" + to_string(M), ProofPart::REIFICATION);
-
-        ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION);
-        ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION);
-
-}
-
 void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, string comment="bireif_vector_sum") {
-    ProofLog::append_to_proof_log("%"+comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("% v " + comment, ProofPart::REIFICATION);
 
         int bits = ProofLog::get_proof_log_bits();
         int maxint = (1 << bits) - 1;
@@ -237,20 +202,15 @@ void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, strin
                 r_reif << " " << (1 << i) << " " << (negative ? "~" : " ") << vec_name << "_" << i << postfix << " ";  
                 l_reif << " " << (1 << i) << " " << (negative ? " " : "~") << vec_name << "_" << i << postfix << " ";  
             }
-            ProofLog::append_to_proof_log("% renaming: " + vector + "->" + vec_name + " and postfix: '" + postfix + "' ", ProofPart::REIFICATION);
         }
         int A = bound;
         int M = (vectors.size()*maxint);
-        //r_reif << " >= " << x << " " ;
-        //l_reif << " >= " << M-A+1 << " " ;
-        
-        ProofLog::append_to_proof_log("% A:" + to_string(A) + "M:" + to_string(M), ProofPart::REIFICATION);
 
         r_reif <<   A   << " ~" << reif_var << " >= " <<   A   << " : " << reif_var << " -> 0 ;";
         l_reif << M-A+1 << "  " << reif_var << " >= " << M-A+1 << " : " << reif_var << " -> 1 ;";
 
-        ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION);
-        ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION);
+        ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION, comment);
+        ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION, comment);
 }
 
 string format(string var) {
@@ -277,7 +237,7 @@ string ProofLog::veripbfy(int x) {
 
 
 void bireif_flat_formula(string reif_var, vector<string> elements, bool is_disjunction, string comment="bireif_formla") {
-    ProofLog::append_to_proof_log("%"+comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("% v "+comment, ProofPart::REIFICATION);
     ostringstream r_reif, l_reif;
     assert(reif_var.size() > 0);
     r_reif << "@" << reif_var << "_Rreif " << " red ";
@@ -289,8 +249,8 @@ void bireif_flat_formula(string reif_var, vector<string> elements, bool is_disju
     int A = elements.size();
     r_reif << " " << (is_disjunction ? 1 : A) << " ~" << reif_var << " >= " << (is_disjunction ? 1 : A) << " : " << reif_var << " -> 0 ;";
     l_reif << " " << (is_disjunction ? A : 1) << "  " << reif_var << " >= " << (is_disjunction ? A : 1) << " : " << reif_var << " -> 1 ;";
-    ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION);
-    ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log(r_reif.str() , ProofPart::REIFICATION, comment);
+    ProofLog::append_to_proof_log(l_reif.str() , ProofPart::REIFICATION, comment);
 }
 
 void ProofLog::bireif_conjunction(string reif_var, vector<string> conjuncts, string comment="bireif_conjunction") {
@@ -344,37 +304,37 @@ void ProofLog::append_files_to_proof_log(std::vector<std::string> files, ProofPa
     }
 }
 
-void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance){
+void add_spent_geq_x_bireification_aux(const int x, bool is_prime, bool balance, string comment="add_spent_geq_x_bireification_aux"){
     string e = (is_prime ? "e_t1" : "e_t0");
     ostringstream reif_var;
     reif_var << (balance ? "balance_geq_" : "spent_geq_") << utils::ProofLog::veripbfy(x) << utils::ProofLog::put_prime(is_prime);
     int bits = ProofLog::get_proof_log_bits();
     int maxint = (1 << bits) -1;
     assert(x<maxint);
-    bireif_vector_sum(reif_var.str(), (balance ? vector<string>{"b", "-"+e} : vector<string>{e}), x, "add_spent_geq_x_bireif_aux");
+    bireif_vector_sum(reif_var.str(), (balance ? vector<string>{"b", "-"+e} : vector<string>{e}), x, comment);
 
     // bireif of inverse statement  b_leq_2 iff ~b_geq_3    sp_geq_2 iff ~sp_leq_1
     ostringstream reif_var2, conjunct;
     reif_var2 << (balance ? "balance_leq_" : "spend_leq_") << utils::ProofLog::veripbfy(x - 1) << utils::ProofLog::put_prime(is_prime);
     conjunct << "~" << (balance ? "balance_geq_" : "spend_geq_") << utils::ProofLog::veripbfy(x) << utils::ProofLog::put_prime(is_prime);
-    ProofLog::bireif_conjunction(reif_var2.str(), vector<string>({conjunct.str()}));
+    ProofLog::bireif_conjunction(reif_var2.str(), vector<string>({conjunct.str()}), comment);
 
 }
 
-void ProofLog::bireif_balance_leq(int x) {
-    add_spent_geq_x_bireification_aux(x+1, false, true);
-    add_spent_geq_x_bireification_aux(x+1, true, true);
+void ProofLog::bireif_balance_leq(int x, string comment) {
+    add_spent_geq_x_bireification_aux(x+1, false, true, comment);
+    add_spent_geq_x_bireification_aux(x+1, true, true, comment);
 
 }
 
-void ProofLog::add_spent_geq_x_bireification(const int x){
-    add_spent_geq_x_bireification_aux(x, false, false);
-    add_spent_geq_x_bireification_aux(x, true, false);
+void ProofLog::add_spent_geq_x_bireification(const int x, string comment){
+    add_spent_geq_x_bireification_aux(x, false, false, comment);
+    add_spent_geq_x_bireification_aux(x, true, false, comment);
 }
 
-void ProofLog::add_balance_leq_x_bireification(const int x){
-    add_spent_geq_x_bireification_aux(x, false, true);
-    add_spent_geq_x_bireification_aux(x, true, true);
+void ProofLog::add_balance_leq_x_bireification(const int x, string comment){
+    add_spent_geq_x_bireification_aux(x, false, true, comment);
+    add_spent_geq_x_bireification_aux(x, true, true, comment);
 }
 
 
@@ -382,7 +342,7 @@ int get_ith_bit_of_x(int i, int x) {
      return (x & (1 << i)) != 0;
 }
 
-void ProofLog::finalize_lemmas(int optimal_cost) {
+void ProofLog::finalize_lemmas(int optimal_cost, string comment) {
 
     // TODOprooflogging remove this:
         append_to_proof_log("% ensure non empty REIF file", ProofPart::REIFICATION);
@@ -391,7 +351,7 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     int bits = get_proof_log_bits();
     ostringstream r_budget;
     ostringstream l_budget;
-    r_budget << "% varcount: " << proof_log_var_count << endl << "% max cost bits: " << proof_log_max_cost_bits << endl; 
+    r_budget << "% varcount: " << proof_log_var_count << endl << "% max cost bits: " << proof_log_max_cost_bits << endl << endl;
     r_budget << "@budget_Rreif  red ";
     l_budget << "@budget_Lreif  red ";
     for (int i = bits - 1; i >= 0; --i) {
@@ -406,8 +366,8 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
     }
     r_budget << " ;";
     l_budget << " ;";
-    append_to_proof_log(r_budget.str(), ProofPart::BUDGET);
-    append_to_proof_log(l_budget.str(), ProofPart::BUDGET);
+    append_to_proof_log(r_budget.str(), ProofPart::BUDGET, comment);
+    append_to_proof_log(l_budget.str(), ProofPart::BUDGET, comment);
 
     // ensure to define spent_geq_optimal_cost and balance_leq_0
     add_spent_geq_x_bireification_aux(optimal_cost, false, false);
@@ -423,44 +383,38 @@ void ProofLog::finalize_lemmas(int optimal_cost) {
 
 
     ostringstream spent_all;
-    spent_all << "pol  @budget_Lreif  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost << "_t0_Rreif + @balance_geq_1_t0_Rreif + ;"
-        << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
-        << "rup 1 ~spent_geq_" << optimal_cost << "_t0  1 balance_leq_0_t0  >= 1 : -1 ;";
-    append_to_proof_log(spent_all.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
+    spent_all << "pol  @budget_Lreif  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost << "_t0_Rreif + @balance_geq_1_t0_Rreif + ;" << "\n % proof_logging.cc finalize_lemmas"
+        << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl
+        << "rup 1 ~spent_geq_" << optimal_cost << "_t0  1 balance_leq_0_t0  >= 1 : -1 ;" << "\n % " << comment;
+    append_to_proof_log(spent_all.str(), ProofPart::REIFICATION, "TODO: should belong to start of derivation."); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream spent_even_more;
-    spent_even_more << "pol  @budget_Lreif  @balance_leq_neg1_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost+1 << "_t0_Rreif + @balance_geq_0_t0_Rreif + ;"
+    spent_even_more << "pol  @budget_Lreif  @balance_leq_neg1_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost+1 << "_t0_Rreif + @balance_geq_0_t0_Rreif + ;" << "\n % proof_logging.cc finalize_lemmas"
         << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
-        << "rup 1 ~spent_geq_" << optimal_cost+1 << "_t0  1 balance_leq_neg1_t0  >= 1 : -1 ;";
+        << "rup 1 ~spent_geq_" << optimal_cost+1 << "_t0  1 balance_leq_neg1_t0  >= 1 : -1 ;" << "\n % proof_logging.cc finalize_lemmas";
     append_to_proof_log(spent_even_more.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream sanity;
     sanity << "% help for sanity check" << endl;
-    sanity << "pol  @balance_leq_neg1_t0_Rreif " << (1 << get_proof_log_bits()) << " *  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " *  + @balance_geq_0_t0_Lreif @balance_geq_1_t0_Rreif + + ;" << endl;
-    sanity << "rup  1 ~balance_leq_neg1_t0  1 balance_leq_0_t0  >= 1 : -1 ;" << endl;
-    sanity << "pol  @spent_geq_" << optimal_cost << "_t0_Lreif  @spent_geq_" << optimal_cost+1 << "_t0_Rreif  + ;" << endl;
-    sanity << "rup  1 spent_geq_" << optimal_cost << "_t0  1 ~spent_geq_" << optimal_cost+1 << "_t0 >= 1 : -1 ;" << endl;
+    sanity << "pol  @balance_leq_neg1_t0_Rreif " << (1 << get_proof_log_bits()) << " *  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " *  + @balance_geq_0_t0_Lreif @balance_geq_1_t0_Rreif + + ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
+    sanity << "rup  1 ~balance_leq_neg1_t0  1 balance_leq_0_t0  >= 1 : -1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
+    sanity << "pol  @spent_geq_" << optimal_cost << "_t0_Lreif  @spent_geq_" << optimal_cost+1 << "_t0_Rreif  + ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
+    sanity << "rup  1 spent_geq_" << optimal_cost << "_t0  1 ~spent_geq_" << optimal_cost+1 << "_t0 >= 1 : -1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
     append_to_proof_log(sanity.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream lemmas;
     lemmas << endl << endl <<"% entry lemma balance" << endl
-        << "@lem3  rup  1 ~s_init_t0  1 balance_leq_" << optimal_cost << "_t0  1 invar_t0  >= 1 ;" << endl
+        << "@lem3  rup  1 ~s_init_t0  1 balance_leq_" << optimal_cost << "_t0  1 invar_t0  >= 1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl
         << "% goal lemma balance" << endl
-        << "@lem4  rup  1 ~goal_t0  1 balance_leq_" << 0 << "_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "@lem4  rup  1 ~goal_t0  1 balance_leq_" << 0 << "_t0  1 ~invar_t0  >= 1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl
         << "% transition lemma balance" << endl
-        << "@lem7  rup  1 ~invar_t0  1 ~transition  1 invar_t1  >= 1 ; " <<endl
+        << "@lem7  rup  1 ~invar_t0  1 ~transition  1 invar_t1  >= 1 ; " << "\n % proof_logging.cc finalize_lemmas" <<endl
         << endl << endl <<"% entry lemma spent" << endl 
-        << "rup  1 ~s_init_t0  1 spent_geq_1_t0  1 invar_t0  >= 1 ;" << endl
+        << "rup  1 ~s_init_t0  1 spent_geq_1_t0  1 invar_t0  >= 1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl
         << "% goal lemma spent" << endl
-        << "rup  1 ~goal_t0  1 spent_geq_" << optimal_cost << "_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "rup  1 ~goal_t0  1 spent_geq_" << optimal_cost << "_t0  1 ~invar_t0  >= 1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl
         << "% transition lemma spent" << endl
-        << "rup  1 ~invar_t0  1 ~transition  1 invar_t1  >= 1 ; " <<endl
-        << "% sanity check: goal lemma spent" << endl
-        << "%notrup  >= 1 ;" << endl
-        << "%notrup  1 ~goal_t0  1 spent_geq_" << optimal_cost+1 << "_t0  1 ~invar_t0  >= 1 ;" << endl
-        << "% sanity check: goal lemma balance" << endl
-        << "%notrup  >= 1 ;" << endl
-        << "%notrup  1 ~goal_t0  1 balance_leq_neg1_t0  1 ~invar_t0  >= 1 ;" << endl
+        << "rup  1 ~invar_t0  1 ~transition  1 invar_t1  >= 1 ; " << "\n % proof_logging.cc finalize_lemmas" <<endl
         << "output NONE ;" << endl
         << "conclusion NONE ;" << endl
         << "end pseudo-Boolean proof ;" << endl;
@@ -503,7 +457,7 @@ bool ProofLog::is_meta_file(string meta_file_name) {
 }
 
 vector<string> ProofLog::get_subfiles(string meta_file_name) {
-	cout << "### get_subfiles of " << meta_file_name << "  ### " << endl;
+  utils::g_log << "get subfiles of " << meta_file_name << "." << endl;
 	std::vector<std::string> subfiles;
     std::ifstream file(meta_file_name);
     
@@ -562,12 +516,12 @@ void ProofLog::finalize_plan_pbp(){
 }
 
 int ProofLog::runCommand(const std::string& command, const std::string& searchString) {
-    cout << "run command: " << command << endl;
+  utils::g_log << "Verify with command: '" << command << "'." << endl;
     try {
         // Create pipe between system command and this process
         string cmd = command + " 2>&1";  // Capture both stdout and stderr
         FILE* pf = popen(cmd.c_str(), "r");
-        
+
         if (!pf) {
             throw std::runtime_error("Failed to open pipe to command");
         }
@@ -577,28 +531,29 @@ int ProofLog::runCommand(const std::string& command, const std::string& searchSt
         char buffer[128];
         while (fgets(buffer, 128, pf)) {
             std::string line(buffer);
-            
+
             // Display output immediately
-            cout << line;
-            
+            utils::g_log << line << endl;
+
             // Add to stored output for checking
             oss << line;
         }
-        
+
 	// Close pipe
         pclose(pf);
 
         // Get command output as string
         std::string output = oss.str();
-        
+
         // Check if output contains the search string
         if (output.find(searchString) == std::string::npos) {
             throw std::runtime_error("Search string not found in command output");
         }
 
         // Return success (0)
+        utils::g_log << "Verification ended." << endl;
         return 0;
-        
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';
         return -1;
@@ -610,11 +565,11 @@ void ProofLog::append_to_plan_pbp(std::string sourceFile) {
     assert(0!=destinationFile.compare(sourceFile));
     std::ifstream source(sourceFile);
     std::ofstream dest(destinationFile, std::ios::app);
-    
+
     if (!source.is_open()) {
         throw std::runtime_error("Unable to open source file: " + sourceFile);
     }
-    
+
     if (!dest.is_open()) {
         throw std::runtime_error("Unable to open destination file: " + destinationFile);
     }

@@ -39,10 +39,7 @@ const Pattern &PatternInformation::get_pattern() const {
 }
 
 shared_ptr<PatternDatabase> PatternInformation::get_pdb() {
-
-    cout << "ABOUT TO maybe CREATE PDB" << endl;
-    create_pdb_if_missing(); // 
-    cout << "DONE maybe CREATE PDB" << endl;
+    create_pdb_if_missing();
     return pdb;
 }
 }

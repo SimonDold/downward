@@ -8,6 +8,7 @@
 #include "utils/system.h"
 #include "utils/timer.h"
 
+#include <chrono>
 #include <iostream>
 
 using namespace std;
@@ -49,20 +50,27 @@ int main(int argc, const char **argv) {
         ExitCode exitcode = search_algorithm->found_solution()
             ? ExitCode::SUCCESS
             : ExitCode::SEARCH_UNSOLVED_INCOMPLETE;
-	utils::ProofLog::create_plan_pbp();
-        utils::ProofLog::merge_proof_log_files(search_algorithm->get_description() + ".prooflog");
-	utils::ProofLog::finalize_plan_pbp();
-	// TODO check proof log
-	//int res = utils::ProofLog::runCommand("veripb --progressBar plan.opb plan.pbp", "VERIFIED NO CONCLUSION");
-	int res = utils::ProofLog::runCommand("veripb plan.opb plan.pbp", "VERIFIED NO CONCLUSION");
-	cout << "res: " << res << endl;
-	if (res == -1 && exitcode == ExitCode::SUCCESS) {
-	    exitcode = ExitCode::PROOFLOG_NOT_ACCEPTED;
-	}
-        exit_with(exitcode);
-    } catch (const utils::ExitException &e) {
-        /* To ensure that all destructors are called before the program exits,
-           we raise an exception in utils::exit_with() and let main() return. */
-        return static_cast<int>(e.get_exitcode());
+    auto verification_start = std::chrono::steady_clock::now();
+    utils::g_log << "Start verification" << endl;
+    utils::ProofLog::create_plan_pbp();
+          utils::ProofLog::merge_proof_log_files(search_algorithm->get_description() + ".prooflog");
+    utils::ProofLog::finalize_plan_pbp();
+    int res = utils::ProofLog::runCommand("veripb plan.opb plan.pbp",
+                                          "VERIFIED NO CONCLUSION");
+    utils::g_log << "Stop verification with result: " << res << endl;
+    auto verification_end = std::chrono::steady_clock::now();
+    double verification_time =
+        std::chrono::duration<double>(verification_end - verification_start).count();
+    utils::g_log << "Verification time: " << verification_time << "s" << endl;
+
+    if (res == -1 && exitcode == ExitCode::SUCCESS) {
+        exitcode = ExitCode::PROOFLOG_NOT_ACCEPTED;
     }
+    cout << "Proof accepted." << endl;
+          exit_with(exitcode);
+      } catch (const utils::ExitException &e) {
+          /* To ensure that all destructors are called before the program exits,
+             we raise an exception in utils::exit_with() and let main() return. */
+          return static_cast<int>(e.get_exitcode());
+      }
 }

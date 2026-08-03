@@ -16,10 +16,7 @@ static shared_ptr<PatternDatabase> get_pdb_from_generator(
     const shared_ptr<AbstractTask> &task,
     const shared_ptr<PatternGenerator> &pattern_generator) {
     PatternInformation pattern_info = pattern_generator->generate(task); // 
-    cout << "ABOUT TO GET PDB" << endl;
-    auto _return = pattern_info.get_pdb();
-    cout << "GOT PDB" << endl;
-    return _return;
+    return pattern_info.get_pdb();
 }
 
 PDBHeuristic::PDBHeuristic(
@@ -31,17 +28,10 @@ PDBHeuristic::PDBHeuristic(
           utils::ProofLog::append_comment_to_proof_log("INITIALIZED PDB HEURISTIC");
 }
 
-void PDBHeuristic::update_proof_master_file() {
-    // default do nothing
-    cout << "update_proof_master_file for pdb" << endl;
-}
-void PDBHeuristic::certify_heuristic_pdb(int return_value, State s) {
+void PDBHeuristic::certify_heuristic_pdb(int return_value, State s, string comment) {
 
         s.unpack();
-            assert( s.get_id_int() >= 0);
-            
-        utils::ProofLog::add_balance_leq_x_bireification(return_value);
-
+        assert( s.get_id_int() >= 0);
         for (int i=0; i<=1 ; ++i){
 
         // Bi-Reif phi(node,heuristic): 
@@ -61,8 +51,8 @@ int PDBHeuristic::compute_heuristic(const State &ancestor_state) {
     if (h == numeric_limits<int>::max()) {
         return DEAD_END;
     }
-    certify_heuristic_pdb(h, ancestor_state);
-    certify_heuristic(h, ancestor_state);
+    certify_heuristic_pdb(h, ancestor_state, "PDBHeuristic::compute_heuristic");
+    certify_heuristic(h, ancestor_state, "PDBHeuristic::compute_heuristic");
     return h;
 }
 
