@@ -31,7 +31,7 @@ public:
     static void append_to_opb(const std::string& s);
     static void append_to_opb(const std::ostringstream& s){append_to_opb(s.str());};
 
-    static void append_to_proof_log(const std::string& line, ProofPart proof_part, const std::string& comment="");
+    static void append_to_proof_log(const std::string& line, ProofPart proof_part, const std::string& comment);
     static void append_comment_to_proof_log(const std::string& comment);
     static void append_to_proof_file(const std::string& line, const std::string& file, std::string comment="append_comment_to_proof_file");
     static void append_to_invariant_right(const std::string& summand);
@@ -40,7 +40,7 @@ public:
     static void append_to_invariant_prime_left(const std::string& summand);
     static void add_spent_geq_x_bireification(const int x, std::string comment);
     static void add_balance_leq_x_bireification(const int x, std::string comment);
-    static void bireif_balance_leq(int return_value, std::string comment="bireif_balance_leq");
+    static void bireif_balance_leq(int return_value, std::string comment);
     static void bireif_conjunction(std::string reif_var, std::vector<std::string> conjuncts, std::string comment);
     static void bireif_disjunction(std::string reif_var, std::vector<std::string> disjuncts, std::string comment);
     static void append_files_to_proof_log(std::vector<std::string> files, ProofPart proof_part);

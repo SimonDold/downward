@@ -228,7 +228,7 @@ ostringstream rreif_specialized_op_aux;
 
 void init_b(int pattern_var_id, string comment) {
       // init B proof log object  
-        rup_line << "% v " << comment << "\n" << "@merge_" << new_name.str() << "  pol  @dom_"
+        rup_line << "\n% v " << comment << "\n" << "@merge_" << new_name.str() << "  pol  @dom_"
             << projection.get_pattern()[pattern_var_id] << "_max_one ";
       //\ init B proof object
 };
@@ -470,7 +470,7 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
                     }
                     if (is_goal_var) {
                         ptr++;
-                    } else if (projection.unrank(state_index, ptr) == projection.get_domain_size(ptr)-1) { 
+                    } else if (projection.unrank(state_index, ptr) == projection.get_domain_size(ptr)-1) {
                         for (int i = 0; i < projection.get_domain_size(ptr)-1; i++) {
                             goal_extension_lemma << " + ";
                         }
@@ -487,9 +487,9 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
             void use() {
 	        goal_extension_lemma << " ;";
                 // use proof log object
-                utils::ProofLog::append_to_proof_log(goal_extension_lemma.str(), utils::ProofPart::DERIVATION);
+                utils::ProofLog::append_to_proof_log(goal_extension_lemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::use");
                 rup_goal_extension_lemma << "  >= 1 ; ";
-                utils::ProofLog::append_to_proof_log(rup_goal_extension_lemma.str(), utils::ProofPart::DERIVATION);
+                utils::ProofLog::append_to_proof_log(rup_goal_extension_lemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::use");
                 //\ use proof log object
             };
 
@@ -498,10 +498,10 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
                 int distance,
                 string comment)
             {
+                match_tree.bireif_abstract_state_with_balance_geq(state_index, distance+1, comment);
                 for (int i=0; i<=1; ++i) {
                     ostringstream safe_backwards_inductive_situation_set_Rreif_2;
                     ostringstream safe_backwards_inductive_situation_set_Lreif_2;
-                    match_tree.bireif_abstract_state_with_balance_geq(state_index, distance+1, comment);
                     ostringstream reif_var;
                     reif_var << match_tree.abstract_state_with_balance_geq(state_index, distance+1) << (i ? "_t1" : "_t0");
                     safe_backwards_inductive_situation_set_Rreif_2 << " 1    " << reif_var.str() << " ";
@@ -515,8 +515,8 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
         void log_rev_indu(int state_index, int applicable_operator_ids_size) {
             current_concrete_op_id = -1;
             // log_rev_indu
-            utils::ProofLog::append_to_proof_log("% state_idx: " + to_string(state_index), utils::ProofPart::DERIVATION);
-            utils::ProofLog::append_to_proof_log("% rev-applicable abstract operators: " + to_string(applicable_operator_ids_size), utils::ProofPart::DERIVATION);
+            utils::ProofLog::append_to_proof_log("% state_idx: " + to_string(state_index), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_rev_indu");
+            utils::ProofLog::append_to_proof_log("% rev-applicable abstract operators: " + to_string(applicable_operator_ids_size), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_rev_indu");
             //\ log_rev_indu
         }
 
@@ -531,7 +531,7 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
             current_concrete_op_id = op.get_concrete_op_id();
 
             // log_single_rev_transition
-            utils::ProofLog::append_to_proof_log("% " + to_string(state_index) + " <--" + "op_" + to_string(current_concrete_op_id) + "_" + to_string(op_id) + "-- " + to_string(predecessor), utils::ProofPart::DERIVATION );
+            utils::ProofLog::append_to_proof_log("% " + to_string(state_index) + " <--" + "op_" + to_string(current_concrete_op_id) + "_" + to_string(op_id) + "-- " + to_string(predecessor), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_single_rev_transition");
             //       I expect the operator to come in the 'natural' order
             //       e.g. corresponding to the hashing of the abstract_precondition
             //       and of course grouped by the concrete operator
@@ -554,7 +554,7 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
             rup_spai
                 << "  1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances[state_index]+1) << "_t1 "
                 << " 1 rev_indu_t0  >= 1    ; " << " % " << comment << "% pattern_database_factory.cc";
-            utils::ProofLog::append_to_proof_log(rup_spai.str(), utils::ProofPart::DERIVATION);
+            utils::ProofLog::append_to_proof_log(rup_spai.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_single_rev_transition");
             //\ log_single_rev_transition
         }
 
@@ -615,8 +615,8 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
             utils::ProofLog::append_files_to_proof_log(vector<string>({"prime_pdb_invar_Rreif.prooflog", "pdb_invar_Rreif.prooflog", "prime_pdb_invar_Lreif.prooflog", "pdb_invar_Lreif.prooflog"}), utils::ProofPart::REIFICATION);
           // consume proof object
             ostringstream indulemma;
-            indulemma << "@indulemma_lem34  rup  2 ~transition  2 ~rev_indu_t1  2 rev_indu_t0  >= 1 ; ";
-            utils::ProofLog::append_to_proof_log(indulemma.str(), utils::ProofPart::DERIVATION);
+            indulemma << "@indulemma_lem34  rup  1 ~transition  1 ~rev_indu_t1  1 rev_indu_t0  >= 1 ; ";
+            utils::ProofLog::append_to_proof_log(indulemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::finalize");
         }
     };
 
@@ -643,7 +643,7 @@ void PatternDatabaseFactory::compute_distances(
             distances.push_back(numeric_limits<int>::max());
             // This is a magic number to indicate a dead end(?) at other places -1 is used
         }
-        match_tree.bireif_state(state_index, "PatternDatabaseFactory::compute_distances");
+        match_tree.bireif_state(state_index, "PatternDatabaseFactory::compute_distances #1");
     }
     proof_log_object.use();
 
@@ -670,7 +670,7 @@ void PatternDatabaseFactory::compute_distances(
             continue;
         }
 
-        proof_log_object.update(state_index, distances[state_index], "PatternDatabaseFactory::compute_distances");
+        proof_log_object.update(state_index, distances[state_index], "PatternDatabaseFactory::compute_distances #2");
 
         // regress abstract_state
         vector<int> applicable_operator_ids;
@@ -686,17 +686,16 @@ void PatternDatabaseFactory::compute_distances(
 
             int alternative_cost = distances[state_index] + op.get_cost();
             if (alternative_cost < distances[predecessor]) {
-                proof_log_object.update_b(distances, predecessor, alternative_cost, op, "PatternDatabaseFactory::compute_distances");
+                proof_log_object.update_b(distances, predecessor, alternative_cost, op, "PatternDatabaseFactory::compute_distances #3");
                 distances[predecessor] = alternative_cost;
                 pq.push(alternative_cost, predecessor);
                 if (compute_plan) {
                     generating_op_ids[predecessor] = op_id;
                 }
             } else {
-                proof_log_object.log_single_rev_transition(state_index, op, op_id, predecessor, distances);
             }
         }
-        proof_log_object.log_single_rev_state(state_index, distances[state_index], "PatternDatabaseFactory::compute_distances");
+        proof_log_object.log_single_rev_state(state_index, distances[state_index], "PatternDatabaseFactory::compute_distances #4");
     }
 
     proof_log_object.finalize();

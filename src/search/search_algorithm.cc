@@ -148,33 +148,20 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
 
 // That sould be only compiled if proof_log flag is set (analogous to debug flag)
 
-void proof_log_node_Rreif(SearchNode node, bool is_balance, bool is_prime){
-    State s = node.get_state();
-    s.unpack();
-    assert( s.get_id_int() >= 0);
-    ostringstream  reif_var, conjunct_1, conjunct_2;
-    reif_var << "node[s" << s.get_id_int() << "[ASCII44]" << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_g() << "]" << utils::ProofLog::put_prime(is_prime);
-    conjunct_1 << "state[" << s.get_id_int() << "]"                                 << utils::ProofLog::put_prime(is_prime) ;
-    conjunct_2 << (is_balance ? "balance_leq_" : "spent_geq_") << node.get_real_g() << utils::ProofLog::put_prime(is_prime) ;
-    vector<string> conjuncts = {conjunct_1.str(), conjunct_2.str()};
-    utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, "search_algo.cc/proof_log_Rreif");
-    utils::ProofLog::append_to_proof_log("* the constructor of a search node should reif it... ", utils::ProofPart::REIFICATION);
-}
-
-void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment = ""){
-    //TODOprooflogging name is not fitting.
-    utils::ProofLog::append_to_proof_log("***proof_log_node_reification**** "+comment , utils::ProofPart::REIFICATION);
-    State s = node.get_state();
-    s.unpack();
-    assert( s.get_id_int() >= 0);
-    utils::ProofLog::add_balance_leq_x_bireification(node.get_g(), comment);
-}
+//void SearchAlgorithm::proof_log_node_reification(SearchNode node, string comment = ""){
+//    //TODOprooflogging name is not fitting.
+//    utils::ProofLog::append_to_proof_log("***proof_log_node_reification**** "+comment , utils::ProofPart::REIFICATION);
+//    State s = node.get_state();
+//    s.unpack();
+//    assert( s.get_id_int() >= 0);
+//    utils::ProofLog::add_balance_leq_x_bireification(node.get_g(), comment);
+//}
 
 void SearchAlgorithm::proof_log_initialize_invar(string comment){
-    utils::ProofLog::append_to_invariant_right("% v " + comment + "\n" + "@invar_t0_Rreif red ");
-    utils::ProofLog::append_to_invariant_left( "% v " + comment + "\n" + "@invar_t0_Lreif red ");
-    utils::ProofLog::append_to_invariant_prime_right("% v " + comment + "\n" + "@invar_t1_Rreif red ");
-    utils::ProofLog::append_to_invariant_prime_left( "% v " + comment + "\n" + "@invar_t1_Lreif red ");
+    utils::ProofLog::append_to_invariant_right("\n% v " + comment + "\n" + "@invar_t0_Rreif red ");
+    utils::ProofLog::append_to_invariant_left( "\n% v " + comment + "\n" + "@invar_t0_Lreif red ");
+    utils::ProofLog::append_to_invariant_prime_right("\n% v " + comment + "\n" + "@invar_t1_Rreif red ");
+    utils::ProofLog::append_to_invariant_prime_left( "\n% v " + comment + "\n" + "@invar_t1_Lreif red ");
 }
 
 void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
@@ -183,15 +170,15 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
     assert( s.get_id_int() >= 0);
     ostringstream r_line;
     ostringstream l_line;
-    r_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]_t0 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
-    l_line << " 1  phi_" + phi_name + "[" << s.get_id_int() << "]_t0 " << " " << " 1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
+    r_line << " 1 ~phi_" + phi_name + "[s" << s.get_id_int() << "]_t0 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
+    l_line << " 1  phi_" + phi_name + "[s" << s.get_id_int() << "]_t0 " << " " << " 1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
     utils::ProofLog::append_to_invariant_right(r_line.str());
     utils::ProofLog::append_to_invariant_left(l_line.str());
     // TODOprooflog remove code duplicate
     ostringstream r_prime_line;
     ostringstream l_prime_line;
-    r_prime_line << " 1 ~phi_" + phi_name + "[" << s.get_id_int() << "]_t1 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
-    l_prime_line << " 1  phi_" + phi_name + "[" << s.get_id_int() << "]_t1 " << " " << " 1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
+    r_prime_line << " 1 ~phi_" + phi_name + "[s" << s.get_id_int() << "]_t1 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
+    l_prime_line << " 1  phi_" + phi_name + "[s" << s.get_id_int() << "]_t1 " << " " << " 1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t1 " << " ";
     utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
     utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
@@ -200,7 +187,7 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, int 
     State s = node.get_state();
 
     int A = expanded;
-    int M = 2 * expanded + evaluated; // expaination needed
+    int M = 2 * expanded + evaluated; // explaination needed
     int A2 = 1;
     int M2 = evaluated;
 
@@ -208,8 +195,8 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, int 
         ostringstream r_prime_line;
         ostringstream l_prime_line;
 
-        r_prime_line << " 1  " << "phi_" + phi_name + "[" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") << " ";
-        l_prime_line << " 1 ~" << "phi_" + phi_name + "[" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") << " ";
+        r_prime_line << " 1  " << "phi_" + phi_name + "[s" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") << " ";
+        l_prime_line << " 1 ~" << "phi_" + phi_name + "[s" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") << " ";
 
         r_prime_line <<    A+1 << " ~" << "invar" << (i ? "_t1" : "_t0") << " >= " <<    A+1 << " : invar" << (i ? "_t1" : "_t0") << " -> 0 ;" << endl;
         l_prime_line << A+M2+1-dead_end_states << "  " << "invar" << (i ? "_t1" : "_t0") << " >= " << A+M2+1-dead_end_states << " : invar" << (i ? "_t1" : "_t0") << " -> 1 ;" << endl;
@@ -240,21 +227,21 @@ void SearchAlgorithm::proof_log_reif_state(State s, string comment){ //TODOproof
     }
 }
 
-void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node){
+void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node, string comment){
     OperatorsProxy operators = task_proxy.get_operators();
     State s = node.get_state();
     s.unpack();
             assert( s.get_id_int() >= 0);
     ostringstream line;
     line << endl << "@lem5  rup  1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~op_" << operators[op_id].get_id() << "  1 invar_t1 >= 1;";
-    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION, comment);
 }
 
-void SearchAlgorithm::proof_log_node_transition_invariant(SearchNode node) {
+void SearchAlgorithm::proof_log_node_transition_invariant(SearchNode node, string comment) {
     State s = node.get_state();
     ostringstream line;
     line << "@lem6  rup  1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~transition  1 invar_t1 >= 1;";
-    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION);
+    utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION, comment);
 }
 
 void print_initial_evaluator_values(

@@ -174,7 +174,7 @@ void MatchTree::bireif_state(int state_index, string comment) const{
 
 void MatchTree::bireif_abstract_state_with_balance_geq(int state_index, int balance, string comment) const {
     for (int i=0; i<=1; ++i) {
-        utils::ProofLog::bireif_balance_leq(balance-1);
+        utils::ProofLog::bireif_balance_leq(balance-1, comment);
         ostringstream reif_var, conj1, conj2;
         reif_var << abstract_state_with_balance_geq(state_index, balance)  << (i ? "_t1" : "_t0");
         conj1 << "a_" << projection.get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");

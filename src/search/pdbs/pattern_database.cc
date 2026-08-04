@@ -94,8 +94,8 @@ void Projection::bireif_abstract_state(int state_index, string comment) const{
 void Projection::bireif_abstract_state_with_balance(int state_index, int balance, string comment) const {
     ostringstream name;
     name << "node[a_" << get_name() << "[s[" << state_index << "]][ASCII44]balance_geq_" << balance << "]";
+    utils::ProofLog::bireif_balance_leq(balance-1, comment);
     for (int i=0; i<=1; ++i) {
-        utils::ProofLog::bireif_balance_leq(balance-1);
         ostringstream reif_var, conjunct_1, conjunct_2;
         reif_var << name.str() << (i ? "_t1" : "_t0");
         conjunct_1 << "a_" << get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");

@@ -119,8 +119,8 @@ void Heuristic::certify_heuristic(int return_value, State s, string comment) con
         s.unpack();
         assert(s.get_id_int() >= 0);
         comment = comment  + " h(s"+to_string(s.get_id_int())+")="+to_string(return_value);
-        utils::ProofLog::bireif_balance_leq(return_value-1, comment); 
-        utils::ProofLog::bireif_balance_leq(return_value, comment); 
+        utils::ProofLog::bireif_balance_leq(return_value-1, comment);
+        utils::ProofLog::bireif_balance_leq(return_value, comment);
 
 
         for (int i=0; i<=1 ; ++i){
@@ -134,14 +134,14 @@ void Heuristic::certify_heuristic(int return_value, State s, string comment) con
         }
     // heuristic lemmas
     ostringstream entry_lemma;
-    entry_lemma << endl << "% {" + get_description() + "} heuristic proofs:  AFTER_CH_1 btw " << endl
-        << " rup  1 ~node[s" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t0  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t0  >= 1 ;";
+    entry_lemma << endl
+                << "@entry_lemma_phi_" + get_description() + "[s" << s.get_id_int() << "]_t0" << " rup  1 ~node[s" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t0  1 phi_" + get_description() + "[s" << s.get_id_int() << "]_t0  >= 1 ;";
     ostringstream entry_prime_lemma;
-    entry_prime_lemma << " rup  1 ~node[s" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t1  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t1  >= 1 ;";
+    entry_prime_lemma << "@entry_lemma_phi_" + get_description() + "[s" << s.get_id_int() << "]_t1" << "  rup  1 ~node[s" << s.get_id_int() << "[ASCII44]balance_leq_" << return_value << "]_t1  1 phi_" + get_description() + "[s" << s.get_id_int() << "]_t1  >= 1 ;";
     ostringstream goal_lemma;
-    goal_lemma << " rup  1 ~goal_t0  1 balance_leq_" << 0 << "_t0  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]_t0  >= 1 ;";
+    goal_lemma << "@goal_lemma_phi_" + get_description() + "[s" << s.get_id_int() << "]" << "  rup  1 ~goal_t0  1 balance_leq_" << 0 << "_t0  1 ~phi_" + get_description() + "[s" << s.get_id_int() << "]_t0  >= 1 ;";
     ostringstream transition_lemma;
-    transition_lemma << " rup  1 ~phi_" + get_description() + "[" << s.get_id_int() << "]_t0  1 ~transition  1 phi_" + get_description() + "[" << s.get_id_int() << "]_t1  >= 1 ;";
+    transition_lemma << "@transition_lemma_phi_" + get_description() + "[s" << s.get_id_int() << "]" << " rup  1 ~phi_" + get_description() + "[s" << s.get_id_int() << "]_t0  1 ~transition  1 phi_" + get_description() + "[s" << s.get_id_int() << "]_t1  >= 1 ;";
 
     utils::ProofLog::append_to_proof_log(entry_lemma.str(), utils::ProofPart::DERIVATION, comment);
     utils::ProofLog::append_to_proof_log(entry_prime_lemma.str(), utils::ProofPart::DERIVATION, comment);

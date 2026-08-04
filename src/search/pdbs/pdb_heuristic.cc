@@ -15,7 +15,7 @@ namespace pdbs {
 static shared_ptr<PatternDatabase> get_pdb_from_generator(
     const shared_ptr<AbstractTask> &task,
     const shared_ptr<PatternGenerator> &pattern_generator) {
-    PatternInformation pattern_info = pattern_generator->generate(task); // 
+    PatternInformation pattern_info = pattern_generator->generate(task);
     return pattern_info.get_pdb();
 }
 
@@ -36,10 +36,10 @@ void PDBHeuristic::certify_heuristic_pdb(int return_value, State s, string comme
 
         // Bi-Reif phi(node,heuristic): 
             ostringstream reif_var, conj;
-            reif_var << "phi_" + get_description() + "[" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
+            reif_var << "phi_" + get_description() + "[s" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
 
             conj << "rev_indu" << (i ? "_t0" : "_t1");
-            utils::ProofLog::bireif_conjunction(reif_var.str(), vector<std::string>({"~"+conj.str()}), "");
+            utils::ProofLog::bireif_conjunction(reif_var.str(), vector<std::string>({"~"+conj.str()}), comment);
 
         }
 }

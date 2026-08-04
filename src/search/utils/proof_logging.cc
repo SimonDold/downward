@@ -106,8 +106,8 @@ void ProofLog::append_to_proof_log(const string &line, ProofPart proof_part, con
 }
 
 void ProofLog::append_comment_to_proof_log(const std::string& comment) {
-    append_to_proof_log("%"+comment, ProofPart::REIFICATION);
-    append_to_proof_log("%"+comment, ProofPart::DERIVATION);
+    append_to_proof_log("%"+comment, ProofPart::REIFICATION, comment);
+    append_to_proof_log("%"+comment, ProofPart::DERIVATION, comment);
 }
 
 void ProofLog::append_to_proof_file(const string &line, const string &file_name, string)
@@ -178,7 +178,7 @@ void ProofLog::append_to_invariant_prime_left(const string& summand) {
 }
 
 void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, string comment="bireif_vector_sum") {
-    ProofLog::append_to_proof_log("% v " + comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("\n% v " + comment, ProofPart::REIFICATION, comment);
 
         int bits = ProofLog::get_proof_log_bits();
         int maxint = (1 << bits) - 1;
@@ -199,8 +199,8 @@ void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, strin
             }
             assert(vec_name.size()>0);
             for (int i = 0; i < bits; ++i) {
-                r_reif << " " << (1 << i) << " " << (negative ? "~" : " ") << vec_name << "_" << i << postfix << " ";  
-                l_reif << " " << (1 << i) << " " << (negative ? " " : "~") << vec_name << "_" << i << postfix << " ";  
+                r_reif << " " << (1 << i) << " " << (negative ? "~" : " ") << vec_name << "_" << i << postfix << " ";
+                l_reif << " " << (1 << i) << " " << (negative ? " " : "~") << vec_name << "_" << i << postfix << " ";
             }
         }
         int A = bound;
@@ -237,7 +237,7 @@ string ProofLog::veripbfy(int x) {
 
 
 void bireif_flat_formula(string reif_var, vector<string> elements, bool is_disjunction, string comment="bireif_formla") {
-    ProofLog::append_to_proof_log("% v "+comment, ProofPart::REIFICATION);
+    ProofLog::append_to_proof_log("\n% v "+comment, ProofPart::REIFICATION, comment);
     ostringstream r_reif, l_reif;
     assert(reif_var.size() > 0);
     r_reif << "@" << reif_var << "_Rreif " << " red ";
@@ -345,9 +345,9 @@ int get_ith_bit_of_x(int i, int x) {
 void ProofLog::finalize_lemmas(int optimal_cost, string comment) {
 
     // TODOprooflogging remove this:
-        append_to_proof_log("% ensure non empty REIF file", ProofPart::REIFICATION);
+        append_to_proof_log("% ensure non empty REIF file", ProofPart::REIFICATION, comment);
 
-    append_to_proof_log("% finalize:\n", ProofPart::BUDGET);
+    append_to_proof_log("% finalize:\n", ProofPart::BUDGET, comment);
     int bits = get_proof_log_bits();
     ostringstream r_budget;
     ostringstream l_budget;
@@ -386,13 +386,13 @@ void ProofLog::finalize_lemmas(int optimal_cost, string comment) {
     spent_all << "pol  @budget_Lreif  @balance_leq_0_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost << "_t0_Rreif + @balance_geq_1_t0_Rreif + ;" << "\n % proof_logging.cc finalize_lemmas"
         << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl
         << "rup 1 ~spent_geq_" << optimal_cost << "_t0  1 balance_leq_0_t0  >= 1 : -1 ;" << "\n % " << comment;
-    append_to_proof_log(spent_all.str(), ProofPart::REIFICATION, "TODO: should belong to start of derivation."); //TODOprooflogging this should belong at the start of derivations
+    append_to_proof_log(spent_all.str(), ProofPart::REIFICATION, "TODO: should belong to start of derivation.\n% ^ "+comment); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream spent_even_more;
     spent_even_more << "pol  @budget_Lreif  @balance_leq_neg1_t0_Lreif " << (1 << get_proof_log_bits()) << " * +  @spent_geq_" << optimal_cost+1 << "_t0_Rreif + @balance_geq_0_t0_Rreif + ;" << "\n % proof_logging.cc finalize_lemmas"
         << endl << "% sanity check (with rup instead of e because i dont want to devide by the correct vaule i dont bother to compute and would be to large to just cover all cases)" << endl 
         << "rup 1 ~spent_geq_" << optimal_cost+1 << "_t0  1 balance_leq_neg1_t0  >= 1 : -1 ;" << "\n % proof_logging.cc finalize_lemmas";
-    append_to_proof_log(spent_even_more.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
+    append_to_proof_log(spent_even_more.str(), ProofPart::REIFICATION, "TODO: should belong to start of derivation.\n% ^ "+comment); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream sanity;
     sanity << "% help for sanity check" << endl;
@@ -400,7 +400,7 @@ void ProofLog::finalize_lemmas(int optimal_cost, string comment) {
     sanity << "rup  1 ~balance_leq_neg1_t0  1 balance_leq_0_t0  >= 1 : -1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
     sanity << "pol  @spent_geq_" << optimal_cost << "_t0_Lreif  @spent_geq_" << optimal_cost+1 << "_t0_Rreif  + ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
     sanity << "rup  1 spent_geq_" << optimal_cost << "_t0  1 ~spent_geq_" << optimal_cost+1 << "_t0 >= 1 : -1 ;" << "\n % proof_logging.cc finalize_lemmas" << endl;
-    append_to_proof_log(sanity.str(), ProofPart::REIFICATION); //TODOprooflogging this should belong at the start of derivations
+    append_to_proof_log(sanity.str(), ProofPart::REIFICATION, "TODO: should belong to start of derivation.\n% ^ "+comment); //TODOprooflogging this should belong at the start of derivations
 
     ostringstream lemmas;
     lemmas << endl << endl <<"% entry lemma balance" << endl
@@ -418,7 +418,7 @@ void ProofLog::finalize_lemmas(int optimal_cost, string comment) {
         << "output NONE ;" << endl
         << "conclusion NONE ;" << endl
         << "end pseudo-Boolean proof ;" << endl;
-    append_to_proof_log(lemmas.str(), ProofPart::DERIVATION);
+    append_to_proof_log(lemmas.str(), ProofPart::DERIVATION, "");
 }
 
 int MAX_BIT_BOUNDARY = 30;

@@ -21,9 +21,6 @@ void proof_log_node_Bireif(int state_id, int g_value, bool is_prime, string comm
 
     comment = comment + "state_id:" + to_string(state_id) + " g:" + to_string(g_value);
 
-    utils::ProofLog::add_spent_geq_x_bireification(g_value, comment);
-
-
     ostringstream  reif_var, conjunct_1, conjunct_2;
     reif_var << "node[s" << state_id << "," << "spent_geq_" << utils::ProofLog::veripbfy(g_value) << "]" << put_prime(is_prime);
     conjunct_1 << "state[" << state_id << "]"                                 << put_prime(is_prime) ;
@@ -36,7 +33,7 @@ SearchNode::SearchNode(const State &state, SearchNodeInfo &info)
     : state(state), info(info) {
     assert(state.get_id() != StateID::no_state);
     if (this->get_real_g() != -1) {
-        utils::ProofLog::append_to_proof_log("% construct Search Node", utils::ProofPart::REIFICATION);
+        utils::ProofLog::add_spent_geq_x_bireification(this->get_real_g(), "SearchNode::SearchNode");
         proof_log_node_Bireif(state.get_id_int(), this->get_real_g(), false, "SearchNode::SearchNode");
         proof_log_node_Bireif(state.get_id_int(), this->get_real_g(), true,  "SearchNode::SearchNode");
     }

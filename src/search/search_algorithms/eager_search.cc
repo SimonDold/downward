@@ -50,10 +50,10 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
             ostringstream r_line;
             ostringstream l_line;
             r_line << " 1  phi_" + open_list->get_priority_evaluator_name()
-                    + "[" << state_id << "]" << (i ? "_t1" : "_t0")
+                    + "[s" << state_id << "]" << (i ? "_t1" : "_t0")
                     << " ";
             l_line << " 1 ~phi_" + open_list->get_priority_evaluator_name()
-                    + "[" << state_id << "]" << (i ? "_t1" : "_t0")
+                    + "[s" << state_id << "]" << (i ? "_t1" : "_t0")
                     << " ";
             if (i){
                 utils::ProofLog::append_to_invariant_prime_right(r_line.str());
@@ -64,28 +64,21 @@ void EagerSearch::add_phi_to_invar(SearchNode node) {
                 }
         }
 
-        ostringstream entry_lemma_comment;
-        entry_lemma_comment << "% h entry state lemma here?\n"
-                << "% state = " + to_string(state_id) + "\n"
-                << "% g = " + to_string(node.get_real_g());
-        utils::ProofLog::append_to_proof_log( 
-                entry_lemma_comment.str()
-                , utils::ProofPart::DERIVATION);
         ostringstream entry_lemma_spent, prime_entry_lemma_spent;
         entry_lemma_spent
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[" << state_id << "]_t0 "
+                << "[s" << state_id << "]_t0 "
             << " rup "
             << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
-            << " 1 phi_" << h_name << "[" << state_id << "]_t0 "
+            << " 1 phi_" << h_name << "[s" << state_id << "]_t0 "
             << " >= 1 ; ";
 
         prime_entry_lemma_spent
             << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[" << state_id << "]_t1 "
+                << "[s" << state_id << "]_t1 "
             << " rup "
             << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
-            << " 1 phi_" << h_name << "[" << state_id << "]_t1 "
+            << " 1 phi_" << h_name << "[s" << state_id << "]_t1 "
             << " >= 1 ; ";
 
 }
@@ -234,7 +227,7 @@ SearchStatus EagerSearch::step() {
     const State &s = node->get_state();
     if (check_goal_and_set_plan(s)) {
         proof_log_finalize_invar(statistics.get_expanded(), statistics.get_evaluations(), statistics.get_dead_end_states(), *node, open_list->get_priority_evaluator_name());
-        utils::ProofLog::finalize_lemmas(node->get_real_g(), "EagerSearch::step()");
+        utils::ProofLog::finalize_lemmas(node->get_real_g(), "EagerSearch::step part 1");
         return SOLVED;
     }
 
@@ -258,14 +251,14 @@ SearchStatus EagerSearch::step() {
 
     for (OperatorID op_id : applicable_ops) {
 
-        proof_log_node_action_invariant(op_id, *node);
+        proof_log_node_action_invariant(op_id, *node, "EagerSearch::step part 2");
 
         OperatorProxy op = task_proxy.get_operators()[op_id];
         if ((node->get_real_g() + op.get_cost()) >= bound)
             continue;
 
         State succ_state = state_registry.get_successor_state(s, op);
-        proof_log_reif_state(succ_state);
+        proof_log_reif_state(succ_state, "EagerSearch::step part 3");
         statistics.inc_generated();
         bool is_preferred = preferred_operators.contains(op_id);
 
@@ -347,7 +340,7 @@ SearchStatus EagerSearch::step() {
             */
         }
     }
-    proof_log_node_transition_invariant(*node);
+    proof_log_node_transition_invariant(*node, "EagerSearch::step part 4");
 
     return IN_PROGRESS;
 }

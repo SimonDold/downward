@@ -264,15 +264,15 @@ class SASTask:
             result_prime = "\n\n* axiom Prime\n"
             for (var, val) in behaviour_constraints:
                 result += behaviour_constraints[(var, val)][0] + \
-                    f" 1 {neg(maplet_name(var, val))}  >=  1\n" + \
+                    f" 1 {neg(maplet_name(var, val))}  >=  1 ;\n" + \
                     behaviour_constraints[(var, val)][1] + \
                     f" {behaviour_constraints[(var, val)][2]} {maplet_name(var, val)} " + \
-                    f" >=  {behaviour_constraints[(var, val)][2]}\n"
+                    f" >=  {behaviour_constraints[(var, val)][2]} ;\n"
                 result_prime += behaviour_prime_constraints[(var, val)][0] + \
-                    f" 1 {neg(prime_it(maplet_name(var, val)))}  >=  1\n" + \
+                    f" 1 {neg(prime_it(maplet_name(var, val)))}  >=  1 ;\n" + \
                     behaviour_prime_constraints[(var, val)][1] + \
                     f" {behaviour_prime_constraints[(var, val)][2]} {prime_it(maplet_name(var, val))} " + \
-                    f" >=  {behaviour_prime_constraints[(var, val)][2]}\n"
+                    f" >=  {behaviour_prime_constraints[(var, val)][2]} ;\n"
 
             return result + result_prime
 
@@ -814,10 +814,10 @@ class SASAxiom:
     def proof_log_finalize(self, condition_length: int, axiom_id: int, proof_log_object: Tuple[str, str, str, str]) -> str:
         fire_constraint_Lreif, fire_constraint_Rreif, fire_constraint_prime_Lreif, fire_constraint_prime_Rreif = proof_log_object
 
-        fire_constraint_Lreif += f" 1 {axiom_name(axiom_id)}  >=  1"
-        fire_constraint_Rreif += f" {condition_length} {neg(axiom_name(axiom_id))}  >=  {condition_length}\n"
-        fire_constraint_prime_Lreif += f" 1 {prime_it(axiom_name(axiom_id))}  >=  1"
-        fire_constraint_prime_Rreif += f" {condition_length} {neg(prime_it(axiom_name(axiom_id)))}  >=  {condition_length}\n"
+        fire_constraint_Lreif += f" 1 {axiom_name(axiom_id)}  >=  1 ;"
+        fire_constraint_Rreif += f" {condition_length} {neg(axiom_name(axiom_id))}  >=  {condition_length} ;\n"
+        fire_constraint_prime_Lreif += f" 1 {prime_it(axiom_name(axiom_id))}  >=  1 ;"
+        fire_constraint_prime_Rreif += f" {condition_length} {neg(prime_it(axiom_name(axiom_id)))}  >=  {condition_length} ;\n"
 
         return fire_constraint_Lreif + "\n" + fire_constraint_Rreif + "\n" + fire_constraint_prime_Lreif + "\n" + fire_constraint_prime_Rreif
 
