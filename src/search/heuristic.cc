@@ -68,8 +68,8 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
 
     int heuristic = NO_VALUE;
 
-        state.unpack();
-        vector<int> values = state.get_unpacked_values();
+    state.unpack();
+    vector<int> values = state.get_unpacked_values();
 
     if (!calculate_preferred && cache_evaluator_values &&
         heuristic_cache[state].h != NO_VALUE && !heuristic_cache[state].dirty) {
@@ -115,23 +115,22 @@ EvaluationResult Heuristic::compute_result(EvaluationContext &eval_context) {
 
 
 void Heuristic::certify_heuristic(int return_value, State s, string comment) const {
+    s.unpack();
+    assert(s.get_id_int() >= 0);
+    comment = comment + " h(s" + to_string(s.get_id_int()) + ")=" + to_string(return_value);
+    utils::ProofLog::bireif_balance_leq(return_value - 1, comment);
+    utils::ProofLog::bireif_balance_leq(return_value, comment);
 
-        s.unpack();
-        assert(s.get_id_int() >= 0);
-        comment = comment  + " h(s"+to_string(s.get_id_int())+")="+to_string(return_value);
-        utils::ProofLog::bireif_balance_leq(return_value-1, comment);
-        utils::ProofLog::bireif_balance_leq(return_value, comment);
 
-
-        for (int i=0; i<=1 ; ++i){
+    for (int i = 0; i <= 1; ++i) {
         // Bi-Reif node:
-            ostringstream reif_var, conj1, conj2;
-            reif_var << "node[s" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t1" : "_t0");
-            conj1<< "state[" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") ;
-            conj2<< "balance_leq_" << return_value    << (i ? "_t1" : "_t0") ;
-            vector<string> conjuncts = {conj1.str(), conj2.str()};
-            utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, comment);
-        }
+        ostringstream reif_var, conj1, conj2;
+        reif_var << "node[s" << s.get_id_int() << ",balance_leq_" << return_value << "]" << (i ? "_t1" : "_t0");
+        conj1 << "state[" << s.get_id_int() << "]" << (i ? "_t1" : "_t0");
+        conj2 << "balance_leq_" << return_value << (i ? "_t1" : "_t0");
+        vector<string> conjuncts = {conj1.str(), conj2.str()};
+        utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, comment);
+    }
     // heuristic lemmas
     ostringstream entry_lemma;
     entry_lemma << endl

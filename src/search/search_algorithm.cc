@@ -157,17 +157,17 @@ int SearchAlgorithm::get_adjusted_cost(const OperatorProxy &op) const {
 //    utils::ProofLog::add_balance_leq_x_bireification(node.get_g(), comment);
 //}
 
-void SearchAlgorithm::proof_log_initialize_invar(string comment){
+void SearchAlgorithm::proof_log_initialize_invar(string comment) {
     utils::ProofLog::append_to_invariant_right("\n% v " + comment + "\n" + "@invar_t0_Rreif red ");
-    utils::ProofLog::append_to_invariant_left( "\n% v " + comment + "\n" + "@invar_t0_Lreif red ");
+    utils::ProofLog::append_to_invariant_left("\n% v " + comment + "\n" + "@invar_t0_Lreif red ");
     utils::ProofLog::append_to_invariant_prime_right("\n% v " + comment + "\n" + "@invar_t1_Rreif red ");
-    utils::ProofLog::append_to_invariant_prime_left( "\n% v " + comment + "\n" + "@invar_t1_Lreif red ");
+    utils::ProofLog::append_to_invariant_prime_left("\n% v " + comment + "\n" + "@invar_t1_Lreif red ");
 }
 
-void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
+void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name) {
     State s = node.get_state();
     s.unpack();
-    assert( s.get_id_int() >= 0);
+    assert(s.get_id_int() >= 0);
     ostringstream r_line;
     ostringstream l_line;
     r_line << " 1 ~phi_" + phi_name + "[s" << s.get_id_int() << "]_t0 " << " " << " 1  node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0 " << " ";
@@ -183,7 +183,7 @@ void SearchAlgorithm::proof_log_extend_invar(SearchNode node, string phi_name){
     utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
 }
 
-void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, int dead_end_states, SearchNode node, string phi_name){
+void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, int dead_end_states, SearchNode node, string phi_name) {
     State s = node.get_state();
 
     int A = expanded;
@@ -191,47 +191,47 @@ void SearchAlgorithm::proof_log_finalize_invar(int expanded, int evaluated, int 
     int A2 = 1;
     int M2 = evaluated;
 
-    for (int i = 0; i<=1; ++i){
+    for (int i = 0; i <= 1; ++i) {
         ostringstream r_prime_line;
         ostringstream l_prime_line;
 
         r_prime_line << " 1  " << "phi_" + phi_name + "[s" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") << " ";
         l_prime_line << " 1 ~" << "phi_" + phi_name + "[s" << s.get_id_int() << "]" << (i ? "_t1" : "_t0") << " ";
 
-        r_prime_line <<    A+1 << " ~" << "invar" << (i ? "_t1" : "_t0") << " >= " <<    A+1 << " : invar" << (i ? "_t1" : "_t0") << " -> 0 ;" << endl;
-        l_prime_line << A+M2+1-dead_end_states << "  " << "invar" << (i ? "_t1" : "_t0") << " >= " << A+M2+1-dead_end_states << " : invar" << (i ? "_t1" : "_t0") << " -> 1 ;" << endl;
+        r_prime_line << A + 1 << " ~" << "invar" << (i ? "_t1" : "_t0") << " >= " << A + 1 << " : invar" << (i ? "_t1" : "_t0") << " -> 0 ;" << endl;
+        l_prime_line << A + M2 + 1 - dead_end_states << "  " << "invar" << (i ? "_t1" : "_t0") << " >= " << A + M2 + 1 - dead_end_states << " : invar" << (i ? "_t1" : "_t0") << " -> 1 ;" << endl;
         l_prime_line << "% expanded = " << expanded << endl << "% evaluated = " << evaluated << endl;
         l_prime_line << "% A = " << A << endl << "% M = " << M << endl;
         l_prime_line << "% A2 = " << A2 << endl << "% M2 = " << M2 << endl;
         if (i) {
             utils::ProofLog::append_to_invariant_prime_right(r_prime_line.str());
             utils::ProofLog::append_to_invariant_prime_left(l_prime_line.str());
-        } else{
+        } else {
             utils::ProofLog::append_to_invariant_right(r_prime_line.str());
             utils::ProofLog::append_to_invariant_left(l_prime_line.str());
         }
     }
 }
 
-void SearchAlgorithm::proof_log_reif_state(State s, string comment){ //TODOprooflogging This should happen in the state constructor... but it is complicated with the packed and partially packt constructors
+void SearchAlgorithm::proof_log_reif_state(State s, string comment) { //TODOprooflogging This should happen in the state constructor... but it is complicated with the packed and partially packt constructors
     s.unpack();
     assert(s.get_id_int() >= 0);
     vector<int> values = s.get_unpacked_values();
     vector<string> conjuncts(values.size());
     for (bool p : {false, true}) {
         string prime = utils::ProofLog::put_prime(p);
-        for (int i = 0; i < values.size(); ++i){
+        for (int i = 0; i < values.size(); ++i) {
             conjuncts[i] = "var_" + to_string(i) + "_" + to_string(values[i]) + prime;
         }
-        utils::ProofLog::bireif_conjunction("state["+to_string(s.get_id_int())+"]"+prime, conjuncts, comment);
+        utils::ProofLog::bireif_conjunction("state[" + to_string(s.get_id_int()) + "]" + prime, conjuncts, comment);
     }
 }
 
-void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node, string comment){
+void SearchAlgorithm::proof_log_node_action_invariant(OperatorID op_id, SearchNode node, string comment) {
     OperatorsProxy operators = task_proxy.get_operators();
     State s = node.get_state();
     s.unpack();
-            assert( s.get_id_int() >= 0);
+    assert(s.get_id_int() >= 0);
     ostringstream line;
     line << endl << "@lem5  rup  1 ~node[s" << s.get_id_int() << "[ASCII44]spent_geq_" << node.get_g() << "]_t0  1 ~op_" << operators[op_id].get_id() << "  1 invar_t1 >= 1;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION, comment);

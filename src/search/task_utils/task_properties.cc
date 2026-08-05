@@ -78,23 +78,23 @@ double get_average_operator_cost(TaskProxy task_proxy) {
     return average_operator_cost;
 }
 
-void proof_log_op_implies_min_cost_delta(OperatorProxy op, string comment){
+void proof_log_op_implies_min_cost_delta(OperatorProxy op, string comment) {
     ostringstream line;
     line << "rup  1 ~op_" << op.get_id() << "  1 delta_cost_geq_MIN  >= 1; % task_properties.cc";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION, comment);
 }
 
-void proof_log_transition_implies_min_cost_delta(string comment){
+void proof_log_transition_implies_min_cost_delta(string comment) {
     ostringstream line;
     line << "rup  1 ~transition  1 delta_cost_geq_MIN >= 1 ;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::DERIVATION, comment);
 }
 
-void proof_log_reify_min_cost_delta(int min_cost, string comment="proof_log_reify_min_cost_delta"){
+void proof_log_reify_min_cost_delta(int min_cost, string comment = "proof_log_reify_min_cost_delta") {
     ostringstream line;
-    line << endl <<"% Bi-Reification of delta_cost_geq_MIN:" << endl
-        << "@delta_cost_geq_MIN_Rreif  red  1 ~delta_cost_geq_MIN  1  delta_cost_geq_" << min_cost << "  >= 1 : delta_cost_geq_MIN -> 0 ;" << endl
-        << "@delta_cost_geq_MIN_Lreif  red  1  delta_cost_geq_MIN  1 ~delta_cost_geq_" << min_cost << "  >= 1 : delta_cost_geq_MIN -> 1 ;";
+    line << endl << "% Bi-Reification of delta_cost_geq_MIN:" << endl
+         << "@delta_cost_geq_MIN_Rreif  red  1 ~delta_cost_geq_MIN  1  delta_cost_geq_" << min_cost << "  >= 1 : delta_cost_geq_MIN -> 0 ;" << endl
+         << "@delta_cost_geq_MIN_Lreif  red  1  delta_cost_geq_MIN  1 ~delta_cost_geq_" << min_cost << "  >= 1 : delta_cost_geq_MIN -> 1 ;";
     utils::ProofLog::append_to_proof_log(line.str(), utils::ProofPart::REIFICATION, comment);
 }
 

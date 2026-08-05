@@ -25,7 +25,7 @@ bool PatternInformation::information_is_valid() const {
 
 void PatternInformation::create_pdb_if_missing() {
     if (!pdb) {
-        pdb = compute_pdb(task_proxy, pattern); // 
+        pdb = compute_pdb(task_proxy, pattern); //
     }
 }
 

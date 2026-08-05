@@ -7,7 +7,7 @@ namespace blind_search_heuristic {
 class BlindSearchHeuristic : public Heuristic {
     int min_operator_cost;
 protected:
-    void certify_heuristic_blind(int return_value, State ancestor_state, std::string comment="certify_heuristic_blind");
+    void certify_heuristic_blind(int return_value, State ancestor_state, std::string comment = "certify_heuristic_blind");
     virtual int compute_heuristic(const State &ancestor_state) override;
 public:
     BlindSearchHeuristic(

@@ -13,18 +13,17 @@
 
 using namespace std;
 
-string put_prime(bool is_prime){
-    return (is_prime ? "_t1" : "_t0");
+string put_prime(bool is_prime) {
+    return is_prime ? "_t1" : "_t0";
 }
 
-void proof_log_node_Bireif(int state_id, int g_value, bool is_prime, string comment){
-
+void proof_log_node_Bireif(int state_id, int g_value, bool is_prime, string comment) {
     comment = comment + "state_id:" + to_string(state_id) + " g:" + to_string(g_value);
 
-    ostringstream  reif_var, conjunct_1, conjunct_2;
+    ostringstream reif_var, conjunct_1, conjunct_2;
     reif_var << "node[s" << state_id << "," << "spent_geq_" << utils::ProofLog::veripbfy(g_value) << "]" << put_prime(is_prime);
-    conjunct_1 << "state[" << state_id << "]"                                 << put_prime(is_prime) ;
-    conjunct_2 << "spent_geq_" << utils::ProofLog::veripbfy(g_value) << put_prime(is_prime) ;
+    conjunct_1 << "state[" << state_id << "]" << put_prime(is_prime);
+    conjunct_2 << "spent_geq_" << utils::ProofLog::veripbfy(g_value) << put_prime(is_prime);
     vector<string> conjuncts = {conjunct_1.str(), conjunct_2.str()};
     utils::ProofLog::bireif_conjunction(reif_var.str(), conjuncts, comment);
 }
@@ -35,7 +34,7 @@ SearchNode::SearchNode(const State &state, SearchNodeInfo &info)
     if (this->get_real_g() != -1) {
         utils::ProofLog::add_spent_geq_x_bireification(this->get_real_g(), "SearchNode::SearchNode");
         proof_log_node_Bireif(state.get_id_int(), this->get_real_g(), false, "SearchNode::SearchNode");
-        proof_log_node_Bireif(state.get_id_int(), this->get_real_g(), true,  "SearchNode::SearchNode");
+        proof_log_node_Bireif(state.get_id_int(), this->get_real_g(), true, "SearchNode::SearchNode");
     }
 }
 

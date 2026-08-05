@@ -158,11 +158,10 @@ AbstractOperator PatternDatabaseFactory::build_abstract_operator(
     return AbstractOperator(concrete_op_id, cost, move(regression_preconditions), hash_effect);
 }
 
-class ProofLogObject_multiply_out{
-    
-ostringstream new_name_prefix;
-ostringstream new_name_infix;
-ostringstream new_name_postfix;
+class ProofLogObject_multiply_out {
+    ostringstream new_name_prefix;
+    ostringstream new_name_infix;
+    ostringstream new_name_postfix;
     ostringstream new_name;
     Projection projection;
     ostringstream rup_line;
@@ -170,37 +169,34 @@ ostringstream new_name_postfix;
 
 public:
     ProofLogObject_multiply_out(
-    Projection projection
+        Projection projection
         ) :
-        projection(projection)
-        {
+        projection(projection) {
+    }
 
-        }
-
-void init_a(
+    void init_a(
         vector<FactPair> &specialization_pairs,
-    int concrete_op_id, string comment
+        int concrete_op_id, string comment
         ) {
-
-ostringstream old_name;
-ostringstream rreif_specialized_op_aux;
+        ostringstream old_name;
+        ostringstream rreif_specialized_op_aux;
 
         need_lreif = false;
-        if (specialization_pairs.size()>0){
-            new_name_prefix 
+        if (specialization_pairs.size() > 0) {
+            new_name_prefix
                 << "specialize[{";
             old_name << " 1 specialize[{";
-            for (size_t i =0; i<specialization_pairs.size()-1; ++i) {
+            for (size_t i = 0; i < specialization_pairs.size() - 1; ++i) {
                 old_name << "var_" << specialization_pairs[i].var << "_" << specialization_pairs[i].value << "[ASCII44]";
                 new_name_prefix << "var_" << specialization_pairs[i].var << "_" << specialization_pairs[i].value << "[ASCII44]";
             }
             new_name_prefix << "";
-            new_name_infix << "var_" << specialization_pairs[specialization_pairs.size()-1].var << "_" << specialization_pairs[specialization_pairs.size()-1].value << "[ASCII44]";
+            new_name_infix << "var_" << specialization_pairs[specialization_pairs.size() - 1].var << "_" << specialization_pairs[specialization_pairs.size() - 1].value << "[ASCII44]";
             new_name_postfix << "}[ASCII44]a_" + projection.get_name() + "[op_" + to_string(concrete_op_id) + "]";
-            old_name         << "}[ASCII44]a_" + projection.get_name() + "[op_" + to_string(concrete_op_id) + "]";
-            rreif_specialized_op_aux << " 1 var_" << specialization_pairs[specialization_pairs.size()-1].var << "_" << specialization_pairs[specialization_pairs.size()-1].value << "_t0 ";
+            old_name << "}[ASCII44]a_" + projection.get_name() + "[op_" + to_string(concrete_op_id) + "]";
+            rreif_specialized_op_aux << " 1 var_" << specialization_pairs[specialization_pairs.size() - 1].var << "_" << specialization_pairs[specialization_pairs.size() - 1].value << "_t0 ";
         } else {
-            new_name_prefix 
+            new_name_prefix
                 << "specialize[{";
             new_name_infix << "";
             new_name_postfix << "}[ASCII44]a_" + projection.get_name() + "[op_" + to_string(concrete_op_id) + "]";
@@ -216,51 +212,48 @@ ostringstream rreif_specialized_op_aux;
         rreif_specialized_op << "  " << old_name.str() << "  >= 2 :  " << new_name.str() << " -> 0 ;" << "\n% pattern_database_factory.cc init_a";
         utils::ProofLog::append_to_proof_log(rreif_specialized_op.str(), utils::ProofPart::REIFICATION, comment);
         if (need_lreif) {
-            ostringstream  lreif_specialized_op;
+            ostringstream lreif_specialized_op;
             lreif_specialized_op << "@" << new_name.str() << "_Lreif red "
-                << " 1 " << new_name.str() << " "
-                << " 1 ~op_" << concrete_op_id << "  >= 1 : " << new_name.str() << " -> 1 ;" << "\n% pattern_database_factory.cc init_a";
+                                 << " 1 " << new_name.str() << " "
+                                 << " 1 ~op_" << concrete_op_id << "  >= 1 : " << new_name.str() << " -> 1 ;" << "\n% pattern_database_factory.cc init_a";
             utils::ProofLog::append_to_proof_log(lreif_specialized_op.str(), utils::ProofPart::REIFICATION, comment);
-
         }
-      //\ init A proof log object
-    };
+        //\ init A proof log object
+    }
 
-void init_b(int pattern_var_id, string comment) {
-      // init B proof log object  
+    void init_b(int pattern_var_id, string comment) {
+        // init B proof log object
         rup_line << "\n% v " << comment << "\n" << "@merge_" << new_name.str() << "  pol  @dom_"
-            << projection.get_pattern()[pattern_var_id] << "_max_one ";
-      //\ init B proof object
-};
+                 << projection.get_pattern()[pattern_var_id] << "_max_one ";
+        //\ init B proof object
+    }
 
-void update(int pattern_var_id, int domain_value, string) {
-          // use proof log object
-            rup_line << "@" << new_name_prefix.str() << new_name_infix.str();
-            rup_line << "var_" << projection.get_pattern()[pattern_var_id] << "_" << domain_value << "[ASCII44]";
-            rup_line << new_name_postfix.str() << "  + ";
-          //\ use proof log object
-};
+    void update(int pattern_var_id, int domain_value, string) {
+        // use proof log object
+        rup_line << "@" << new_name_prefix.str() << new_name_infix.str();
+        rup_line << "var_" << projection.get_pattern()[pattern_var_id] << "_" << domain_value << "[ASCII44]";
+        rup_line << new_name_postfix.str() << "  + ";
+        //\ use proof log object
+    }
 
-void consume(VariableProxy var, string comment) {
-      // consume proof log object
-        rup_line << var.get_domain_size() <<" d ; " << "\n% pattern_database_factory.cc consume";
+    void consume(VariableProxy var, string comment) {
+        // consume proof log object
+        rup_line << var.get_domain_size() << " d ; " << "\n% pattern_database_factory.cc consume";
         utils::ProofLog::append_to_proof_log(rup_line.str(), utils::ProofPart::DERIVATION, comment);
-      //\ consume proof log object
-};
+        //\ consume proof log object
+    }
 
 // Log that an action with an orthogonal effect preserves the rev_invariant.
-void log_strong_lem32(int concrete_op_id, string comment) {
-    
-    ostringstream strong_lem32;
-    strong_lem32 << "@strong_lem32_[op_" << concrete_op_id << "]";
-    strong_lem32 << "   rup   ";
-    strong_lem32 << "1 ~rev_indu_t1   ";
-    strong_lem32 << "1 ~op_" << concrete_op_id;
-    strong_lem32 << "   1 rev_indu_t0  >= 1;" << "\n% pattern_database_factory.cc log_strong_lem32";
+    void log_strong_lem32(int concrete_op_id, string comment) {
+        ostringstream strong_lem32;
+        strong_lem32 << "@strong_lem32_[op_" << concrete_op_id << "]";
+        strong_lem32 << "   rup   ";
+        strong_lem32 << "1 ~rev_indu_t1   ";
+        strong_lem32 << "1 ~op_" << concrete_op_id;
+        strong_lem32 << "   1 rev_indu_t0  >= 1;" << "\n% pattern_database_factory.cc log_strong_lem32";
 
-    utils::ProofLog::append_to_proof_log(strong_lem32.str(), utils::ProofPart::DERIVATION, comment);
-}
-
+        utils::ProofLog::append_to_proof_log(strong_lem32.str(), utils::ProofPart::DERIVATION, comment);
+    }
 };
 
 void PatternDatabaseFactory::multiply_out(
@@ -273,8 +266,6 @@ void PatternDatabaseFactory::multiply_out(
     const vector<FactPair> &effects_without_pre,
     vector<AbstractOperator> &operators,
     vector<FactPair> &specialization_pairs) const {
-
-
     ProofLogObject_multiply_out proof_log_object(projection);
     proof_log_object.init_a(specialization_pairs, concrete_op_id, "PatternDatabaseFactory::multiply_out");
     if (pos == static_cast<int>(effects_without_pre.size())) {
@@ -330,7 +321,7 @@ void PatternDatabaseFactory::build_abstract_operators_for_op(
     vector<FactPair> pre_pairs;
     // All variable value pairs that are an effect
     vector<FactPair> eff_pairs;
-    // All variable value pairs that are added to the precondition or 
+    // All variable value pairs that are added to the precondition or
     // prevail codition
     // expressed as original vaiable id.
     vector<FactPair> specialization_pairs;
@@ -384,7 +375,7 @@ void PatternDatabaseFactory::compute_abstract_operators(
             op_cost = operator_costs[op.get_id()];
         }
         build_abstract_operators_for_op(
-            op, op_cost, abstract_ops); // 
+            op, op_cost, abstract_ops); //
     }
 }
 
@@ -418,213 +409,208 @@ bool PatternDatabaseFactory::is_goal_state(int state_index) const {
     return true;
 }
 
-    class ProofLogObject_compute_distance{
-        const MatchTree &match_tree;
-        Projection projection;
-        ostringstream goal_extension_lemma;
-        ostringstream rup_goal_extension_lemma;
-        int reachable_states;
-        int current_concrete_op_id;
-        public:
-            ProofLogObject_compute_distance(Projection projection,
-                const MatchTree &match_tree)
-            : 
-            match_tree(match_tree),
-            projection(projection)
-            {};
+class ProofLogObject_compute_distance {
+    const MatchTree &match_tree;
+    Projection projection;
+    ostringstream goal_extension_lemma;
+    ostringstream rup_goal_extension_lemma;
+    int reachable_states;
+    int current_concrete_op_id;
+public:
+    ProofLogObject_compute_distance(Projection projection,
+                                    const MatchTree &match_tree)
+        :
+          match_tree(match_tree),
+          projection(projection)
+    {}
 
-            void init() {
-                    utils::ProofLog::append_to_proof_file("red  ", "prime_pdb_invar_Rreif.prooflog");
-                    utils::ProofLog::append_to_proof_file("red  ", "prime_pdb_invar_Lreif.prooflog");
-                    utils::ProofLog::append_to_proof_file("red  ",       "pdb_invar_Rreif.prooflog");
-                    utils::ProofLog::append_to_proof_file("red  ",       "pdb_invar_Lreif.prooflog");
+    void init() {
+        utils::ProofLog::append_to_proof_file("red  ", "prime_pdb_invar_Rreif.prooflog");
+        utils::ProofLog::append_to_proof_file("red  ", "prime_pdb_invar_Lreif.prooflog");
+        utils::ProofLog::append_to_proof_file("red  ", "pdb_invar_Rreif.prooflog");
+        utils::ProofLog::append_to_proof_file("red  ", "pdb_invar_Lreif.prooflog");
 
-                // init proof object
-                reachable_states = 0;
+        // init proof object
+        reachable_states = 0;
 
-                // state set extension lemma for the goal states is needed here
-                // alpha = {v -> d_G | (v,d_G) in G cap Pattern} and beta is each abstract goal state
+        // state set extension lemma for the goal states is needed here
+        // alpha = {v -> d_G | (v,d_G) in G cap Pattern} and beta is each abstract goal state
 
-                utils::ProofLog::add_balance_leq_x_bireification(0, "PatternDatabaseFactory::compute_distances");
-                goal_extension_lemma << "@goal_list  pol  ";
-                rup_goal_extension_lemma << "rup  1 ~goal_t0 ";
-                // \ init proof log object
-            };
+        utils::ProofLog::add_balance_leq_x_bireification(0, "PatternDatabaseFactory::compute_distances");
+        goal_extension_lemma << "@goal_list  pol  ";
+        rup_goal_extension_lemma << "rup  1 ~goal_t0 ";
+        // \ init proof log object
+    }
 
-            void update_a(
-                int state_index,
-                vector<FactPair> abstract_goals
-                ) {
-
-                // update A proof log object
-                goal_extension_lemma << "@" << match_tree.abstract_state(state_index) << "_t0_Lreif ";
-                rup_goal_extension_lemma << " 1 " << match_tree.abstract_state(state_index) << "_t0 ";
-                size_t ptr = 0;
-                bool is_goal_var;
-                while (ptr < projection.get_pattern().size()) {
-                    is_goal_var = false;
-                    for (const FactPair &abstract_goal : abstract_goals) {
-                        if (ptr == abstract_goal.var) {
-                            is_goal_var = true;
-                        }
-                    }
-                    if (is_goal_var) {
-                        ptr++;
-                    } else if (projection.unrank(state_index, ptr) == projection.get_domain_size(ptr)-1) {
-                        for (int i = 0; i < projection.get_domain_size(ptr)-1; i++) {
-                            goal_extension_lemma << " + ";
-                        }
-                        goal_extension_lemma << " @dom_" << projection.get_pattern()[ptr] << "_min_one + s  " ;
-                        ptr++;
-                    } else {
-                        break;
-                    }
+    void update_a(
+        int state_index,
+        vector<FactPair> abstract_goals
+        ) {
+        // update A proof log object
+        goal_extension_lemma << "@" << match_tree.abstract_state(state_index) << "_t0_Lreif ";
+        rup_goal_extension_lemma << " 1 " << match_tree.abstract_state(state_index) << "_t0 ";
+        size_t ptr = 0;
+        bool is_goal_var;
+        while (ptr < projection.get_pattern().size()) {
+            is_goal_var = false;
+            for (const FactPair &abstract_goal : abstract_goals) {
+                if (ptr == abstract_goal.var) {
+                    is_goal_var = true;
                 }
-                reachable_states++;
-                //\ update A proof log object
-            };
-
-            void use() {
-	        goal_extension_lemma << " ;";
-                // use proof log object
-                utils::ProofLog::append_to_proof_log(goal_extension_lemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::use");
-                rup_goal_extension_lemma << "  >= 1 ; ";
-                utils::ProofLog::append_to_proof_log(rup_goal_extension_lemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::use");
-                //\ use proof log object
-            };
-
-            void update(
-                int state_index,
-                int distance,
-                string comment)
-            {
-                match_tree.bireif_abstract_state_with_balance_geq(state_index, distance+1, comment);
-                for (int i=0; i<=1; ++i) {
-                    ostringstream safe_backwards_inductive_situation_set_Rreif_2;
-                    ostringstream safe_backwards_inductive_situation_set_Lreif_2;
-                    ostringstream reif_var;
-                    reif_var << match_tree.abstract_state_with_balance_geq(state_index, distance+1) << (i ? "_t1" : "_t0");
-                    safe_backwards_inductive_situation_set_Rreif_2 << " 1    " << reif_var.str() << " ";
-                    safe_backwards_inductive_situation_set_Lreif_2 << " 1   ~" << reif_var.str() << " ";
-                    utils::ProofLog::append_to_proof_file(safe_backwards_inductive_situation_set_Rreif_2.str(), (i ? "prime_pdb_invar_Rreif.prooflog" : "pdb_invar_Rreif.prooflog"), comment);
-                    utils::ProofLog::append_to_proof_file(safe_backwards_inductive_situation_set_Lreif_2.str(), (i ? "prime_pdb_invar_Lreif.prooflog" : "pdb_invar_Lreif.prooflog"), comment);
+            }
+            if (is_goal_var) {
+                ptr++;
+            } else if (projection.unrank(state_index, ptr) == projection.get_domain_size(ptr) - 1) {
+                for (int i = 0; i < projection.get_domain_size(ptr) - 1; i++) {
+                    goal_extension_lemma << " + ";
                 }
-            };
-
-
-        void log_rev_indu(int state_index, int applicable_operator_ids_size) {
-            current_concrete_op_id = -1;
-            // log_rev_indu
-            utils::ProofLog::append_to_proof_log("% state_idx: " + to_string(state_index), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_rev_indu");
-            utils::ProofLog::append_to_proof_log("% rev-applicable abstract operators: " + to_string(applicable_operator_ids_size), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_rev_indu");
-            //\ log_rev_indu
-        }
-
-        void log_single_rev_transition(
-            int state_index,
-            const AbstractOperator &op,
-            int op_id,
-            int predecessor,
-            vector<int> distances,
-            string comment = ""
-            ) {
-            current_concrete_op_id = op.get_concrete_op_id();
-
-            // log_single_rev_transition
-            utils::ProofLog::append_to_proof_log("% " + to_string(state_index) + " <--" + "op_" + to_string(current_concrete_op_id) + "_" + to_string(op_id) + "-- " + to_string(predecessor), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_single_rev_transition");
-            //       I expect the operator to come in the 'natural' order
-            //       e.g. corresponding to the hashing of the abstract_precondition
-            //       and of course grouped by the concrete operator
-            ostringstream rup_spai;
-            rup_spai << "@spai_s[" + to_string(state_index)
-                + "][ASCII44]specialize[{";
-
-            for (FactPair fp : op.get_specialized_preconditions()) {
-                rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << ",";
+                goal_extension_lemma << " @dom_" << projection.get_pattern()[ptr] << "_min_one + s  ";
+                ptr++;
+            } else {
+                break;
             }
+        }
+        reachable_states++;
+        //\ update A proof log object
+    }
 
-            rup_spai << "}[ASCII44]a_" 
-                + projection.get_name() + "[op_" + to_string(current_concrete_op_id) + "]_lem32  rup  "; 
-            rup_spai << " 1 ~specialize[{";
-            for (FactPair fp : op.get_specialized_preconditions()) {
-                rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << "[ASCII44]"; 
+    void use() {
+        goal_extension_lemma << " ;";
+        // use proof log object
+        utils::ProofLog::append_to_proof_log(goal_extension_lemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::use");
+        rup_goal_extension_lemma << "  >= 1 ; ";
+        utils::ProofLog::append_to_proof_log(rup_goal_extension_lemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::use");
+        //\ use proof log object
+    }
+
+    void update(
+        int state_index,
+        int distance,
+        string comment) {
+        match_tree.bireif_abstract_state_with_balance_geq(state_index, distance + 1, comment);
+        for (int i = 0; i <= 1; ++i) {
+            ostringstream safe_backwards_inductive_situation_set_Rreif_2;
+            ostringstream safe_backwards_inductive_situation_set_Lreif_2;
+            ostringstream reif_var;
+            reif_var << match_tree.abstract_state_with_balance_geq(state_index, distance + 1) << (i ? "_t1" : "_t0");
+            safe_backwards_inductive_situation_set_Rreif_2 << " 1    " << reif_var.str() << " ";
+            safe_backwards_inductive_situation_set_Lreif_2 << " 1   ~" << reif_var.str() << " ";
+            utils::ProofLog::append_to_proof_file(safe_backwards_inductive_situation_set_Rreif_2.str(), (i ? "prime_pdb_invar_Rreif.prooflog" : "pdb_invar_Rreif.prooflog"), comment);
+            utils::ProofLog::append_to_proof_file(safe_backwards_inductive_situation_set_Lreif_2.str(), (i ? "prime_pdb_invar_Lreif.prooflog" : "pdb_invar_Lreif.prooflog"), comment);
+        }
+    }
+
+
+    void log_rev_indu(int state_index, int applicable_operator_ids_size) {
+        current_concrete_op_id = -1;
+        // log_rev_indu
+        utils::ProofLog::append_to_proof_log("% state_idx: " + to_string(state_index), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_rev_indu");
+        utils::ProofLog::append_to_proof_log("% rev-applicable abstract operators: " + to_string(applicable_operator_ids_size), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_rev_indu");
+        //\ log_rev_indu
+    }
+
+    void log_single_rev_transition(
+        int state_index,
+        const AbstractOperator &op,
+        int op_id,
+        int predecessor,
+        vector<int> distances,
+        string comment = ""
+        ) {
+        current_concrete_op_id = op.get_concrete_op_id();
+
+        // log_single_rev_transition
+        utils::ProofLog::append_to_proof_log("% " + to_string(state_index) + " <--" + "op_" + to_string(current_concrete_op_id) + "_" + to_string(op_id) + "-- " + to_string(predecessor), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_single_rev_transition");
+        //       I expect the operator to come in the 'natural' order
+        //       e.g. corresponding to the hashing of the abstract_precondition
+        //       and of course grouped by the concrete operator
+        ostringstream rup_spai;
+        rup_spai << "@spai_s[" + to_string(state_index)
+            + "][ASCII44]specialize[{";
+
+        for (FactPair fp : op.get_specialized_preconditions()) {
+            rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << ",";
+        }
+
+        rup_spai << "}[ASCII44]a_"
+            + projection.get_name() + "[op_" + to_string(current_concrete_op_id) + "]_lem32  rup  ";
+        rup_spai << " 1 ~specialize[{";
+        for (FactPair fp : op.get_specialized_preconditions()) {
+            rup_spai << "var_" << projection.get_pattern()[fp.var] << "_" << fp.value << "[ASCII44]";
+        }
+        rup_spai << "}[ASCII44]a_"
+            + projection.get_name() + "[op_" + to_string(current_concrete_op_id) + "] ";
+        rup_spai
+            << "  1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances[state_index] + 1) << "_t1 "
+            << " 1 rev_indu_t0  >= 1    ; " << " % " << comment << "% pattern_database_factory.cc";
+        utils::ProofLog::append_to_proof_log(rup_spai.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_single_rev_transition");
+        //\ log_single_rev_transition
+    }
+
+
+    void update_b(
+        vector<int> distances,
+        int predecessor,
+        int alternative_distance,
+        const AbstractOperator &op,
+        string comment
+        ) {
+        // update B proof object
+        if (distances[predecessor] == numeric_limits<int>::max()) {
+            reachable_states++;
+        } else {
+            for (int i = 0; i <= 1; ++i) {
+                match_tree.bireif_abstract_state_with_balance_geq(predecessor, alternative_distance + 1, comment);
+                utils::ProofLog::add_balance_leq_x_bireification(alternative_distance, comment);
+
+                ostringstream rup_line_s_a;
+                rup_line_s_a << "rup "
+                             << " 1 ~" << match_tree.abstract_state_with_balance_geq(predecessor, distances[predecessor] + 1) << "_t1 "
+                             << " 1 rev_indu_t0 "
+                             << " 1 ~op_" << op.get_concrete_op_id()
+                             << "  >= 1 ;";
+                utils::ProofLog::append_to_proof_log(rup_line_s_a.str(), utils::ProofPart::DERIVATION, comment);
             }
-            rup_spai << "}[ASCII44]a_" 
-                + projection.get_name() + "[op_" + to_string(current_concrete_op_id) + "] ";
-            rup_spai
-                << "  1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances[state_index]+1) << "_t1 "
-                << " 1 rev_indu_t0  >= 1    ; " << " % " << comment << "% pattern_database_factory.cc";
-            utils::ProofLog::append_to_proof_log(rup_spai.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::log_single_rev_transition");
-            //\ log_single_rev_transition
         }
+        //\ update B proof object
+    }
 
+    void log_single_rev_state(int state_index, int distances_state_index, string comment) {
+        // update C proof object
+        // do resolution
+        ostringstream x;
+        x << "@lem33_for_hash_" << state_index << "  rup  1 ~transition "
+          << " 1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances_state_index + 1) << "_t1"
+          << "  1 rev_indu_t0  >= 1 ; ";
+        utils::ProofLog::append_to_proof_log(x.str(), utils::ProofPart::DERIVATION, comment);
+        //\ update C roof object
+    }
 
-        void update_b(
-            vector<int> distances,
-            int predecessor,
-            int alternative_distance,
-            const AbstractOperator &op,
-            string comment
-            )
-            {
-              // update B proof object
-                if (distances[predecessor] == numeric_limits<int>::max()) {
-                    reachable_states++;
-                } else {
-                    for (int i=0; i<=1; ++i) {
-                        match_tree.bireif_abstract_state_with_balance_geq(predecessor, alternative_distance+1, comment);
-                        utils::ProofLog::add_balance_leq_x_bireification(alternative_distance, comment);
-
-                        ostringstream rup_line_s_a;
-                        rup_line_s_a << "rup "
-                            << " 1 ~" << match_tree.abstract_state_with_balance_geq(predecessor, distances[predecessor]+1) << "_t1 "
-                            << " 1 rev_indu_t0 "
-                            << " 1 ~op_" << op.get_concrete_op_id()
-                            << "  >= 1 ;";
-                        utils::ProofLog::append_to_proof_log(rup_line_s_a.str(), utils::ProofPart::DERIVATION, comment);
-                    }
-                }
-              //\ update B proof object
+    void finalize() {
+        // consume proof object
+        for (int i = 0; i <= 1; ++i) {
+            ostringstream phi_pdb_R;
+            ostringstream phi_pdb_L;
+            phi_pdb_R
+                << "1 ~" << "rev_indu" << (i ? "_t1" : "_t0") << " "
+                << " >= " << 1 << " : " << "rev_indu" << (i ? "_t1" : "_t0") << " -> 0 ;" << endl;
+            phi_pdb_L
+                << reachable_states << " " << " rev_indu" << (i ? "_t1" : "_t0")
+                << " >= " << reachable_states << " : " << "rev_indu" << (i ? "_t1" : "_t0") << " -> 1 ;" << endl;
+            utils::ProofLog::append_to_proof_file(phi_pdb_R.str(), (i ? "prime_pdb_invar_Rreif.prooflog" : "pdb_invar_Rreif.prooflog"));
+            utils::ProofLog::append_to_proof_file(phi_pdb_L.str(), (i ? "prime_pdb_invar_Lreif.prooflog" : "pdb_invar_Lreif.prooflog"));
         }
-
-        void log_single_rev_state(int state_index, int distances_state_index, string comment) {
-            // update C proof object
-                // do resolution
-                ostringstream x;
-                x << "@lem33_for_hash_" << state_index << "  rup  1 ~transition "
-                    << " 1 ~" << match_tree.abstract_state_with_balance_geq(state_index, distances_state_index+1) << "_t1"
-                    << "  1 rev_indu_t0  >= 1 ; ";
-                utils::ProofLog::append_to_proof_log(x.str(), utils::ProofPart::DERIVATION, comment);
-            //\ update C roof object
-        }
-
-        void finalize() {
-          // consume proof object
-            for (int i=0; i<=1; ++i) {
-                ostringstream phi_pdb_R;
-                ostringstream phi_pdb_L;
-                phi_pdb_R
-                    << "1 ~" << "rev_indu" << (i ? "_t1" : "_t0") << " "
-                    << " >= " << 1 << " : " << "rev_indu" << (i ? "_t1" : "_t0") << " -> 0 ;" << endl;
-                phi_pdb_L
-                    << reachable_states << " " << " rev_indu" << (i ? "_t1" : "_t0")
-                    << " >= " << reachable_states << " : " << "rev_indu" << (i ? "_t1" : "_t0") << " -> 1 ;" << endl;
-                utils::ProofLog::append_to_proof_file(phi_pdb_R.str(), (i ? "prime_pdb_invar_Rreif.prooflog" : "pdb_invar_Rreif.prooflog"));
-                utils::ProofLog::append_to_proof_file(phi_pdb_L.str(), (i ? "prime_pdb_invar_Lreif.prooflog" : "pdb_invar_Lreif.prooflog"));
-            }
-            utils::ProofLog::append_files_to_proof_log(vector<string>({"prime_pdb_invar_Rreif.prooflog", "pdb_invar_Rreif.prooflog", "prime_pdb_invar_Lreif.prooflog", "pdb_invar_Lreif.prooflog"}), utils::ProofPart::REIFICATION);
-          // consume proof object
-            ostringstream indulemma;
-            indulemma << "@indulemma_lem34  rup  1 ~transition  1 ~rev_indu_t1  1 rev_indu_t0  >= 1 ; ";
-            utils::ProofLog::append_to_proof_log(indulemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::finalize");
-        }
-    };
+        utils::ProofLog::append_files_to_proof_log(vector<string>({"prime_pdb_invar_Rreif.prooflog", "pdb_invar_Rreif.prooflog", "prime_pdb_invar_Lreif.prooflog", "pdb_invar_Lreif.prooflog"}), utils::ProofPart::REIFICATION);
+        // consume proof object
+        ostringstream indulemma;
+        indulemma << "@indulemma_lem34  rup  1 ~transition  1 ~rev_indu_t1  1 rev_indu_t0  >= 1 ; ";
+        utils::ProofLog::append_to_proof_log(indulemma.str(), utils::ProofPart::DERIVATION, "ProofLogObject_compute_distance::finalize");
+    }
+};
 
 
 void PatternDatabaseFactory::compute_distances(
     const MatchTree &match_tree, bool compute_plan) {
-
-
     distances.reserve(projection.get_num_abstract_states());
     // first implicit entry: priority, second entry: index for an abstract state
     priority_queues::AdaptiveQueue<int> pq;

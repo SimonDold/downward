@@ -168,18 +168,18 @@ void MatchTree::get_applicable_operator_ids(
         get_applicable_operator_ids_recursive(root, state_index, operator_ids);
 }
 
-void MatchTree::bireif_state(int state_index, string comment) const{
+void MatchTree::bireif_state(int state_index, string comment) const {
     projection.bireif_abstract_state(state_index, comment);
 }
 
 void MatchTree::bireif_abstract_state_with_balance_geq(int state_index, int balance, string comment) const {
-    for (int i=0; i<=1; ++i) {
-        utils::ProofLog::bireif_balance_leq(balance-1, comment);
+    for (int i = 0; i <= 1; ++i) {
+        utils::ProofLog::bireif_balance_leq(balance - 1, comment);
         ostringstream reif_var, conj1, conj2;
-        reif_var << abstract_state_with_balance_geq(state_index, balance)  << (i ? "_t1" : "_t0");
+        reif_var << abstract_state_with_balance_geq(state_index, balance) << (i ? "_t1" : "_t0");
         conj1 << "a_" << projection.get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");
         conj2 << "balance_geq_" << balance << (i ? "_t1" : "_t0");
-        utils::ProofLog::bireif_conjunction(reif_var.str(), {conj1.str(),conj2.str()}, comment);
+        utils::ProofLog::bireif_conjunction(reif_var.str(), {conj1.str(), conj2.str()}, comment);
     }
 }
 
@@ -189,7 +189,7 @@ string MatchTree::abstract_state(int state_index) const {
 
 string MatchTree::abstract_state_with_balance_geq(int state_index, int balance) const {
     ostringstream name;
-    name << "node[s"<< abstract_state(state_index) <<"[ASCII44]balance_geq_" << balance << "]";
+    name << "node[s" << abstract_state(state_index) << "[ASCII44]balance_geq_" << balance << "]";
     return name.str();
 }
 

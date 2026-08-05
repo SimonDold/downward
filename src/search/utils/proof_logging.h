@@ -9,7 +9,6 @@
 extern int proof_log_var_count;
 extern int proof_log_max_cost_bits;
 namespace utils {
-
 enum class ProofPart {
     REIFICATION,
     DERIVATION,
@@ -19,35 +18,34 @@ enum class ProofPart {
 int ceil_log_2(int x);
 
 
-class ProofLog{
-
+class ProofLog {
 public:
-    static std::string NOW(){return "NOW";};
-    static std::string FTR(){return "FTR";};
+    static std::string NOW() {return "NOW";}
+    static std::string FTR() {return "FTR";}
 
     explicit ProofLog() = delete;
 
     static void clear_opb();
-    static void append_to_opb(const std::string& s);
-    static void append_to_opb(const std::ostringstream& s){append_to_opb(s.str());};
+    static void append_to_opb(const std::string &s);
+    static void append_to_opb(const std::ostringstream &s) {append_to_opb(s.str());}
 
-    static void append_to_proof_log(const std::string& line, ProofPart proof_part, const std::string& comment);
-    static void append_comment_to_proof_log(const std::string& comment);
-    static void append_to_proof_file(const std::string& line, const std::string& file, std::string comment="append_comment_to_proof_file");
-    static void append_to_invariant_right(const std::string& summand);
-    static void append_to_invariant_left(const std::string& summand);
-    static void append_to_invariant_prime_right(const std::string& summand);
-    static void append_to_invariant_prime_left(const std::string& summand);
+    static void append_to_proof_log(const std::string &line, ProofPart proof_part, const std::string &comment);
+    static void append_comment_to_proof_log(const std::string &comment);
+    static void append_to_proof_file(const std::string &line, const std::string &file, std::string comment = "append_comment_to_proof_file");
+    static void append_to_invariant_right(const std::string &summand);
+    static void append_to_invariant_left(const std::string &summand);
+    static void append_to_invariant_prime_right(const std::string &summand);
+    static void append_to_invariant_prime_left(const std::string &summand);
     static void add_spent_geq_x_bireification(const int x, std::string comment);
     static void add_balance_leq_x_bireification(const int x, std::string comment);
     static void bireif_balance_leq(int return_value, std::string comment);
     static void bireif_conjunction(std::string reif_var, std::vector<std::string> conjuncts, std::string comment);
     static void bireif_disjunction(std::string reif_var, std::vector<std::string> disjuncts, std::string comment);
     static void append_files_to_proof_log(std::vector<std::string> files, ProofPart proof_part);
-    static void finalize_lemmas(int optimal_cost, std::string comment="finalize_lemmas");
+    static void finalize_lemmas(int optimal_cost, std::string comment = "finalize_lemmas");
     static int get_proof_log_bits();
     static int get_proof_log_maxint();
-    static std::string strips_name_to_veripb_name(const std::string& strips_name);
+    static std::string strips_name_to_veripb_name(const std::string &strips_name);
     static std::string put_prime(bool is_prime);
     static std::string veripbfy(int x);
     static void merge_proof_log_files();
@@ -58,9 +56,8 @@ public:
     static void create_plan_pbp();
     static void finalize_plan_pbp();
     static void append_to_plan_pbp(std::string file_name);
-    static int runCommand(const std::string& command, const std::string& key);
+    static int runCommand(const std::string &command, const std::string &key);
 };
-
 }
 
 #endif

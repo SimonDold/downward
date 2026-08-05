@@ -50,16 +50,16 @@ int Projection::rank(const vector<int> &state) const {
 }
 
 int Projection::unrank(int state_index, int var) const {
-    assert(hash_multipliers.size()>var);
-    assert(hash_multipliers[var]>0);
+    assert(hash_multipliers.size() > var);
+    assert(hash_multipliers[var] > 0);
     int temp = state_index / hash_multipliers[var];
     return temp % domain_sizes[var];
 }
 
-string get_name_aux(Pattern pattern){
+string get_name_aux(Pattern pattern) {
     ostringstream name;
     name << "{";
-    for (auto & var : pattern) {
+    for (auto &var : pattern) {
         name << var << "_";
     }
     name << "}";
@@ -76,9 +76,8 @@ string Projection::abstract_state(int state_index) const {
     return name.str();
 }
 
-void Projection::bireif_abstract_state(int state_index, string comment) const{
-    for (int i=0; i<=1; ++i) {
-
+void Projection::bireif_abstract_state(int state_index, string comment) const {
+    for (int i = 0; i <= 1; ++i) {
         ostringstream reif_var;
         reif_var << abstract_state(state_index) << (i ? "_t1" : "_t0");
         vector<string> conjuncts(pattern.size());
@@ -94,14 +93,13 @@ void Projection::bireif_abstract_state(int state_index, string comment) const{
 void Projection::bireif_abstract_state_with_balance(int state_index, int balance, string comment) const {
     ostringstream name;
     name << "node[a_" << get_name() << "[s[" << state_index << "]][ASCII44]balance_geq_" << balance << "]";
-    utils::ProofLog::bireif_balance_leq(balance-1, comment);
-    for (int i=0; i<=1; ++i) {
+    utils::ProofLog::bireif_balance_leq(balance - 1, comment);
+    for (int i = 0; i <= 1; ++i) {
         ostringstream reif_var, conjunct_1, conjunct_2;
         reif_var << name.str() << (i ? "_t1" : "_t0");
         conjunct_1 << "a_" << get_name() << "[s[" << state_index << "]]" << (i ? "_t1" : "_t0");
         conjunct_2 << "balance_geq_" << balance << (i ? "_t1" : "_t0");
         utils::ProofLog::bireif_conjunction(reif_var.str(), {conjunct_1.str(), conjunct_2.str()}, comment);
-
     }
 }
 
@@ -114,7 +112,7 @@ PatternDatabase::PatternDatabase(
 
 int PatternDatabase::get_value(const vector<int> &state) const {
     int result = distances[projection.rank(state)];
-    if (result <= utils::ProofLog::get_proof_log_maxint()){
+    if (result <= utils::ProofLog::get_proof_log_maxint()) {
         projection.bireif_abstract_state_with_balance(projection.rank(state), result, "PatternDatabase::get_value");
     }
     return result;

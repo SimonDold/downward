@@ -160,9 +160,9 @@ static vector<FactPair> read_facts(istream &in) {
         FactPair condition = FactPair::no_fact;
         in >> condition.var >> condition.value;
         conditions.push_back(condition);
-	std::ostringstream s;
-	s << i << ": " << condition.var << ", " << condition.value << ";";
-	utils::ProofLog::append_to_opb(s);
+        std::ostringstream s;
+        s << i << ": " << condition.var << ", " << condition.value << ";";
+        utils::ProofLog::append_to_opb(s);
     }
     return conditions;
 }
@@ -183,16 +183,16 @@ ExplicitVariable::ExplicitVariable(istream &in) {
     ostringstream max_one_now, max_one_ftr, min_one_now, min_one_ftr;
     // TODO prooflog : is it guaranteed that the variables are named 'var0', 'var1' ... 'varN' ?
     // If no, then i would like to have the id as a parameter for the constructor and use this instead of name.
-    max_one_now << "@dom_"<< name <<"_max_one_" << utils::ProofLog::NOW() << " ";
-    max_one_ftr << "@dom_"<< name <<"_max_one_" << utils::ProofLog::FTR() << " ";
-    min_one_now << "@dom_"<< name <<"_min_one_" << utils::ProofLog::NOW() << " ";
-    min_one_ftr << "@dom_"<< name <<"_min_one_" << utils::ProofLog::FTR() << " ";
+    max_one_now << "@dom_" << name << "_max_one_" << utils::ProofLog::NOW() << " ";
+    max_one_ftr << "@dom_" << name << "_max_one_" << utils::ProofLog::FTR() << " ";
+    min_one_now << "@dom_" << name << "_min_one_" << utils::ProofLog::NOW() << " ";
+    min_one_ftr << "@dom_" << name << "_min_one_" << utils::ProofLog::FTR() << " ";
 
     for (int i = 0; i < domain_size; ++i) {
         getline(in, fact_names[i]);
         ostringstream positive_frame_axiom, negative_frame_axiom;
-	positive_frame_axiom << "@positive_frame_axiom_" << name << "_" << i << "  1 ~frame_" << name << "_" << i << "  1 ~" << name << "_" << i << "_" << utils::ProofLog::NOW() << "  1  " << name << "_" << i << "_" << utils::ProofLog::FTR() << "  >= 1 ;" << endl;
-	negative_frame_axiom << "@negative_frame_axiom_" << name << "_" << i << "  1 ~frame_" << name << "_" << i << "  1  " << name << "_" << i << "_" << utils::ProofLog::NOW() << "  1 ~" << name << "_" << i << "_" << utils::ProofLog::FTR() << "  >= 1 ;" << endl;
+        positive_frame_axiom << "@positive_frame_axiom_" << name << "_" << i << "  1 ~frame_" << name << "_" << i << "  1 ~" << name << "_" << i << "_" << utils::ProofLog::NOW() << "  1  " << name << "_" << i << "_" << utils::ProofLog::FTR() << "  >= 1 ;" << endl;
+        negative_frame_axiom << "@negative_frame_axiom_" << name << "_" << i << "  1 ~frame_" << name << "_" << i << "  1  " << name << "_" << i << "_" << utils::ProofLog::NOW() << "  1 ~" << name << "_" << i << "_" << utils::ProofLog::FTR() << "  >= 1 ;" << endl;
         utils::ProofLog::append_to_opb(positive_frame_axiom);
         utils::ProofLog::append_to_opb(negative_frame_axiom);
         max_one_now << " 1 ~" << name << "_" << i << "_" << utils::ProofLog::NOW() << " ";
@@ -200,10 +200,10 @@ ExplicitVariable::ExplicitVariable(istream &in) {
         min_one_now << " 1  " << name << "_" << i << "_" << utils::ProofLog::NOW() << " ";
         min_one_ftr << " 1  " << name << "_" << i << "_" << utils::ProofLog::FTR() << " ";
     }
-    max_one_now << " >= " << domain_size-1 << " ;" << endl;
-    max_one_ftr << " >= " << domain_size-1 << " ;" << endl;
-    min_one_now << " >= " <<             1 << " ;" << endl;
-    min_one_ftr << " >= " <<             1 << " ;" << endl;
+    max_one_now << " >= " << domain_size - 1 << " ;" << endl;
+    max_one_ftr << " >= " << domain_size - 1 << " ;" << endl;
+    min_one_now << " >= " << 1 << " ;" << endl;
+    min_one_ftr << " >= " << 1 << " ;" << endl;
 
     utils::ProofLog::append_to_opb(max_one_now);
     utils::ProofLog::append_to_opb(max_one_ftr);
@@ -212,9 +212,9 @@ ExplicitVariable::ExplicitVariable(istream &in) {
 
     std::ostringstream s;
     s << "* name: " << name
-	<< " axiom_layer: " << axiom_layer
-	<< "domain_size: " << domain_size
-	<< std::endl;
+      << " axiom_layer: " << axiom_layer
+      << "domain_size: " << domain_size
+      << std::endl;
     utils::ProofLog::append_to_opb(s);
 
     check_magic(in, "end_variable");

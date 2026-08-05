@@ -40,47 +40,46 @@ EagerSearch::EagerSearch(
         cerr << "lazy_evaluator must cache its estimates" << endl;
         utils::exit_with(utils::ExitCode::SEARCH_INPUT_ERROR);
     }
-    utils::ProofLog::append_to_proof_file("%META\nbudget.prooflog\nreifications.prooflog\ninvariant_right.prooflog\ninvariant_left.prooflog\ninvariant_prime_right.prooflog\ninvariant_prime_left.prooflog\nderivations.prooflog", get_description() +".prooflog");
+    utils::ProofLog::append_to_proof_file("%META\nbudget.prooflog\nreifications.prooflog\ninvariant_right.prooflog\ninvariant_left.prooflog\ninvariant_prime_right.prooflog\ninvariant_prime_left.prooflog\nderivations.prooflog", get_description() + ".prooflog");
 }
 
 void EagerSearch::add_phi_to_invar(SearchNode node) {
     string h_name = open_list->get_priority_evaluator_name();
     int state_id = node.get_state().get_id_int();
-    for (int i=0; i<=1; ++i) {
-            ostringstream r_line;
-            ostringstream l_line;
-            r_line << " 1  phi_" + open_list->get_priority_evaluator_name()
-                    + "[s" << state_id << "]" << (i ? "_t1" : "_t0")
-                    << " ";
-            l_line << " 1 ~phi_" + open_list->get_priority_evaluator_name()
-                    + "[s" << state_id << "]" << (i ? "_t1" : "_t0")
-                    << " ";
-            if (i){
-                utils::ProofLog::append_to_invariant_prime_right(r_line.str());
-                utils::ProofLog::append_to_invariant_prime_left(l_line.str());
-            } else {
-                utils::ProofLog::append_to_invariant_right(r_line.str());
-                utils::ProofLog::append_to_invariant_left(l_line.str());
-                }
+    for (int i = 0; i <= 1; ++i) {
+        ostringstream r_line;
+        ostringstream l_line;
+        r_line << " 1  phi_" + open_list->get_priority_evaluator_name()
+            + "[s" << state_id << "]" << (i ? "_t1" : "_t0")
+               << " ";
+        l_line << " 1 ~phi_" + open_list->get_priority_evaluator_name()
+            + "[s" << state_id << "]" << (i ? "_t1" : "_t0")
+               << " ";
+        if (i) {
+            utils::ProofLog::append_to_invariant_prime_right(r_line.str());
+            utils::ProofLog::append_to_invariant_prime_left(l_line.str());
+        } else {
+            utils::ProofLog::append_to_invariant_right(r_line.str());
+            utils::ProofLog::append_to_invariant_left(l_line.str());
         }
+    }
 
-        ostringstream entry_lemma_spent, prime_entry_lemma_spent;
-        entry_lemma_spent
-            << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[s" << state_id << "]_t0 "
-            << " rup "
-            << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
-            << " 1 phi_" << h_name << "[s" << state_id << "]_t0 "
-            << " >= 1 ; ";
+    ostringstream entry_lemma_spent, prime_entry_lemma_spent;
+    entry_lemma_spent
+        << "@entry_lemma_" << open_list->get_priority_evaluator_name()
+        << "[s" << state_id << "]_t0 "
+        << " rup "
+        << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t0 "
+        << " 1 phi_" << h_name << "[s" << state_id << "]_t0 "
+        << " >= 1 ; ";
 
-        prime_entry_lemma_spent
-            << "@entry_lemma_" << open_list->get_priority_evaluator_name()
-                << "[s" << state_id << "]_t1 "
-            << " rup "
-            << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
-            << " 1 phi_" << h_name << "[s" << state_id << "]_t1 "
-            << " >= 1 ; ";
-
+    prime_entry_lemma_spent
+        << "@entry_lemma_" << open_list->get_priority_evaluator_name()
+        << "[s" << state_id << "]_t1 "
+        << " rup "
+        << " 1 ~node[s" << state_id << "[ASCII44]" << "spent_geq_" << node.get_real_g() << "]_t1 "
+        << " 1 phi_" << h_name << "[s" << state_id << "]_t1 "
+        << " >= 1 ; ";
 }
 
 void EagerSearch::initialize() {
@@ -250,7 +249,6 @@ SearchStatus EagerSearch::step() {
     }
 
     for (OperatorID op_id : applicable_ops) {
-
         proof_log_node_action_invariant(op_id, *node, "EagerSearch::step part 2");
 
         OperatorProxy op = task_proxy.get_operators()[op_id];

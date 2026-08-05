@@ -65,7 +65,7 @@ public:
       operator.
     */
     const std::vector<FactPair> &get_specialized_preconditions() const {
-      return specialization_pairs;
+        return specialization_pairs;
     }
 
     /*

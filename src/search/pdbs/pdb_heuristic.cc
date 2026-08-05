@@ -25,23 +25,20 @@ PDBHeuristic::PDBHeuristic(
     const string &description, utils::Verbosity verbosity)
     : Heuristic(transform, cache_estimates, description, verbosity),
       pdb(get_pdb_from_generator(task, pattern)) {
-          utils::ProofLog::append_comment_to_proof_log("INITIALIZED PDB HEURISTIC");
+    utils::ProofLog::append_comment_to_proof_log("INITIALIZED PDB HEURISTIC");
 }
 
 void PDBHeuristic::certify_heuristic_pdb(int return_value, State s, string comment) {
+    s.unpack();
+    assert(s.get_id_int() >= 0);
+    for (int i = 0; i <= 1; ++i) {
+        // Bi-Reif phi(node,heuristic):
+        ostringstream reif_var, conj;
+        reif_var << "phi_" + get_description() + "[s" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
 
-        s.unpack();
-        assert( s.get_id_int() >= 0);
-        for (int i=0; i<=1 ; ++i){
-
-        // Bi-Reif phi(node,heuristic): 
-            ostringstream reif_var, conj;
-            reif_var << "phi_" + get_description() + "[s" << s.get_id_int() << "]" << (i ? "_t0" : "_t1");
-
-            conj << "rev_indu" << (i ? "_t0" : "_t1");
-            utils::ProofLog::bireif_conjunction(reif_var.str(), vector<std::string>({"~"+conj.str()}), comment);
-
-        }
+        conj << "rev_indu" << (i ? "_t0" : "_t1");
+        utils::ProofLog::bireif_conjunction(reif_var.str(), vector<std::string>({"~" + conj.str()}), comment);
+    }
 }
 
 

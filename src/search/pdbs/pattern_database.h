@@ -37,7 +37,7 @@ public:
     int get_multiplier(int pattern_position) const {
         return hash_multipliers[pattern_position];
     }
-    
+
     int get_domain_size(int pattern_position) const {
         return domain_sizes[pattern_position];
     }

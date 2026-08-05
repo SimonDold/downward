@@ -34,7 +34,7 @@ PatternInformation PatternGenerator::generate(
         log << "Generating pattern using: " << name() << endl;
     }
     utils::Timer timer;
-    PatternInformation pattern_info = compute_pattern(task); // 
+    PatternInformation pattern_info = compute_pattern(task); //
     dump_pattern_generation_statistics(
         name(),
         timer.stop(),
