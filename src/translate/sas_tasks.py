@@ -81,14 +81,14 @@ def frame_var(variable: int) -> str:
     return f"frame_var_{variable}"
 
 def frame_axiom(variable: int, value: int) -> Tuple[str, str]:
-    frame_axiom_pos = f" 1 {neg(frame_var(variable))}  1 {neg(maplet_name(variable, value))}  1 {prime_it(maplet_name(variable, value))}  >= 1 ;"
-    frame_axiom_neg = f" 1 {neg(frame_var(variable))}  1 {maplet_name(variable, value)}  1 {neg(prime_it(maplet_name(variable, value)))}  >= 1 ;"
+    frame_axiom_pos = f" 1 {neg(frame_var(variable))}  1 {neg(maplet_name(variable, value))}  1  {prime_it(maplet_name(variable, value))}  >= 1 ;"
+    frame_axiom_neg = f" 1 {neg(frame_var(variable))}  1  {maplet_name(variable, value)}  1 {neg(prime_it(maplet_name(variable, value)))}  >= 1 ;"
     return frame_axiom_pos, frame_axiom_neg
 
 def operator_implies_frame_axioms(operator_name: str, primary_list: List[int]) -> dict[int, str]:
     frame_axioms = dict()
     for var in primary_list:
-        frame_axioms[var] = f" 1 {neg(operator_name)}  1 {frame_var(var)}  >= 1 ;"
+        frame_axioms[var] = f" 1 {neg(operator_name)}  1  {frame_var(var)}  >= 1 ;"
     return frame_axioms
 
 def effect_name(operator_name: str, idx: int) -> str:
@@ -250,11 +250,11 @@ class SASTask:
             if not axiom_effect in behaviour_constraints:
                 behaviour_constraints[axiom_effect] = ["","", 0]
                 behaviour_prime_constraints[axiom_effect] = ["","", 0]
-            behaviour_constraints[axiom_effect] = [behaviour_constraints[axiom_effect][0]+f" 1 {axiom_name(axiom_id)} ",
+            behaviour_constraints[axiom_effect] = [behaviour_constraints[axiom_effect][0]+f" 1  {axiom_name(axiom_id)} ",
                                                     behaviour_constraints[axiom_effect][1]+f" 1 {neg(axiom_name(axiom_id))} ",
                                                     behaviour_constraints[axiom_effect][2]+1]
-            behaviour_prime_constraints[axiom_effect] = [behaviour_prime_constraints[axiom_effect][0]+f" 1 {axiom_name(axiom_id)} ",
-                                                    behaviour_prime_constraints[axiom_effect][1]+f" 1 {neg(axiom_name(axiom_id))} ",
+            behaviour_prime_constraints[axiom_effect] = [behaviour_prime_constraints[axiom_effect][0]+f" 1  {prime_it(axiom_name(axiom_id))} ",
+                                                    behaviour_prime_constraints[axiom_effect][1]+f" 1 {neg(prime_it(axiom_name(axiom_id)))} ",
                                                     behaviour_prime_constraints[axiom_effect][2]+1]
             return behaviour_constraints, behaviour_prime_constraints
 
@@ -376,9 +376,9 @@ class SASVariables:
     def proof_log_var_update(self, var: str, i: int, axiom_layer: int, x: Tuple[str,str,str,str,str]) -> Tuple[str,str,str,str,str]:
         (frame_axioms, var_domain_max_one, var_domain_min_one, var_prime_domain_max_one, var_prime_domain_min_one) = x
         var_domain_max_one += f"1 {neg(maplet_name(var,i))} "
-        var_domain_min_one += f"1 {maplet_name(var,i)} "
+        var_domain_min_one += f"1  {maplet_name(var,i)} "
         var_prime_domain_max_one += f"1 {neg(prime_it(maplet_name(var,i)))} "
-        var_prime_domain_min_one += f"1 {prime_it(maplet_name(var,i))} "
+        var_prime_domain_min_one += f"1  {prime_it(maplet_name(var,i))} "
         if axiom_layer == -1:
             frame_axiom_pos, frame_axiom_neg = frame_axiom(var,i)
             frame_axioms += frame_axiom_pos + "\n" + frame_axiom_neg + "\n"
