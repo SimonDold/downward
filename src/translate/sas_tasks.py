@@ -125,7 +125,7 @@ def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) ->
     delta_eq_lreif = f"1 {operator_cost_name(cost, '=')} 1 {neg(operator_cost_name(cost, '>='))} 1 {neg(operator_cost_name(cost, '<='))} >= 1 ;"
     bits = primary_variable_count + needed_bits(max_cost)
     # should we cap this to the number of bits FD could handle?
-    if bits > BIT_BOUNDERY: 
+    if bits > BIT_BOUNDERY:  #int in bits means highest bit, there are bits+1 many variables representing the number
         bits = BIT_BOUNDERY
     maxint = 2**(bits+1) - 1 
     delta_geq_rreif = ""
@@ -139,10 +139,11 @@ def get_delta_meanings(cost: int, primary_variable_count: int, max_cost: int) ->
         neg_normal += f" {2**bit} {neg(spent_bit_name(bit))} "
         pos_prime += f" {2**bit} {prime_it(spent_bit_name(bit))} "
         neg_prime += f" {2**bit} {neg(prime_it(spent_bit_name(bit)))} "
-    delta_geq_rreif = f" {2 * maxint - cost} {neg(operator_cost_name(cost, '>='))} " + pos_prime + neg_normal + f" >= {2 * maxint - cost} ;"
-    delta_geq_lreif = f" {cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {cost + 1} ;"
-    delta_leq_rreif = f" {2 * maxint - (maxint - cost)} {neg(operator_cost_name(cost, '<='))} " + neg_prime + pos_normal + f" >= {2 * maxint - (maxint - cost)} ;"
-    delta_leq_lreif = f" {maxint - cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint - cost + 1} ;"
+    #delta_geq_rreif = f" {2 * maxint - cost} {neg(operator_cost_name(cost, '>='))} " + pos_prime + neg_normal + f" >= {2 * maxint - cost} ;"
+    delta_geq_rreif = f" {maxint + cost} {neg(operator_cost_name(cost, '>='))} " + pos_prime + neg_normal + f" >= {maxint + cost} ;"
+    delta_geq_lreif = f" {maxint - cost + 1} {operator_cost_name(cost, '>=')} " + neg_prime + pos_normal + f" >= {maxint - cost + 1} ;"
+    delta_leq_rreif = f" {2 * maxint - maxint - cost} {neg(operator_cost_name(cost, '<='))} " + neg_prime + pos_normal + f" >= {2 * maxint - maxint - cost} ;"
+    delta_leq_lreif = f" {maxint + cost + 1} {operator_cost_name(cost, '<=')} " + pos_prime + neg_normal + f" >= {maxint + cost + 1} ;"
     return [delta_eq_rreif, delta_eq_lreif, delta_geq_rreif, delta_geq_lreif, delta_leq_rreif, delta_leq_lreif]
 
 
