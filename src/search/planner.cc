@@ -64,9 +64,11 @@ int main(int argc, const char **argv) {
         utils::g_log << "Verification time: " << verification_time << "s" << endl;
 
         if (res == -1 && exitcode == ExitCode::SUCCESS) {
+            cout << "Proof REJECTED." << endl;
             exitcode = ExitCode::PROOFLOG_NOT_ACCEPTED;
+        } else {
+            cout << "Proof accepted." << endl;
         }
-        cout << "Proof accepted." << endl;
         exit_with(exitcode);
     } catch (const utils::ExitException &e) {
         /* To ensure that all destructors are called before the program exits,
