@@ -12,6 +12,7 @@
 
 using namespace std;
 
+std::vector<std::string> TIME_SLICE_INDICATORS = {"_t0", "_t1"};
 
 int proof_log_var_count;
 int proof_log_max_cost_bits;
@@ -172,6 +173,15 @@ void ProofLog::append_to_invariant_prime_left(const string &summand) {
     file.close();
 }
 
+bool is_dynamic(string variable_name) {
+    return variable_name.ends_with("_t1") || variable_name.ends_with("_t0");
+}
+
+int time_slice_indicator_length() {
+    assert(TIME_SLICE_INDICATORS[0].length() == TIME_SLICE_INDICATORS[1].length());
+    return TIME_SLICE_INDICATORS[0].length();
+}
+
 void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, string comment = "bireif_vector_sum") {
     ProofLog::append_to_proof_log("\n% v " + comment, ProofPart::REIFICATION, comment);
 
@@ -185,9 +195,8 @@ void bireif_vector_sum(string reif_var, vector<string> vectors, int bound, strin
     for (string vector : vectors) {
         bool negative = vector[0] == '-';
         string vec_name_aux = (negative ? vector.substr(1, vector.length()) : vector);
-        bool is_dynamic = vec_name_aux.back() == ':' || vec_name_aux.back() == '.';
-        string postfix = (is_dynamic ? vec_name_aux.substr(vec_name_aux.length() - 1, vec_name_aux.length()) : "");
-        string vec_name = (is_dynamic ? vec_name_aux.substr(0, vec_name_aux.length() - 1) : vec_name_aux);
+        string postfix =  (is_dynamic(vec_name_aux) ? vec_name_aux.substr(vec_name_aux.length() - 3, vec_name_aux.length()) : "");
+        string vec_name = (is_dynamic(vec_name_aux) ? vec_name_aux.substr(0, vec_name_aux.length() - 3) : vec_name_aux);
         if (negative) {
             assert(bound + maxint >= bound);
             bound += maxint;

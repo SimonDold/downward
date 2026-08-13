@@ -64,6 +64,11 @@ def strips_name_to_veripb_name(strips_name: str) -> str:
                 veripb_name += char
         return veripb_name
 
+TIME_SLICE_INDICATORS = ["_t0", "_t1"]
+def time_slice_indicator_length():
+    assert(len(TIME_SLICE_INDICATORS[0]) == len(TIME_SLICE_INDICATORS[1]))
+    return len(TIME_SLICE_INDICATORS[0])
+
 def maplet_name(variable: int, value: int) -> str:
     return f"var_{variable}_{value}_t0"
 
@@ -71,8 +76,8 @@ def axiom_name(axiom_id: int) -> str:
     return f"axiom_{axiom_id}_t0"
 
 def prime_it(name: str) -> str:
-    assert(name[-3:] == "_t0")
-    return name[0:-3] + "_t1"
+    assert(name[-time_slice_indicator_length():] == "_t0")
+    return name[0:-time_slice_indicator_length()] + "_t1"
 
 def var_changes_name(variable: int) -> str:
     return f"change_var_{variable}"
